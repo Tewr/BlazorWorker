@@ -13,19 +13,21 @@ fetch('_framework/blazor.boot.json', {
         Module = {
             onRuntimeInitialized: function () {
                 MONO.mono_load_runtime_and_bcl(
-                    '_framework', //config.vfs_prefix,
+                    'app', //config.vfs_prefix,
                     '_framework/bin', //config.deploy_prefix,
-                    false, //config.enable_debugging
+                    true, //config.enable_debugging
                     response.assemblyReferences,
                     function () {
-                        App.init();
+                        const messageHandler = Module.mono_bind_static_method("[BlazorWorker] Worker.Instance.MessageHandler");
+                        self.onmessage = msg => {
+                            messageHandler(msg.data);
+                        };
                     }
                 );
             }
         };
 
         self.importScripts('_framework/wasm/mono.js');
-        self.postMessage(data);
     });
 }, function (error) {
     console.log(error);

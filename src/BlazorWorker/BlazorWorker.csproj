@@ -6,10 +6,12 @@
 
   <ItemGroup>
     <None Remove="BlazorWorker.js" />
+    <None Remove="Worker\Worker.js" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Blazor\BlazorWorker.js" />
+    <EmbeddedResource Include="Worker\Worker.js" />
   </ItemGroup>
 
   <ItemGroup>

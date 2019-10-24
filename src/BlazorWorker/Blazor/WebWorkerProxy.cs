@@ -30,7 +30,13 @@ namespace BlazorWorker.Blazor
 
         internal async Task InitAsync()
         {
+            // Todo : Load BlazorWorker.js from resources
             await this.jsRuntime.InvokeVoidAsync("BlazorWorker.initWorker", this.guid);
+        }
+
+        public async Task OnMessage(int id, string message)
+        {
+            Console.WriteLine($"id: {id} message: {message}");
         }
     }
 }
