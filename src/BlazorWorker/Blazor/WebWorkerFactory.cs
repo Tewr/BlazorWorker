@@ -14,7 +14,7 @@ namespace BlazorWorker.Blazor
             this.jsRuntime = jsRuntime;
         }
 
-        public async Task<IWebWorker> CreateAsync<T>() where T : class
+        public async Task<IWebWorkerProxy> CreateAsync()
         {
             var worker = new WebWorkerProxy(options, jsRuntime);
             await worker.InitAsync();

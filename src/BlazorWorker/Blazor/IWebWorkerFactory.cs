@@ -4,6 +4,6 @@ namespace BlazorWorker.Blazor
 {
     public interface IWebWorkerFactory
     {
-        Task<IWebWorker> CreateAsync<T>() where T : class;
+        Task<IWebWorkerProxy> CreateAsync();
     }
 }

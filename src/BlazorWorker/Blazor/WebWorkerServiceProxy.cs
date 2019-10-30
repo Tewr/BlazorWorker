@@ -28,13 +28,16 @@ namespace BlazorWorker.Blazor
 
         public async Task InitAsync()
         {
-            await jsRuntime.InvokeVoidAsync("BlazorWorker.initInstance", 
-                new InitInstanceParams() { 
-                    WorkerId = this.workerGuid, 
-                    InstanceId = guid,
-                    AssemblyName = typeof(T).Assembly.FullName,
-                    TypeName = typeof(T).FullName
-                });
+            
+            await jsRuntime.InvokeVoidAsync("BlazorWorker.postMessage",
+                this.workerGuid,
+                this.options.Serializer.Serialize(
+                    new InitInstanceParams() { 
+                        WorkerId = this.workerGuid, 
+                        InstanceId = guid,
+                        AssemblyName = typeof(T).Assembly.FullName,
+                        TypeName = typeof(T).FullName
+                    }));
         }
 
         public async Task InvokeVoidAsync(Expression<Action<T>> action)
@@ -46,9 +49,13 @@ namespace BlazorWorker.Blazor
 
         public async Task<TResult> InvokeAsync<TResult>(Expression<Func<T, TResult>> action)
         {
-            var methodCall = GetCall(action);
+           var methodCall = GetCall(action);
 
-            return await jsRuntime.InvokeAsync<TResult>("BlazorWorker.methodCall", methodCall);
+           return await jsRuntime.InvokeAsync<TResult>("BlazorWorker.postMessage",
+                this.workerGuid,
+                methodCall);
+
+            //return await jsRuntime.InvokeAsync<TResult>("BlazorWorker.methodCall", methodCall);
         }
 
         private string GetCall(Expression action)

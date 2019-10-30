@@ -1,7 +1,20 @@
 ﻿@page "/"
+@inject IJSRuntime jsRuntime
 
 <h1>Hello, world!</h1>
 
 Welcome to your new app.
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+<button @onclick="OnClick" >New Task!</button>
+
+@code {
+
+    public async Task OnClick(EventArgs _)
+    {
+        var workerFactory = new Blazor.WebWorkerFactory(jsRuntime);
+        
+        var worker = await workerFactory.CreateAsync();
+        
+        var p = await worker.CreateInstanceAsync<Blazor.WebWorkerProxy>();
+    }
+}

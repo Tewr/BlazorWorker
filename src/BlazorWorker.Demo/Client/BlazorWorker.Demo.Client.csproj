@@ -14,6 +14,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Blazor.DevServer" Version="3.0.0-preview9.19465.2" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\BlazorWorker\BlazorWorker.csproj" />
     <ProjectReference Include="..\Shared\BlazorWorker.Demo.Shared.csproj" />
   </ItemGroup>
 
