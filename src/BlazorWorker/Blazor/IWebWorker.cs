@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace BlazorWorker.Blazor
+namespace BlazorWorker.Core
 {
     public interface IWebWorkerProxy : IDisposable
     {
-        Task<IWorkerService<T>> CreateInstanceAsync<T>() where T : class;
+        //Task<IWorkerService<T>> CreateInstanceAsync<T>() where T : class;
+
+        int Identifier { get; }
     }
 }

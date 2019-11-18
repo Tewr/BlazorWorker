@@ -5,7 +5,14 @@
     <OutputType>Exe</OutputType>
     <LangVersion>7.3</LangVersion>
     <RazorLangVersion>3.0</RazorLangVersion>
+    <BlazorLinkOnBuild>false</BlazorLinkOnBuild>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\WebAssembly.Bindings.0.2.2.0.dll">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Blazor" Version="3.0.0-preview9.19465.2" />
@@ -13,9 +20,9 @@
     <PackageReference Include="Microsoft.AspNetCore.Blazor.HttpClient" Version="3.0.0-preview9.19465.2" />
     <PackageReference Include="Microsoft.AspNetCore.Blazor.DevServer" Version="3.0.0-preview9.19465.2" PrivateAssets="all" />
   </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\..\BlazorWorker\BlazorWorker.csproj" />
-    <ProjectReference Include="..\Shared\BlazorWorker.Demo.Shared.csproj" />
+    <ProjectReference Include="..\..\BlazorWorker\BlazorWorker.Core.csproj" />
   </ItemGroup>
 
 </Project>

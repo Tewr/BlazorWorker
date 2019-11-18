@@ -1,22 +1,22 @@
 ﻿using Microsoft.JSInterop;
 using System.Threading.Tasks;
 
-namespace BlazorWorker.Blazor
+namespace BlazorWorker.Core
 {
     public class WebWorkerFactory : IWebWorkerFactory
     {
         private readonly IJSRuntime jsRuntime;
-        private readonly WebWorkerOptions options;
+        //private readonly WebWorkerOptions options;
 
         public WebWorkerFactory(IJSRuntime jsRuntime)
         {
-            this.options = new WebWorkerOptions();
+            //this.options = new WebWorkerOptions();
             this.jsRuntime = jsRuntime;
         }
 
         public async Task<IWebWorkerProxy> CreateAsync()
         {
-            var worker = new WebWorkerProxy(options, jsRuntime);
+            var worker = new WebWorkerProxy(jsRuntime);
             await worker.InitAsync();
             return worker;
         }

@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace BlazorWorker.Blazor
+namespace BlazorWorker.Core
 {
     public interface IWebWorkerFactory
     {

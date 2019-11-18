@@ -5,28 +5,34 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace BlazorWorker.Blazor
+namespace BlazorWorker.Core
 {
     public class WebWorkerProxy : IWebWorkerProxy
     {
         private static readonly IReadOnlyDictionary<string, string> escapeScriptTextReplacements =
             new Dictionary<string, string> { { @"\", @"\\" }, { "\r", @"\r" }, { "\n", @"\n" }, { "'", @"\'" }, { "\"", @"\""" } };
-        private readonly WebWorkerOptions options;
         private readonly IJSRuntime jsRuntime;
         private readonly string guid = Guid.NewGuid().ToString("n");
+        private static object idSourceLock = new object();
+        private static int idSource;
+        private readonly int id;
 
-        public WebWorkerProxy(WebWorkerOptions options, IJSRuntime jsRuntime)
+
+        public WebWorkerProxy(IJSRuntime jsRuntime)
         {
-            this.options = options;
             this.jsRuntime = jsRuntime;
+            lock (idSourceLock)
+            {
+                this.id = ++idSource;
+            }
         }
 
-        public async Task<IWorkerService<T>> CreateInstanceAsync<T>() where T : class
+        /*public async Task<IWorkerService<T>> CreateInstanceAsync<T>() where T : class
         {
             var workerService = new WebWorkerServiceProxy<T>(this.guid, options, jsRuntime);
             await workerService.InitAsync();
             return workerService;
-        }
+        }*/
 
         public void Dispose()
         {
@@ -37,13 +43,16 @@ namespace BlazorWorker.Blazor
         {
             await InitScript();
             // Todo : Load BlazorWorker.js from resources
-            await this.jsRuntime.InvokeVoidAsync("BlazorWorker.initWorker", this.guid);
+            await this.jsRuntime.InvokeVoidAsync("BlazorWorker.initWorker", this.guid, DotNetObjectReference.Create(this), new { testParam = 1 });
         }
 
-        public async Task OnMessage(int id, string message)
+        [JSInvokable]
+        public async Task OnMessage(string message)
         {
-            Console.WriteLine($"id: {id} message: {message}");
+            Console.WriteLine($"{nameof(WebWorkerProxy)}.OnMessage - message: {message}");
         }
+
+        public int Identifier => id;
 
         public async Task InitScript()
         {
@@ -72,7 +81,7 @@ namespace BlazorWorker.Blazor
                 // Fail after 3s not to block and hide any other possible error
                 if (loaderLoopBreaker > 25)
                 {
-                    throw new InvalidOperationException("Unable to initialize FileReaderComponent script");
+                    throw new InvalidOperationException("Unable to initialize BlazorWorker.js");
                 }
             }
         }

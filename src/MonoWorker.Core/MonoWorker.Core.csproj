@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Lib\WebAssembly.Bindings.0.2.2.0.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Lib\WebAssembly.Bindings.0.2.2.0.dll">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="WebAssembly.Bindings">
+      <HintPath>Lib\WebAssembly.Bindings.0.2.2.0.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

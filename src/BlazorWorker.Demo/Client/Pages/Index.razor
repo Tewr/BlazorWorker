@@ -11,10 +11,10 @@ Welcome to your new app.
 
     public async Task OnClick(EventArgs _)
     {
-        var workerFactory = new Blazor.WebWorkerFactory(jsRuntime);
+        var workerFactory = new BlazorWorker.Core.WebWorkerFactory(jsRuntime);
         
         var worker = await workerFactory.CreateAsync();
         
-        var p = await worker.CreateInstanceAsync<Blazor.WebWorkerProxy>();
+        //var p = await worker.CreateInstanceAsync<Blazor.WebWorkerProxy>();
     }
 }
