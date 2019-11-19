@@ -18,6 +18,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MonoWorker.Core\MonoWorker.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="Lib\WebAssembly.Bindings.0.2.2.0.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

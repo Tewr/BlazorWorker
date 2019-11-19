@@ -33,7 +33,7 @@
             //"Microsoft.Extensions.Primitives.dll",
             //"Microsoft.JSInterop.dll",
             //"Mono.Security.dll",
-            "Mono.WebAssembly.Interop.dll",
+            // "Mono.WebAssembly.Interop.dll",
             "netstandard.dll",
             "mscorlib.dll",
             //"Newtonsoft.Json.dll",
@@ -63,7 +63,8 @@
         ];
 
         const assemblyRedirectByFilename = {
-            "WebAssembly.Bindings.dll": `${appRoot}/WebAssembly.Bindings.0.2.2.0.dll`
+            "WebAssembly.Bindings.dll": `${appRoot}/WebAssembly.Bindings.0.2.2.0.dll`,
+           // "MonoWorker.Core.dll": `${appRoot}/MonoWorker.Core.dll`
         };
 
         var config = {};
@@ -90,7 +91,7 @@
                             //response.assemblyReferences,
                             function () {
                                 console.debug("mono loaded.");
-                                const messageHandler = Module.mono_bind_static_method("[BlazorWorker]BlazorWorker.Worker.Worker:OnMessage");
+                                const messageHandler = Module.mono_bind_static_method("[MonoWorker.Core]MonoWorker.Core.MessageService:OnMessage");
                                 // Future messages goes directly to the message handler
                                 self.onmessage = msg => {
                                     messageHandler(msg.data);
@@ -148,7 +149,7 @@
             if (first) {
                 first = false;
                 console.debug("sending initOptions message", initOptions);
-                worker.postMessage(initOptions, initOptions);
+                worker.postMessage(JSON.stringify(initOptions));
             }
         };
 

@@ -1,12 +1,15 @@
 ﻿using Microsoft.JSInterop;
+using MonoWorker.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace BlazorWorker.Core
 {
+    [DependencyHint(typeof(MessageService))]
     public class WebWorkerProxy : IWebWorkerProxy
     {
         private static readonly IReadOnlyDictionary<string, string> escapeScriptTextReplacements =
@@ -62,7 +65,7 @@ namespace BlazorWorker.Core
             }
 
             string scriptContent;
-            var stream = this.GetType().Assembly.GetManifestResourceStream("BlazorWorker.Blazor.BlazorWorker.js");
+            var stream = this.GetType().Assembly.GetManifestResourceStream("BlazorWorker.Core.Blazor.BlazorWorker.js");
             using (stream)
             {
                 using (var streamReader = new StreamReader(stream))

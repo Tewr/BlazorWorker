@@ -3,7 +3,7 @@
 namespace MonoWorker.Core
 {
     /// <summary>
-    /// Entry class
+    /// Simple static message service that runs in the worker thread. Entry and exit point for all calls.
     /// </summary>
     public class MessageService
     {
