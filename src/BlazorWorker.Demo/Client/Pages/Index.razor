@@ -13,7 +13,7 @@ Welcome to your new app.
     {
         var workerFactory = new BlazorWorker.Core.WebWorkerFactory(jsRuntime);
         
-        var worker = await workerFactory.CreateAsync();
+        var worker = await workerFactory.CreateAsync(new BlazorWorker.Core.InitOptions());
         
         //var p = await worker.CreateInstanceAsync<Blazor.WebWorkerProxy>();
     }

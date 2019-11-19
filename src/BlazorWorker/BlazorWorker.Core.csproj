@@ -5,11 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="BlazorWorker.js" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Blazor\BlazorWorker.js" />
+    <EmbeddedResource Include="BlazorWorker.js" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,12 +15,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MonoWorker.Core\MonoWorker.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Lib\WebAssembly.Bindings.0.2.2.0.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>

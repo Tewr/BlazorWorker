@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-
+using Map = System.Collections.Generic.Dictionary<string, string>;
 namespace BlazorWorker.Core
 {
     [DependencyHint(typeof(MessageService))]
@@ -15,18 +15,25 @@ namespace BlazorWorker.Core
         private static readonly IReadOnlyDictionary<string, string> escapeScriptTextReplacements =
             new Dictionary<string, string> { { @"\", @"\\" }, { "\r", @"\r" }, { "\n", @"\n" }, { "'", @"\'" }, { "\"", @"\""" } };
         private readonly IJSRuntime jsRuntime;
-        private readonly string guid = Guid.NewGuid().ToString("n");
-        private static object idSourceLock = new object();
-        private static int idSource;
-        private readonly int id;
+        
+        private static readonly object idSourceLock = new object();
+        private static long idSource;
+        private static readonly string messageMethod;
 
+        public event EventHandler<string> IncomingMessage;
+
+        static WebWorkerProxy()
+        {
+            var messageServiceType = typeof(MessageService);
+            messageMethod = $"[{messageServiceType.Assembly.GetName().Name}]{messageServiceType.FullName}:{nameof(MessageService.OnMessage)}";
+        }
 
         public WebWorkerProxy(IJSRuntime jsRuntime)
         {
             this.jsRuntime = jsRuntime;
             lock (idSourceLock)
             {
-                this.id = ++idSource;
+                this.Identifier = ++idSource;
             }
         }
 
@@ -39,23 +46,44 @@ namespace BlazorWorker.Core
 
         public void Dispose()
         {
-            this.jsRuntime.InvokeVoidAsync("BlazorWorker.disposeWorker", this.guid);
+            this.jsRuntime.InvokeVoidAsync("BlazorWorker.disposeWorker", this.Identifier);
         }
 
-        public async Task InitAsync()
+        public async Task InitAsync(InitOptions initOptions)
         {
             await InitScript();
-            // Todo : Load BlazorWorker.js from resources
-            await this.jsRuntime.InvokeVoidAsync("BlazorWorker.initWorker", this.guid, DotNetObjectReference.Create(this), new { testParam = 1 });
+            await this.jsRuntime.InvokeVoidAsync(
+                "BlazorWorker.initWorker", 
+                this.Identifier, 
+                DotNetObjectReference.Create(this), 
+                new InitOptions {
+                    staticAssemblyRefs = 
+                        new[] { 
+                            "MonoWorker.Core.dll", 
+                            "netstandard.dll", 
+                            "mscorlib.dll",
+                            "WebAssembly.Bindings.dll" },
+
+                    // Hack that works around that documented init procedure of the version of mono.js
+                    // delivered with blazor is incompatible with WebAssembly.Bindings 1.0.0.0
+                    assemblyRedirectByFilename = new Map { {
+                            "WebAssembly.Bindings.dll", "$appRoot$/WebAssembly.Bindings.0.2.2.0.dll"
+                    } },
+                    callbackMethod = nameof(OnMessage),
+                    messageEndPoint = messageMethod //"[MonoWorker.Core]MonoWorker.Core.MessageService:OnMessage"
+               }.MergeWith(initOptions));
         }
 
-        [JSInvokable]
+        
+
+       [JSInvokable]
         public async Task OnMessage(string message)
         {
+            IncomingMessage?.Invoke(this, message);
             Console.WriteLine($"{nameof(WebWorkerProxy)}.OnMessage - message: {message}");
         }
 
-        public int Identifier => id;
+        public long Identifier { get; }
 
         public async Task InitScript()
         {
@@ -65,7 +93,7 @@ namespace BlazorWorker.Core
             }
 
             string scriptContent;
-            var stream = this.GetType().Assembly.GetManifestResourceStream("BlazorWorker.Core.Blazor.BlazorWorker.js");
+            var stream = this.GetType().Assembly.GetManifestResourceStream("BlazorWorker.Core.BlazorWorker.js");
             using (stream)
             {
                 using (var streamReader = new StreamReader(stream))

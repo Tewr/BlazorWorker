@@ -7,6 +7,10 @@ namespace BlazorWorker.Core
     {
         //Task<IWorkerService<T>> CreateInstanceAsync<T>() where T : class;
 
-        int Identifier { get; }
+        long Identifier { get; }
+
+        Task InitAsync(InitOptions initOptions);
+
+        event EventHandler<string> IncomingMessage;
     }
 }

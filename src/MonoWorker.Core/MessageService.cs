@@ -3,16 +3,19 @@
 namespace MonoWorker.Core
 {
     /// <summary>
-    /// Simple static message service that runs in the worker thread. Entry and exit point for all calls.
+    /// Simple static message service that runs in the worker thread.
     /// </summary>
     public class MessageService
     {
         //public static readonly WorkerInstanceManager Instance = new WorkerInstanceManager();
         private static readonly DOMObject self = new DOMObject("self");
 
+        public static event EventHandler<string> Message;
+
         // todo: this string could/(should?) be a byte
         public static void OnMessage(string message)
         {
+            Message?.Invoke(null, message);
             Console.WriteLine($"Worker.MessageHandler: {message}");
             SendMessage($"Worker.MessageHandler: ECHO {message}");
         }

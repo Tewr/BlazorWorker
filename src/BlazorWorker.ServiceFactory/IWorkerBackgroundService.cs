@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 
 namespace BlazorWorker.BackgroundServiceFactory
 {
-    public interface IWorkerService<T> where T : class
+    public interface IWorkerBackgroundService<T> where T : class
     {
-        Task<TResult> InvokeAsync<TResult>(Expression<Func<T, TResult>> action);
+        Task<TResult> InvokeAsync<TResult>(Expression<Func<T, TResult>> function);
         Task InvokeVoidAsync(Expression<Action<T>> action);
     }
 }

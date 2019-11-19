@@ -8,21 +8,20 @@ using Serialize.Linq.Extensions;
 
 namespace BlazorWorker.BackgroundServiceFactory
 {
-    public class WebWorkerServiceProxy<T> : IWorkerService<T> where T : class
+    public class IWorkerBackgroundServiceProxy<T> : IWorkerBackgroundService<T> where T : class
     {
-        private readonly string workerGuid;
+        private readonly long workerIdentifier;
         private readonly WebWorkerOptions options;
         private readonly IJSRuntime jsRuntime;
         
         private string guid = Guid.NewGuid().ToString("n");
 
-
-        public WebWorkerServiceProxy(
-            string workerGuid,
+        public IWorkerBackgroundServiceProxy(
+            long workerIdentifier,
             WebWorkerOptions options, 
             IJSRuntime jsRuntune)
         {
-            this.workerGuid = workerGuid;
+            this.workerIdentifier = workerIdentifier;
             this.options = options;
             this.jsRuntime = jsRuntune;
         }
@@ -32,14 +31,14 @@ namespace BlazorWorker.BackgroundServiceFactory
             var message = this.options.Serializer.Serialize(
                     new InitInstanceParams()
                     {
-                        WorkerId = this.workerGuid,
+                        WorkerId = this.workerIdentifier,
                         InstanceId = guid,
                         AssemblyName = typeof(T).Assembly.FullName,
                         TypeName = typeof(T).FullName
                     });
-            Console.WriteLine($"{nameof(WebWorkerServiceProxy<T>)}.InitAsync(): {this.workerGuid} {message}");
+            Console.WriteLine($"{nameof(IWorkerBackgroundServiceProxy<T>)}.InitAsync(): {this.workerIdentifier} {message}");
             await jsRuntime.InvokeVoidAsync("BlazorWorker.postMessage",
-                this.workerGuid,
+                this.workerIdentifier,
                 message);
         }
 
