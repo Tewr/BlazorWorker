@@ -5,8 +5,8 @@ namespace BlazorWorker.BackgroundServiceFactory
 {
     public interface IWorkerBackgroundServiceFactory
     {
-        Task<IWebWorkerProxy> CreateWebworker();
+        Task<IWorker> CreateWebworkerAsync();
 
-        Task<IWorkerBackgroundService<T>> CreateBackgroundService<T>() where T : class;
+        //Task<IWorkerBackgroundService<T>> CreateBackgroundServiceAsync<T>(IWorker webWorkerProxy) where T : class;
     }
 }

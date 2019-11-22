@@ -6,7 +6,9 @@ namespace BlazorWorker.BackgroundServiceFactory
 {
     public interface IWorkerBackgroundService<T> where T : class
     {
-        Task<TResult> InvokeAsync<TResult>(Expression<Func<T, TResult>> function);
-        Task InvokeVoidAsync(Expression<Action<T>> action);
+        Task<TResult> RunAsync<TResult>(Expression<Func<T, TResult>> function);
+        Task RunAsync(Expression<Action<T>> action);
+
+        bool IsInitialized { get; }
     }
 }

@@ -1,4 +1,6 @@
-﻿using BlazorWorker.BackgroundServiceFactory.Shared;
+﻿using BlazorWorker.BackgroundServiceFactory;
+using BlazorWorker.BackgroundServiceFactory.Shared;
+using MonoWorker.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -8,7 +10,35 @@ namespace MonoWorker.BackgroundServiceHost
 {
     public class WorkerInstanceManager : IWorkerInstance
     {
-        public readonly Dictionary<string, object> instances = new Dictionary<string, object>();
+        public readonly Dictionary<long, object> instances = new Dictionary<long, object>();
+
+        public static readonly WorkerInstanceManager Instance = new WorkerInstanceManager();
+        private readonly ISerializer serializer;
+
+        public WorkerInstanceManager()
+        {
+            this.serializer = new DefaultSerializer();
+        }
+
+        public static void Init() {
+            MessageService.Message += Instance.OnMessage;
+        }
+
+        public void PostMessage(string message)
+        {
+            MessageService.PostMessage(message);
+        }
+
+        private void OnMessage(object sender, string message)
+        {
+            // TODO: deserialize messagre
+            var baseMessage = this.serializer.Deserialize<BaseMessage>(message);
+            if (baseMessage.MessageType == nameof(InitInstanceParams))
+            {
+                var initMessage = this.serializer.Deserialize<InitInstanceParams>(message);
+
+            }
+        }
 
         public void InitInstance(InitInstanceParams createInstanceInfo)
         {
@@ -27,7 +57,7 @@ namespace MonoWorker.BackgroundServiceHost
             instances[createInstanceInfo.InstanceId] = Activator.CreateInstance(type);
         }
 
-        internal object Call(InstanceMethodCallParams instanceMethodCallParams)
+        internal object Call(MethodCallParams instanceMethodCallParams)
         {
             var instance = instances[instanceMethodCallParams.InstanceId];
             var lambda = instanceMethodCallParams.MethodCall.ToExpression() as LambdaExpression;

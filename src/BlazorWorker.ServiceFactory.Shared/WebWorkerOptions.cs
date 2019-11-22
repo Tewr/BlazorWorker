@@ -1,4 +1,4 @@
-﻿namespace BlazorWorker.BackgroundServiceFactory
+﻿namespace BlazorWorker.BackgroundServiceFactory.Shared
 {
     public class WebWorkerOptions
     {

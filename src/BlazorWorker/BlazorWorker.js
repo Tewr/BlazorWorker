@@ -13,7 +13,7 @@
     const workerDef = function () {
 
         const initConf = JSON.parse('$initConf$');
-        console.debug("BlazorWorker.js:18:workerDef - initConf", initConf);
+        console.debug("BlazorWorker.js:16:workerDef - initConf", initConf);
         var config = {};
         var Module = {};
         config.file_list = [];
@@ -35,11 +35,17 @@
                         // Future messages goes directly to the message handler
                         self.onmessage = msg => {
                             messageHandler(msg.data);
-                        };
+                        };  
 
                         // Treat the first message immediately 
                         // TODO: Remove, replace with postmessage(initDoneMessage)
-                        messageHandler('INIT MESSAGE REMOVE ME');
+                        //messageHandler('INIT MESSAGE REMOVE ME');
+                        try {
+                            Module.mono_call_static_method(initConf.initEndPoint);
+                            self.postMessage(JSON.stringify({ MessageType: "InitInstanceComplete" }));
+                        } catch (e) {
+                            console.error(`Init method ${initConf.initEndPoint} failed`, e);
+                        }
                     }
                 );
             },
@@ -69,13 +75,13 @@
             appRoot = appRoot.substr(0, appRoot.length - 1);
         }
 
-        // TODO: move this or parts of this to dot-net land
         const initConf = {
             appRoot: appRoot,
             staticAssemblyRefs: initOptions.staticAssemblyRefs,
             assemblyRedirectByFilename: initOptions.assemblyRedirectByFilename,
             deploy_prefix: "_framework/_bin",
             messageEndPoint: initOptions.messageEndPoint,
+            initEndPoint: initOptions.initEndPoint,
             wasmRoot: "_framework/wasm"
         };
         // Initialize worker
@@ -88,11 +94,11 @@
 
         // Setup callback message 
         // Initialize worker
-        var first = true;
+        let first = true;
         worker.onmessage = function (ev) {
-            const message = JSON.stringify({ id, data: ev.data });
-            console.debug(`BlazorWorker.js:95: ${message}`);
-            callbackInstance.invokeMethod(initOptions.callbackMethod, message);
+            //const message = JSON.stringify({ id, data: ev.data });
+            console.debug(`BlazorWorker.js:99: ${ev.data}`);
+            callbackInstance.invokeMethod(initOptions.callbackMethod, ev.data);
             if (first) {
                 first = false;
                 console.debug("sending initOptions message", renderedConfig);
@@ -102,7 +108,7 @@
     };
 
     const postMessage = function (workerId, message) {
-        console.debug('window : postMessage', workerId, message);
+        console.debug('window:postMessage', workerId, message);
         workers[workerId].postMessage(message);
     };
 
