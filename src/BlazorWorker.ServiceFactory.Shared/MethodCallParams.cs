@@ -10,7 +10,7 @@ namespace BlazorWorker.BackgroundServiceFactory.Shared
         }
 
         public long InstanceId { get; set; }
-        public ExpressionNode MethodCall { get; set; }
+        public string SerializedExpression { get; set; }
         public long WorkerId { get; set; }
         public long CallId { get; set; }
     }

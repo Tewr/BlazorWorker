@@ -13,7 +13,7 @@
 
         public System.Exception Exception { get; set; }
 
-        public ulong CallId { get; set; }
+        public long CallId { get; set; }
     }
 
     public class InitInstanceParamsResult : MethodCallResult

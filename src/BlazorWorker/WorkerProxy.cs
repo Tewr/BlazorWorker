@@ -56,20 +56,21 @@ namespace BlazorWorker.Core
                 this.Identifier, 
                 DotNetObjectReference.Create(this), 
                 new WorkerInitOptions {
-                    staticAssemblyRefs = 
+                    DependentAssemblyFilenames = 
                         new[] { 
                             "MonoWorker.Core.dll", 
-                            "netstandard.dll", 
+                            "netstandard.dll",
+                            
                             "mscorlib.dll",
                             "WebAssembly.Bindings.dll" },
 
                     // Hack that works around that documented init procedure of the version of mono.js
                     // delivered with blazor is incompatible with WebAssembly.Bindings 1.0.0.0
-                    assemblyRedirectByFilename = new Map { {
+                    DependentAssemblyCustomPathMap = new Map { {
                             "WebAssembly.Bindings.dll", "$appRoot$/WebAssembly.Bindings.0.2.2.0.dll"
                     } },
-                    callbackMethod = nameof(OnMessage),
-                    messageEndPoint = messageMethod //"[MonoWorker.Core]MonoWorker.Core.MessageService:OnMessage"
+                    CallbackMethod = nameof(OnMessage),
+                    MessageEndPoint = messageMethod //"[MonoWorker.Core]MonoWorker.Core.MessageService:OnMessage"
                }.MergeWith(initOptions));
         }
 
@@ -77,12 +78,11 @@ namespace BlazorWorker.Core
         public async Task OnMessage(string message)
         {
             IncomingMessage?.Invoke(this, message);
-            Console.WriteLine($"{nameof(WorkerProxy)}.OnMessage - message: {message}");
         }
 
         public async Task PostMessageAsync(string message)
         {
-            await jsRuntime.InvokeVoidAsync("BlazorWorker.postMessage", message);
+            await jsRuntime.InvokeVoidAsync("BlazorWorker.postMessage", this.Identifier, message);
         }
 
         public long Identifier { get; }

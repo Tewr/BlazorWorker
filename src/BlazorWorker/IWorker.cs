@@ -3,16 +3,13 @@ using System.Threading.Tasks;
 
 namespace BlazorWorker.Core
 {
-    public interface IWorker : IDisposable
+
+    public interface IWorker : IWorkerMessageService, IDisposable
     {
         bool IsInitialized { get; }
         
         long Identifier { get; }
 
         Task InitAsync(WorkerInitOptions initOptions);
-
-        event EventHandler<string> IncomingMessage;
-
-        Task PostMessageAsync(string message);
     }
 }

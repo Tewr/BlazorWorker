@@ -27,11 +27,11 @@
                     'app', //config.vfs_prefix,
                     `${initConf.appRoot}/${initConf.deploy_prefix}`, //config.deploy_prefix,
                     true, //config.enable_debugging
-                    initConf.staticAssemblyRefs,
+                    initConf.DependentAssemblyFilenames,
                     function () {
                         console.debug("mono loaded.");
                         const messageHandler =
-                            Module.mono_bind_static_method(initConf.messageEndPoint);
+                            Module.mono_bind_static_method(initConf.MessageEndPoint);
                         // Future messages goes directly to the message handler
                         self.onmessage = msg => {
                             messageHandler(msg.data);
@@ -41,10 +41,11 @@
                         // TODO: Remove, replace with postmessage(initDoneMessage)
                         //messageHandler('INIT MESSAGE REMOVE ME');
                         try {
-                            Module.mono_call_static_method(initConf.initEndPoint);
-                            self.postMessage(JSON.stringify({ MessageType: "InitInstanceComplete" }));
+                            Module.mono_bind_static_method(initConf.InitEndPoint)(
+                            //Module.mono_call_static_method(initConf.InitEndPoint, []);
                         } catch (e) {
-                            console.error(`Init method ${initConf.initEndPoint} failed`, e);
+                            console.error(`Init method ${initConf.InitEndPoint} failed`, e);
+                            throw e;
                         }
                     }
                 );
@@ -52,8 +53,8 @@
             locateFile: function (path, scriptDirectory) {
                 const fileParts = (path || '').split("/");
                 const fileName = fileParts[fileParts.length - 1];
-                if (initConf.assemblyRedirectByFilename[fileName]) {
-                    return initConf.assemblyRedirectByFilename[fileName];
+                if (initConf.DependentAssemblyCustomPathMap[fileName]) {
+                    return initConf.DependentAssemblyCustomPathMap[fileName];
                 }
                 if (path.startsWith(initConf.appRoot)) {
                     return path;
@@ -70,6 +71,7 @@
     const inlineWorker = `self.onmessage = ${workerDef}()`; 
 
     const initWorker = function (id, callbackInstance, initOptions) {
+        console.debug("initWorker", id, callbackInstance, initOptions);
         let appRoot = (document.getElementsByTagName('base')[0] || { href: window.location.origin }).href || "";
         if (appRoot.endsWith("/")) {
             appRoot = appRoot.substr(0, appRoot.length - 1);
@@ -77,11 +79,11 @@
 
         const initConf = {
             appRoot: appRoot,
-            staticAssemblyRefs: initOptions.staticAssemblyRefs,
-            assemblyRedirectByFilename: initOptions.assemblyRedirectByFilename,
+            DependentAssemblyFilenames: initOptions.dependentAssemblyFilenames,
+            DependentAssemblyCustomPathMap: initOptions.dependentAssemblyCustomPathMap,
             deploy_prefix: "_framework/_bin",
-            messageEndPoint: initOptions.messageEndPoint,
-            initEndPoint: initOptions.initEndPoint,
+            MessageEndPoint: initOptions.messageEndPoint,
+            InitEndPoint: initOptions.initEndPoint,
             wasmRoot: "_framework/wasm"
         };
         // Initialize worker
@@ -92,23 +94,15 @@
         const worker = new Worker(URL.createObjectURL(blob));
         workers[id] = worker;
 
-        // Setup callback message 
-        // Initialize worker
-        let first = true;
         worker.onmessage = function (ev) {
             //const message = JSON.stringify({ id, data: ev.data });
-            console.debug(`BlazorWorker.js:99: ${ev.data}`);
+            console.debug(`BlazorWorker.js:worker->blazor`, initOptions.callbackMethod, ev.data);
             callbackInstance.invokeMethod(initOptions.callbackMethod, ev.data);
-            if (first) {
-                first = false;
-                console.debug("sending initOptions message", renderedConfig);
-                worker.postMessage(renderedConfig);
-            }
         };
     };
 
     const postMessage = function (workerId, message) {
-        console.debug('window:postMessage', workerId, message);
+        console.debug('window:postMessage', message);
         workers[workerId].postMessage(message);
     };
 

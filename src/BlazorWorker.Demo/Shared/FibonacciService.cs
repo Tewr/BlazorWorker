@@ -6,15 +6,27 @@ namespace BlazorWorker.Demo.Shared
 {
     public class FibonacciService
     {
+        public event EventHandler<long> Fibbo;
+
         public long Fibonacci(long forValue)
         {
-            var result = 1;
-            for (int i = 1; i <= forValue; i++)
+            if (forValue == 0L)
             {
-                result *= i;
+                Fibbo?.Invoke(this, forValue);
+                return forValue;
             }
 
-            return result;
+            var last = 0L;
+            var sum = 1L;
+            for (var i = 0L; i < forValue - 1L; i++)
+            {
+                var curr = last;
+                last = sum;
+                sum += curr;
+                Fibbo?.Invoke(this, curr);
+            }
+
+            return sum;
         }
     }
 }

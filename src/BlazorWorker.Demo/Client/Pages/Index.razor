@@ -2,39 +2,57 @@
 @inject IJSRuntime jsRuntime
 @using BlazorWorker.BackgroundServiceFactory
 @using BlazorWorker.Demo.Shared
+@using BlazorWorker.Core
 
 <h1>Hello, world!</h1>
 
-Welcome to your new app.
+Welcome to your new multithreaded app.
 
-<button @onclick="OnClick">New Task!</button>
 <br/>
+<input type="text" @bind="fiboNumber" placeholder="fibonacci number" />
+<button @onclick="OnClick">Fibonacci in a new thread</button>
+<br />
 <br />
 Output:
 <br />
 <pre>
-    @output
+@output
 </pre>
 @code {
+    long fiboNumber;
     string output;
     IWorkerBackgroundService<FibonacciService> backgroundService;
 
     public async Task OnClick(EventArgs _)
     {
+        var rn = Environment.NewLine;
         try
         {
             if (backgroundService == null)
             {
+                output = "Creating background service...";
+                StateHasChanged();
                 var workerFactory = new BlazorWorker.Core.WorkerProxy(jsRuntime);
 
-                backgroundService = await workerFactory.CreateBackgroundServiceAsync<FibonacciService>();
+                backgroundService = await workerFactory.CreateBackgroundServiceAsync<FibonacciService>(
+                    new WorkerInitOptions()
+                    {
+                        DependentAssemblyFilenames = new[] { "BlazorWorker.Demo.Shared.dll" }
+                    });
+                await backgroundService.RegisterEventListenerAsync<long>(nameof(FibonacciService.Fibbo),
+                    (s, fb) => Console.WriteLine($"eventListener: {fb}"));
+
+                StateHasChanged();
+                output += $"Background service created.";
             }
 
-            output = $"Result = {await backgroundService.RunAsync(s => s.Fibonacci(50))}";
+            var f = fiboNumber;
+
+            output += $"{rn}Fib({fiboNumber}) = {await backgroundService.RunAsync(s => s.Fibonacci(f))}";
         }
         catch (Exception e)
         {
-            output = $"Error = {e}";
+            output = $"{rn}Error = {e}";
         }
     }
 }

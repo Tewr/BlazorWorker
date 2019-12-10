@@ -9,34 +9,34 @@ namespace BlazorWorker.Core
     {
         public WorkerInitOptions()
         {
-            staticAssemblyRefs = new string[] { };
-            assemblyRedirectByFilename = new Dictionary<string, string>();
+            DependentAssemblyFilenames = new string[] { };
+            DependentAssemblyCustomPathMap = new Dictionary<string, string>();
         }
 
-        public string[] staticAssemblyRefs { get; set; }
-        public Dictionary<string, string> assemblyRedirectByFilename { get; set; }
-        public string messageEndPoint { get; set; }
-        public string initEndPoint { get; set; }
-        public string callbackMethod { get; internal set; }
+        public string[] DependentAssemblyFilenames { get; set; }
+        public Dictionary<string, string> DependentAssemblyCustomPathMap { get; set; }
+        public string MessageEndPoint { get; set; }
+        public string InitEndPoint { get; set; }
+        public string CallbackMethod { get; internal set; }
 
         public WorkerInitOptions MergeWith(WorkerInitOptions initOptions)
         {
-            var redirects = new Dictionary<string, string>(this.assemblyRedirectByFilename);
-            foreach (var item in initOptions.assemblyRedirectByFilename)
+            var redirects = new Dictionary<string, string>(this.DependentAssemblyCustomPathMap);
+            foreach (var item in initOptions.DependentAssemblyCustomPathMap)
             {
                 redirects[item.Key] = item.Value;
             }
 
             return new WorkerInitOptions
             {
-                staticAssemblyRefs = this.staticAssemblyRefs
-                    .Concat(initOptions.staticAssemblyRefs)
+                DependentAssemblyFilenames = this.DependentAssemblyFilenames
+                    .Concat(initOptions.DependentAssemblyFilenames)
                     .Distinct()
                     .ToArray(),
-                assemblyRedirectByFilename = redirects,
-                callbackMethod = initOptions.callbackMethod ?? this.callbackMethod,
-                messageEndPoint = initOptions.messageEndPoint ?? this.messageEndPoint,
-                initEndPoint = initOptions.initEndPoint ?? this.initEndPoint,
+                DependentAssemblyCustomPathMap = redirects,
+                CallbackMethod = initOptions.CallbackMethod ?? this.CallbackMethod,
+                MessageEndPoint = initOptions.MessageEndPoint ?? this.MessageEndPoint,
+                InitEndPoint = initOptions.InitEndPoint ?? this.InitEndPoint,
             };
         }
     }

@@ -14,14 +14,6 @@ namespace BlazorWorker.BackgroundServiceFactory.Shared
         public string AssemblyName { get; set; }
         public string TypeName { get; set; }
 
-        public ulong CallId { get; set; }
-    }
-
-    public class InitInstanceComplete : BaseMessage
-    {
-        public InitInstanceComplete()
-        {
-            MessageType = nameof(InitInstanceComplete);
-        }
+        public long CallId { get; set; }
     }
 }
