@@ -6,6 +6,7 @@ using BlazorWorker.BackgroundServiceFactory.Shared;
 using BlazorWorker.Core;
 using System.Collections.Generic;
 using MonoWorker.BackgroundServiceHost;
+using MonoWorker.Core;
 
 namespace BlazorWorker.BackgroundServiceFactory
 {
@@ -34,8 +35,15 @@ namespace BlazorWorker.BackgroundServiceFactory
 
         static WorkerBackgroundServiceProxy()
         {
+<<<<<<< Updated upstream
             var workerInitMethod = typeof(WorkerInstanceManager);
             InitEndPoint = $"[{workerInitMethod.Assembly.GetName().Name}]{workerInitMethod.FullName}:{nameof(WorkerInstanceManager.Init)}";
+=======
+            //var workerInitMethod = typeof(WorkerInstanceManager);
+            //InitEndPoint = $"[{workerInitMethod.Assembly.GetName().Name}]{workerInitMethod.FullName}:{nameof(WorkerInstanceManager.Init)}";
+            var workerInitMethod = typeof(MessageService);
+            InitEndPoint = $"[{workerInitMethod.Assembly.GetName().Name}]{workerInitMethod.FullName}:{nameof(MessageService.Init)}";
+>>>>>>> Stashed changes
         }
 
         public WorkerBackgroundServiceProxy(

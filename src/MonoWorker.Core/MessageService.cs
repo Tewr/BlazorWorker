@@ -26,5 +26,10 @@ namespace MonoWorker.Core
         {
             self.Dispose();
         }
+
+        public static object Init()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
