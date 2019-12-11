@@ -35,15 +35,8 @@ namespace BlazorWorker.BackgroundServiceFactory
 
         static WorkerBackgroundServiceProxy()
         {
-<<<<<<< Updated upstream
             var workerInitMethod = typeof(WorkerInstanceManager);
             InitEndPoint = $"[{workerInitMethod.Assembly.GetName().Name}]{workerInitMethod.FullName}:{nameof(WorkerInstanceManager.Init)}";
-=======
-            //var workerInitMethod = typeof(WorkerInstanceManager);
-            //InitEndPoint = $"[{workerInitMethod.Assembly.GetName().Name}]{workerInitMethod.FullName}:{nameof(WorkerInstanceManager.Init)}";
-            var workerInitMethod = typeof(MessageService);
-            InitEndPoint = $"[{workerInitMethod.Assembly.GetName().Name}]{workerInitMethod.FullName}:{nameof(MessageService.Init)}";
->>>>>>> Stashed changes
         }
 
         public WorkerBackgroundServiceProxy(
@@ -80,8 +73,9 @@ namespace BlazorWorker.BackgroundServiceFactory
                         $"{this.GetType().Assembly.GetName().Name}.dll",
                         $"{typeof(BaseMessage).Assembly.GetName().Name}.dll",
                         $"{typeof(WorkerInstanceManager).Assembly.GetName().Name}.dll",
-//                        $"{typeof(Newtonsoft.Json.JsonConvert).Assembly.GetName().Name}.dll",
-                        $"{typeof(System.Text.Json.JsonDocument).Assembly.GetName().Name}.dll",
+                        $"{typeof(Newtonsoft.Json.JsonConvert).Assembly.GetName().Name}.dll",
+                        //$"{typeof(System.Text.Json.JsonDocument).Assembly.GetName().Name}.dll",
+                        $"{typeof(IWorkerMessageService).Assembly.GetName().Name}.dll",
                         "System.Xml.dll",
                         "Serialize.Linq.dll",
                         "System.dll",

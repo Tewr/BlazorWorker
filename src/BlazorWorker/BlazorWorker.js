@@ -36,13 +36,13 @@
                         self.onmessage = msg => {
                             messageHandler(msg.data);
                         };  
-
+                        
                         // Treat the first message immediately 
                         // TODO: Remove, replace with postmessage(initDoneMessage)
-                        //messageHandler('INIT MESSAGE REMOVE ME');
+                        messageHandler('INIT MESSAGE REMOVE ME');
                         try {
-                            Module.mono_bind_static_method(initConf.InitEndPoint)(
-                            //Module.mono_call_static_method(initConf.InitEndPoint, []);
+                            //Module.mono_bind_static_method(initConf.InitEndPoint)(
+                            Module.mono_call_static_method(initConf.InitEndPoint, []);
                         } catch (e) {
                             console.error(`Init method ${initConf.InitEndPoint} failed`, e);
                             throw e;
