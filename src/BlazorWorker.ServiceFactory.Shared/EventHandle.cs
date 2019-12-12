@@ -6,6 +6,8 @@ namespace BlazorWorker.BackgroundServiceFactory.Shared
 {
     public class EventHandle
     {
+        public delegate void HandlePayloadMessage(string payLoad);
+
         private static long idSource;
         public EventHandle()
         {
@@ -13,6 +15,6 @@ namespace BlazorWorker.BackgroundServiceFactory.Shared
         }
         public long Id { get; }
 
-        public Action<object> EventHandler { get; set; }
+        public HandlePayloadMessage EventHandler { get; set; }
     }
 }

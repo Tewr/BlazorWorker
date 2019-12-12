@@ -7,7 +7,9 @@
             MessageType = nameof(EventRaised);
         }
 
-        public long EventHandleId { get; }
+        public long EventHandleId { get; set; }
+
+        public long InstanceId { get; set; }
 
         public string ResultPayload { get; set; }
     }

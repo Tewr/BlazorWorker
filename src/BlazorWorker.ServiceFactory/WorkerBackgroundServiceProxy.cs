@@ -132,6 +132,18 @@ namespace BlazorWorker.BackgroundServiceFactory
                 return;
             }
 
+            if (baseMessage.MessageType == nameof(EventRaised))
+            {
+                Console.WriteLine($"{nameof(WorkerBackgroundServiceProxy<T>)}: {nameof(EventRaised)}: {rawMessage}");
+                var message = this.options.MessageSerializer.Deserialize<EventRaised>(rawMessage);
+                if (!this.eventRegister.TryGetValue(message.EventHandleId, out var eventHandle)) {
+                    Console.WriteLine($"{nameof(WorkerBackgroundServiceProxy<T>)}: {nameof(EventRaised)}: Unknown event id {message.EventHandleId}");
+                    return;
+                }
+                
+                OnEventRaised(eventHandle, message.ResultPayload);
+            }
+
             if (baseMessage.MessageType == nameof(MethodCallResult))
             {
                 Console.WriteLine($"{nameof(WorkerBackgroundServiceProxy<T>)}: {nameof(MethodCallResult)}: {rawMessage}");
@@ -144,6 +156,11 @@ namespace BlazorWorker.BackgroundServiceFactory
                 taskCompletionSource.SetResult(message);
                 return;
             }
+        }
+
+        private void OnEventRaised(EventHandle eventHandle, string eventPayload)
+        {
+            eventHandle.EventHandler.Invoke(eventPayload);
         }
 
         public async Task RunAsync(Expression<Action<T>> action)
@@ -168,10 +185,18 @@ namespace BlazorWorker.BackgroundServiceFactory
                 throw new ArgumentException($"Event '{typeof(T).FullName}.{eventName}' can only be assigned an event listener of type {typeof(EventHandler<TResult>).FullName}");
             }
 
-            var handle = new EventHandle() { EventHandler = o => myHandler.Invoke(null, (TResult)o) };
+            var handle = new EventHandle() { 
+                EventHandler = 
+                payload => {
+                    var typedPayload = this.messageSerializer.Deserialize<TResult>(payload);
+                    myHandler.Invoke(null, typedPayload); 
+                } 
+            };
+
             this.eventRegister.Add(handle.Id, handle);
             var message = new RegisterEvent() {
                 EventName = eventName,
+                EventHandlerTypeArg = typeof(TResult).FullName,
                 EventHandleId = handle.Id,
                 InstanceId = this.instanceId
             };

@@ -11,7 +11,13 @@ namespace MonoWorker.BackgroundServiceHost
 {
     public class WorkerInstanceManager : IWorkerMessageService
     {
+        public interface IEventWrapper {
+            long InstanceId { get; }
+            long EventId { get; }
+        }
         public readonly Dictionary<long, object> instances = new Dictionary<long, object>();
+        public readonly Dictionary<long, Dictionary<long, IEventWrapper>> events =
+             new Dictionary<long, Dictionary<long, IEventWrapper>>();
 
         public static readonly WorkerInstanceManager Instance = new WorkerInstanceManager();
         private readonly ISerializer serializer;
@@ -28,10 +34,15 @@ namespace MonoWorker.BackgroundServiceHost
         public static void Init() {
             MessageService.Message += Instance.OnMessage;
             Console.WriteLine("MonoWorker.BackgroundServiceHost.Init(): Done.");
-            Instance.PostObjecAsync(new InitWorkerComplete());
+            Instance.PostObject(new InitWorkerComplete());
         }
 
         public async Task PostMessageAsync(string message)
+        {
+            PostMessage(message);
+        }
+
+        public void PostMessage(string message)
         {
             Console.WriteLine($"MonoWorker.BackgroundServiceHost.PostMessage(): {message}.");
             MessageService.PostMessage(message);
@@ -39,7 +50,12 @@ namespace MonoWorker.BackgroundServiceHost
 
         private async Task PostObjecAsync<T>(T obj)
         {
-            await PostMessageAsync(this.serializer.Serialize(obj));
+            PostMessage(this.serializer.Serialize(obj));
+        }
+
+        private void PostObject<T>(T obj)
+        {
+            PostMessage(this.serializer.Serialize(obj));
         }
 
         private void OnMessage(object sender, string message)
@@ -58,24 +74,24 @@ namespace MonoWorker.BackgroundServiceHost
                 try
                 {
                     var result = Call(methodCallMessage);
-                    PostMessageAsync(
-                        this.serializer.Serialize(
-                               new MethodCallResult()
-                               {
-                                   CallId = methodCallMessage.CallId,
-                                   ResultPayload = this.serializer.Serialize(result)
-                               }
-                    ));
+                    PostObject(
+                        
+                        new MethodCallResult()
+                        {
+                            CallId = methodCallMessage.CallId,
+                            ResultPayload = this.serializer.Serialize(result)
+                        }
+                    );
                 }
                 catch (Exception e)
                 {
-                    PostMessageAsync(this.serializer.Serialize(
+                    PostObject(
                         new MethodCallResult()
                         {
                             CallId = methodCallMessage.CallId,
                             IsException = true,
                             Exception = e
-                        }));
+                        });
                 }
                 return;
             }
@@ -93,11 +109,45 @@ namespace MonoWorker.BackgroundServiceHost
         {
             var instance = instances[registerEventMessage.InstanceId];
             var eventSignature = instance.GetType().GetEvent(registerEventMessage.EventName);
-            var delegateMethod = Delegate.CreateDelegate(this.GetType(), this.GetType().GetMethod(registerEventMessage.EventName));
+
+            // TODO: This can be cached.
+            var wrapperType = typeof(EventHandlerWrapper<>)
+                .MakeGenericType(Type.GetType(registerEventMessage.EventHandlerTypeArg));
+            
+            var wrapper = (IEventWrapper)Activator.CreateInstance(wrapperType, this, registerEventMessage.InstanceId, registerEventMessage.EventHandleId);
+            var delegateMethod = Delegate.CreateDelegate(eventSignature.EventHandlerType, wrapper, "OnEvent"); // this.GetType().GetMethod(nameof(EventHandlerWrapper<object>.OnEvent)));
             eventSignature.AddEventHandler(instance, delegateMethod);
+            if (!events.TryGetValue(wrapper.InstanceId, out var wrappers))
+            {
+                wrappers = new Dictionary<long, IEventWrapper>();
+                events.Add(wrapper.InstanceId, wrappers);
+            }
+            wrappers.Add(wrapper.EventId, wrapper);
         }
 
-        private void OnEvent(object source, object eventArgs) { 
+        public class EventHandlerWrapper<T> : IEventWrapper
+        {
+            private readonly WorkerInstanceManager wim;
+
+            public EventHandlerWrapper(WorkerInstanceManager wim, long instanceId, long eventId)
+            {
+                this.wim = wim;
+                InstanceId = instanceId;
+                EventId = eventId;
+            }
+
+            public long InstanceId { get; }
+            public long EventId { get; }
+
+            public void OnEvent(object _, T eventArgs)
+            {
+                Console.WriteLine("ONEVENT");
+                wim.PostObject(new EventRaised() { 
+                    EventHandleId = EventId,
+                    InstanceId = InstanceId,
+                    ResultPayload = wim.serializer.Serialize(eventArgs)
+                });
+            }
         }
 
         public void InitInstance(InitInstanceParams createInstanceInfo)
@@ -122,7 +172,7 @@ namespace MonoWorker.BackgroundServiceHost
                 throw new InitWorkerInstanceException($"Unable to to instanciate type {createInstanceInfo.TypeName} from {createInstanceInfo.AssemblyName}", e);
             }
 
-            Instance.PostObjecAsync(
+            Instance.PostObject(
                 new InitInstanceComplete() { 
                     CallId = createInstanceInfo.CallId 
                 });

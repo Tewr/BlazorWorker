@@ -1,4 +1,6 @@
-﻿namespace BlazorWorker.BackgroundServiceFactory.Shared
+﻿using System;
+
+namespace BlazorWorker.BackgroundServiceFactory.Shared
 {
     public class RegisterEvent: BaseMessage
     {
@@ -11,5 +13,6 @@
 
         public long InstanceId { get; set; }
         public string EventName { get; set; }
+        public string EventHandlerTypeArg { get; set; }
     }
 }

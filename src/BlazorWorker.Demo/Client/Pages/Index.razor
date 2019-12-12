@@ -19,12 +19,13 @@ Output:
 @output
 </pre>
 @code {
-    long fiboNumber;
+    long fiboNumber = 10;
     string output;
     IWorkerBackgroundService<FibonacciService> backgroundService;
 
     public async Task OnClick(EventArgs _)
     {
+        output = "";
         var rn = Environment.NewLine;
         try
         {
@@ -39,16 +40,27 @@ Output:
                     {
                         DependentAssemblyFilenames = new[] { "BlazorWorker.Demo.Shared.dll" }
                     });
+
                 await backgroundService.RegisterEventListenerAsync<long>(nameof(FibonacciService.Fibbo),
-                    (s, fb) => Console.WriteLine($"eventListener: {fb}"));
+                    (s, fb) =>
+                    {
+                        
+                        output += $"{rn}{DateTime.Now.Ticks} EventListener got value {fb}";
+                        StateHasChanged();
+                    });
 
                 StateHasChanged();
-                output += $"Background service created.";
+                output += $"{DateTime.Now.Ticks} Background service created.";
             }
 
             var f = fiboNumber;
 
-            output += $"{rn}Fib({fiboNumber}) = {await backgroundService.RunAsync(s => s.Fibonacci(f))}";
+            backgroundService.RunAsync(s => s.Fibonacci(f)).ContinueWith(t => { 
+                output += $"{rn}{DateTime.Now.Ticks} Fib({fiboNumber}) = {t.Result}";
+                StateHasChanged();
+            });
+
+            //output += $"{rn}{DateTime.Now} Fib({fiboNumber}) = {await backgroundService.RunAsync(s => s.Fibonacci(f))}";
         }
         catch (Exception e)
         {
