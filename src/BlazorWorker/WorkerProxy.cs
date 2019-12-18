@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading.Tasks;
 using Map = System.Collections.Generic.Dictionary<string, string>;
 namespace BlazorWorker.Core
@@ -51,6 +52,18 @@ namespace BlazorWorker.Core
         public async Task InitAsync(WorkerInitOptions initOptions)
         {
             await this.scriptLoader.InitScript();
+
+            // TODO: Make sure this is only called once. put in scriptloader maybe.
+            var localStorageWebKey = $"{this.GetType().Assembly.GetName().Name}/resources/WebAssembly.Bindings.0.2.2.0.dll";
+            byte[] dllContent;
+            var stream = this.GetType().Assembly.GetManifestResourceStream("BlazorWorker.Core.WebAssembly.Bindings.0.2.2.0.dll");
+            using (stream)
+            using (var ms = new MemoryStream())
+            {
+                stream.CopyTo(ms);
+                dllContent = ms.ToArray();
+            }
+
             await this.jsRuntime.InvokeVoidAsync(
                 "BlazorWorker.initWorker", 
                 this.Identifier, 
@@ -67,8 +80,12 @@ namespace BlazorWorker.Core
                     // Hack that works around that documented init procedure of the version of mono.js
                     // delivered with blazor is incompatible with WebAssembly.Bindings 1.0.0.0
                     DependentAssemblyCustomPathMap = new Map { {
-                            "WebAssembly.Bindings.dll", "$appRoot$/WebAssembly.Bindings.0.2.2.0.dll"
+                            //"WebAssembly.Bindings.dll", "$appRoot$/WebAssembly.Bindings.0.2.2.0.dll"
+                            "WebAssembly.Bindings.dll", localStorageWebKey
                     } },
+                    ConfigStorage = new Map {
+                        { localStorageWebKey, Convert.ToBase64String(dllContent) }
+                    },
                     CallbackMethod = nameof(OnMessage),
                     MessageEndPoint = messageMethod //"[MonoWorker.Core]MonoWorker.Core.MessageService:OnMessage"
                }.MergeWith(initOptions));

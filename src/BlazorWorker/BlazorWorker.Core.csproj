@@ -5,7 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="WebAssembly.Bindings.0.2.2.0.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Include="BlazorWorker.js" />
+    <EmbeddedResource Include="WebAssembly.Bindings.0.2.2.0.dll" />
   </ItemGroup>
 
   <ItemGroup>

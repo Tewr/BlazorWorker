@@ -7044,7 +7044,7 @@ var MONO = {
                             ok: true,
                             url: asset,
                             arrayBuffer: function() {
-                                return new Promise(resolve_func2)
+                                return new Promise(resolve_func2);
                             }
                         };
                         resolve(response)

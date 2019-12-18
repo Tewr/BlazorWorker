@@ -4,13 +4,15 @@
 @using BlazorWorker.Demo.Shared
 @using BlazorWorker.Core
 
-<h1>Hello, world!</h1>
+<h1>Hello, threads!</h1>
 
 Welcome to your new multithreaded app.
 
 <br/>
-<input type="text" @bind="fiboNumber" placeholder="fibonacci number" />
-<button @onclick="OnClick">Fibonacci in a new thread</button>
+<input type="text" @bind="piIterations" placeholder="pi length" />
+<button @onclick="OnClick">Estimate pi in a new thread</button>
+<br/>
+<progress max="@piIterations" value="@piProgress" />
 <br />
 <br />
 Output:
@@ -19,9 +21,10 @@ Output:
 @output
 </pre>
 @code {
-    long fiboNumber = 10;
+    int piIterations = 5_000_000;
+    int piProgress = 0;
     string output;
-    IWorkerBackgroundService<FibonacciService> backgroundService;
+    IWorkerBackgroundService<MathsService> backgroundService;
 
     public async Task OnClick(EventArgs _)
     {
@@ -31,32 +34,33 @@ Output:
         {
             if (backgroundService == null)
             {
-                output = "Creating background service...";
+                output = $"{rn}{LogDate()} Creating background service...";
                 StateHasChanged();
                 var workerFactory = new BlazorWorker.Core.WorkerProxy(jsRuntime);
 
-                backgroundService = await workerFactory.CreateBackgroundServiceAsync<FibonacciService>(
+                backgroundService = await workerFactory.CreateBackgroundServiceAsync<MathsService>(
                     new WorkerInitOptions()
                     {
                         DependentAssemblyFilenames = new[] { "BlazorWorker.Demo.Shared.dll" }
                     });
 
-                await backgroundService.RegisterEventListenerAsync<long>(nameof(FibonacciService.Fibbo),
-                    (s, fb) =>
+                await backgroundService.RegisterEventListenerAsync(nameof(MathsService.Pi),
+                    (object s, int pinum) =>
                     {
-                        
-                        output += $"{rn}{DateTime.Now.Ticks} EventListener got value {fb}";
+                        piProgress = pinum;
                         StateHasChanged();
                     });
 
                 StateHasChanged();
-                output += $"{DateTime.Now.Ticks} Background service created.";
+                output += $"{rn}{LogDate()} Background service created.";
             }
 
-            var f = fiboNumber;
+            var f = piIterations;
 
-            backgroundService.RunAsync(s => s.Fibonacci(f)).ContinueWith(t => { 
-                output += $"{rn}{DateTime.Now.Ticks} Fib({fiboNumber}) = {t.Result}";
+            output += $"{rn}{LogDate()} Calling EstimatePI({piIterations})...";
+            var __ = backgroundService.RunAsync(s => s.EstimatePI(f)).ContinueWith(t =>
+            {
+                output += $"{rn}{LogDate()} EstimatePI({piIterations}) = {t.Result}";
                 StateHasChanged();
             });
 
@@ -67,4 +71,8 @@ Output:
             output = $"{rn}Error = {e}";
         }
     }
+
+    private string LogDate() {
+        return DateTime.Now.ToString("HH:mm:ss:fff");
+    }    
 }

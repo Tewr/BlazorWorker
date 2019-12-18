@@ -18,7 +18,54 @@
         var Module = {};
         config.file_list = [];
 
-        // get blazor boot json for file list;
+        
+        const b64DecodeUnicode = function (str) {
+            // Going backwards: from bytestream, to percent-encoding, to original string.
+            return decodeURIComponent(atob(str).split('').map(function (c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+        };
+
+        // Todo: Reverse DependentAssemblyCustomPathMap
+        // to get real url  
+        var fetch_file_cb = function (asset) {
+
+            const binaryB64 = initConf.ConfigStorage[asset];
+            if (binaryB64) {
+
+                const resolve_func2 = function (resolve, reject) {
+                    
+                    const raw = self.atob(binaryB64);// b64DecodeUnicode(binaryB64);
+                    const rawLength = raw.length;
+                    const arrayBuffer = new ArrayBuffer(rawLength);
+                    const writableBuffer = new Uint8Array(arrayBuffer);
+
+                    for (i = 0; i < rawLength; i++) {
+                        writableBuffer[i] = raw.charCodeAt(i);
+                    }
+                    
+                    resolve(arrayBuffer);
+                };
+
+                const resolve_func1 = function (resolve, reject) {
+                    const response = {
+                        ok: true,
+                        url: "WebAssembly.Bindings.dll",//asset,
+                        arrayBuffer: function () {
+                           
+                            return new Promise(resolve_func2);
+                        }
+                       
+                    };
+                    resolve(response);
+                };
+                return new Promise(resolve_func1);
+            };
+            return fetch(asset, {
+                credentials: "same-origin"
+            });
+        };
+
         
         global = globalThis;
         Module = self.Module = {
@@ -39,15 +86,15 @@
                         
                         // Treat the first message immediately 
                         // TODO: Remove, replace with postmessage(initDoneMessage)
-                        messageHandler('INIT MESSAGE REMOVE ME');
+                        //messageHandler('INIT MESSAGE REMOVE ME');
                         try {
-                            //Module.mono_bind_static_method(initConf.InitEndPoint)(
                             Module.mono_call_static_method(initConf.InitEndPoint, []);
                         } catch (e) {
                             console.error(`Init method ${initConf.InitEndPoint} failed`, e);
                             throw e;
                         }
-                    }
+                    },
+                    fetch_file_cb
                 );
             },
             locateFile: function (path, scriptDirectory) {
@@ -84,7 +131,8 @@
             deploy_prefix: "_framework/_bin",
             MessageEndPoint: initOptions.messageEndPoint,
             InitEndPoint: initOptions.initEndPoint,
-            wasmRoot: "_framework/wasm"
+            wasmRoot: "_framework/wasm",
+            ConfigStorage: initOptions.configStorage
         };
         // Initialize worker
         const renderedConfig = JSON.stringify(initConf).replace('$appRoot$', appRoot);
