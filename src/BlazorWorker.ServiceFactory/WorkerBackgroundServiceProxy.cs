@@ -35,8 +35,8 @@ namespace BlazorWorker.BackgroundServiceFactory
 
         static WorkerBackgroundServiceProxy()
         {
-            var workerInitMethod = typeof(WorkerInstanceManager);
-            InitEndPoint = $"[{workerInitMethod.Assembly.GetName().Name}]{workerInitMethod.FullName}:{nameof(WorkerInstanceManager.Init)}";
+            var wim = typeof(WorkerInstanceManager);
+            InitEndPoint = $"[{wim.Assembly.GetName().Name}]{wim.FullName}:{nameof(WorkerInstanceManager.Init)}";
         }
 
         public WorkerBackgroundServiceProxy(
@@ -74,7 +74,6 @@ namespace BlazorWorker.BackgroundServiceFactory
                         $"{typeof(BaseMessage).Assembly.GetName().Name}.dll",
                         $"{typeof(WorkerInstanceManager).Assembly.GetName().Name}.dll",
                         $"{typeof(Newtonsoft.Json.JsonConvert).Assembly.GetName().Name}.dll",
-                        //$"{typeof(System.Text.Json.JsonDocument).Assembly.GetName().Name}.dll",
                         $"{typeof(IWorkerMessageService).Assembly.GetName().Name}.dll",
                         "System.Xml.dll",
                         "Serialize.Linq.dll",

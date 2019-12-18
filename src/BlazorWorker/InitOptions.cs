@@ -9,30 +9,30 @@ namespace BlazorWorker.Core
     {
         public WorkerInitOptions()
         {
-            ConfigStorage = new Dictionary<string, string>();
+            FetchOverride = new Dictionary<string, FetchResponse>();
             DependentAssemblyFilenames = new string[] { };
-            DependentAssemblyCustomPathMap = new Dictionary<string, string>();
+            FetchUrlOverride = new Dictionary<string, string>();
         }
 
-        public Dictionary<string, string> ConfigStorage { get; set; }
+        public Dictionary<string, FetchResponse> FetchOverride { get; set; }
         public string[] DependentAssemblyFilenames { get; set; }
-        public Dictionary<string, string> DependentAssemblyCustomPathMap { get; set; }
+        public Dictionary<string, string> FetchUrlOverride { get; set; }
         public string MessageEndPoint { get; set; }
         public string InitEndPoint { get; set; }
         public string CallbackMethod { get; internal set; }
 
         public WorkerInitOptions MergeWith(WorkerInitOptions initOptions)
         {
-            var redirects = new Dictionary<string, string>(this.DependentAssemblyCustomPathMap);
-            foreach (var item in initOptions.DependentAssemblyCustomPathMap)
+            var redirects = new Dictionary<string, string>(this.FetchUrlOverride);
+            foreach (var item in initOptions.FetchUrlOverride)
             {
                 redirects[item.Key] = item.Value;
             }
 
-            var configStorage = new Dictionary<string, string>(this.ConfigStorage);
-            foreach (var item in initOptions.ConfigStorage)
+            var fethOverride = new Dictionary<string, FetchResponse>(this.FetchOverride);
+            foreach (var item in initOptions.FetchOverride)
             {
-                configStorage[item.Key] = item.Value;
+                fethOverride[item.Key] = item.Value;
             }
 
             return new WorkerInitOptions
@@ -41,11 +41,11 @@ namespace BlazorWorker.Core
                     .Concat(initOptions.DependentAssemblyFilenames)
                     .Distinct()
                     .ToArray(),
-                DependentAssemblyCustomPathMap = redirects,
+                FetchUrlOverride = redirects,
                 CallbackMethod = initOptions.CallbackMethod ?? this.CallbackMethod,
                 MessageEndPoint = initOptions.MessageEndPoint ?? this.MessageEndPoint,
                 InitEndPoint = initOptions.InitEndPoint ?? this.InitEndPoint,
-                ConfigStorage = configStorage
+                FetchOverride = fethOverride
             };
         }
     }

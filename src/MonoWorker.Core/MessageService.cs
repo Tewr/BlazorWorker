@@ -12,24 +12,7 @@ namespace MonoWorker.Core
         public static event EventHandler<string> Message;
 
         static MessageService()
-        {
-            Console.WriteLine("MessageService static constructor");
-            try
-            {
-                var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies();
-                foreach (var asm in loadedAssemblies)
-                {
-                    Console.WriteLine($"assembly: {asm.FullName}");
-                }
-                var wim = Type.GetType($"MonoWorker.BackgroundServiceHost.WorkerInstanceManager, MonoWorker.BackgroundServiceHost");
-                var obj = Activator.CreateInstance(wim);
-
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("MessageService static constructor fail:" + e.ToString());
-            }
-            
+        {   
         }
 
         public static void OnMessage(string message)
@@ -46,11 +29,6 @@ namespace MonoWorker.Core
         public static void Dispose()
         {
             self.Dispose();
-        }
-
-        public static object Init()
-        {
-            throw new NotImplementedException();
         }
     }
 }

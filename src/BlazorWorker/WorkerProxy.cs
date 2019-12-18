@@ -53,7 +53,6 @@ namespace BlazorWorker.Core
         {
             await this.scriptLoader.InitScript();
 
-            // TODO: Make sure this is only called once. put in scriptloader maybe.
             var localStorageWebKey = $"{this.GetType().Assembly.GetName().Name}/resources/WebAssembly.Bindings.0.2.2.0.dll";
             byte[] dllContent;
             var stream = this.GetType().Assembly.GetManifestResourceStream("BlazorWorker.Core.WebAssembly.Bindings.0.2.2.0.dll");
@@ -73,18 +72,17 @@ namespace BlazorWorker.Core
                         new[] { 
                             "MonoWorker.Core.dll", 
                             "netstandard.dll",
-                            
                             "mscorlib.dll",
-                            "WebAssembly.Bindings.dll" },
-
-                    // Hack that works around that documented init procedure of the version of mono.js
-                    // delivered with blazor is incompatible with WebAssembly.Bindings 1.0.0.0
-                    DependentAssemblyCustomPathMap = new Map { {
-                            //"WebAssembly.Bindings.dll", "$appRoot$/WebAssembly.Bindings.0.2.2.0.dll"
+                            "WebAssembly.Bindings.dll" 
+                        },
+                    FetchUrlOverride = new Map { {
                             "WebAssembly.Bindings.dll", localStorageWebKey
                     } },
-                    ConfigStorage = new Map {
-                        { localStorageWebKey, Convert.ToBase64String(dllContent) }
+                    FetchOverride = new Dictionary<string, FetchResponse> {
+                        { localStorageWebKey,
+                            new FetchResponse() {
+                                Url = "WebAssembly.Bindings.dll", 
+                                Base64Data = Convert.ToBase64String(dllContent)}}
                     },
                     CallbackMethod = nameof(OnMessage),
                     MessageEndPoint = messageMethod //"[MonoWorker.Core]MonoWorker.Core.MessageService:OnMessage"
