@@ -5,22 +5,20 @@ using MonoWorker.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace MonoWorker.BackgroundServiceHost
 {
     public class WorkerInstanceManager : IWorkerMessageService
     {
-        public interface IEventWrapper {
-            long InstanceId { get; }
-            long EventId { get; }
-        }
+       
         public readonly Dictionary<long, object> instances = new Dictionary<long, object>();
-        public readonly Dictionary<long, Dictionary<long, IEventWrapper>> events =
-             new Dictionary<long, Dictionary<long, IEventWrapper>>();
+        public readonly Dictionary<long, IEventWrapper> events =
+             new Dictionary<long, IEventWrapper>();
 
         public static readonly WorkerInstanceManager Instance = new WorkerInstanceManager();
-        private readonly ISerializer serializer;
+        internal readonly ISerializer serializer;
         private readonly WebWorkerOptions options;
 
         public event EventHandler<string> IncomingMessage;
@@ -53,7 +51,7 @@ namespace MonoWorker.BackgroundServiceHost
             PostMessage(this.serializer.Serialize(obj));
         }
 
-        private void PostObject<T>(T obj)
+        internal void PostObject<T>(T obj)
         {
             PostMessage(this.serializer.Serialize(obj));
         }
@@ -100,9 +98,29 @@ namespace MonoWorker.BackgroundServiceHost
             {
                 var registerEventMessage = this.serializer.Deserialize<RegisterEvent>(message);
                 RegisterEvent(registerEventMessage);
+                return;
+            }
+
+            if (baseMessage.MessageType == nameof(UnRegisterEvent))
+            {
+                var unregisterEventMessage = this.serializer.Deserialize<UnRegisterEvent>(message);
+                UnRegisterEvent(unregisterEventMessage);
+                return;
             }
 
             IncomingMessage?.Invoke(this, message);
+        }
+
+        private void UnRegisterEvent(UnRegisterEvent unregisterEventMessage)
+        {
+            if (!events.TryGetValue(unregisterEventMessage.EventHandleId, out var wrapper)) {
+                return;
+            }
+
+            wrapper.Unregister();
+
+            events.Remove(unregisterEventMessage.EventHandleId);
+
         }
 
         private void RegisterEvent(RegisterEvent registerEventMessage)
@@ -115,40 +133,12 @@ namespace MonoWorker.BackgroundServiceHost
                 .MakeGenericType(Type.GetType(registerEventMessage.EventHandlerTypeArg));
             
             var wrapper = (IEventWrapper)Activator.CreateInstance(wrapperType, this, registerEventMessage.InstanceId, registerEventMessage.EventHandleId);
-            var delegateMethod = Delegate.CreateDelegate(eventSignature.EventHandlerType, wrapper, "OnEvent"); // this.GetType().GetMethod(nameof(EventHandlerWrapper<object>.OnEvent)));
+            var delegateMethod = Delegate.CreateDelegate(eventSignature.EventHandlerType, wrapper, nameof(EventHandlerWrapper<object>.OnEvent)); 
             eventSignature.AddEventHandler(instance, delegateMethod);
-            if (!events.TryGetValue(wrapper.InstanceId, out var wrappers))
-            {
-                wrappers = new Dictionary<long, IEventWrapper>();
-                events.Add(wrapper.InstanceId, wrappers);
-            }
-            wrappers.Add(wrapper.EventId, wrapper);
+            wrapper.Unregister = () => eventSignature.RemoveEventHandler(instance, delegateMethod);
+            events.Add(wrapper.EventHandleId, wrapper);
         }
 
-        public class EventHandlerWrapper<T> : IEventWrapper
-        {
-            private readonly WorkerInstanceManager wim;
-
-            public EventHandlerWrapper(WorkerInstanceManager wim, long instanceId, long eventId)
-            {
-                this.wim = wim;
-                InstanceId = instanceId;
-                EventId = eventId;
-            }
-
-            public long InstanceId { get; }
-            public long EventId { get; }
-
-            public void OnEvent(object _, T eventArgs)
-            {
-                Console.WriteLine("ONEVENT");
-                wim.PostObject(new EventRaised() { 
-                    EventHandleId = EventId,
-                    InstanceId = InstanceId,
-                    ResultPayload = wim.serializer.Serialize(eventArgs)
-                });
-            }
-        }
 
         public void InitInstance(InitInstanceParams createInstanceInfo)
         {
@@ -187,4 +177,44 @@ namespace MonoWorker.BackgroundServiceHost
             return dynamicDelegate.DynamicInvoke(instance);
         }
     }
+
+    public class EventHandlerWrapper<T> : IEventWrapper
+    {
+        private readonly WorkerInstanceManager wim;
+
+        public EventHandlerWrapper(
+            WorkerInstanceManager wim, 
+            long instanceId, 
+            long eventHandleId)
+        {
+            this.wim = wim;
+            InstanceId = instanceId;
+            EventHandleId = eventHandleId;
+            
+        }
+
+        public long InstanceId { get; }
+        public long EventHandleId { get; }
+
+        public Action Unregister { get; set; }
+
+        public void OnEvent(object _, T eventArgs)
+        {
+            //Console.WriteLine("ONEVENT");
+            wim.PostObject(new EventRaised()
+            {
+                EventHandleId = EventHandleId,
+                InstanceId = InstanceId,
+                ResultPayload = wim.serializer.Serialize(eventArgs)
+            });
+        }
+    }
+
+    public interface IEventWrapper
+    {
+        long InstanceId { get; }
+        long EventHandleId { get; }
+        Action Unregister { get; set; }
+    }
+
 }
