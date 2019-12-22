@@ -17,7 +17,6 @@ namespace BlazorWorker.Core
             new Dictionary<string, string> { { @"\", @"\\" }, { "\r", @"\r" }, { "\n", @"\n" }, { "'", @"\'" }, { "\"", @"\""" } };
         private readonly IJSRuntime jsRuntime;
         private readonly ScriptLoader scriptLoader;
-        private static readonly object idSourceLock = new object();
         private static long idSource;
         
         /// <summary>
@@ -37,11 +36,7 @@ namespace BlazorWorker.Core
         {
             this.jsRuntime = jsRuntime;
             this.scriptLoader = new ScriptLoader(this.jsRuntime);
-            // TODO: Is lock overkill here as this is exclusively run on ui thread?
-            lock (idSourceLock)
-            {
-                this.Identifier = ++idSource;
-            }
+            this.Identifier = ++idSource;
         }
 
         public void Dispose()
