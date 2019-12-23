@@ -10,10 +10,9 @@ using System.Threading.Tasks;
 
 namespace MonoWorker.BackgroundServiceHost
 {
-    public class WorkerInstanceManager : IWorkerMessageService
+    public class WorkerInstanceManager
     {
        
-        public readonly Dictionary<long, object> instances = new Dictionary<long, object>();
         public readonly Dictionary<long, IEventWrapper> events =
              new Dictionary<long, IEventWrapper>();
 
@@ -35,20 +34,10 @@ namespace MonoWorker.BackgroundServiceHost
             Instance.PostObject(new InitWorkerComplete());
         }
 
-        public async Task PostMessageAsync(string message)
-        {
-            PostMessage(message);
-        }
-
         public void PostMessage(string message)
         {
             Console.WriteLine($"MonoWorker.BackgroundServiceHost.PostMessage(): {message}.");
             MessageService.PostMessage(message);
-        }
-
-        private async Task PostObjecAsync<T>(T obj)
-        {
-            PostMessage(this.serializer.Serialize(obj));
         }
 
         internal void PostObject<T>(T obj)
@@ -125,7 +114,7 @@ namespace MonoWorker.BackgroundServiceHost
 
         private void RegisterEvent(RegisterEvent registerEventMessage)
         {
-            var instance = instances[registerEventMessage.InstanceId];
+            var instance = SimpleInstanceService.Instance.instances[registerEventMessage.InstanceId].Instance;
             var eventSignature = instance.GetType().GetEvent(registerEventMessage.EventName);
 
             // TODO: This can be cached.
@@ -139,38 +128,17 @@ namespace MonoWorker.BackgroundServiceHost
             events.Add(wrapper.EventHandleId, wrapper);
         }
 
-
         public void InitInstance(InitInstanceParams createInstanceInfo)
         {
-            Type type;
-            try
-            {
-                type = Type.GetType($"{createInstanceInfo.TypeName}, {createInstanceInfo.AssemblyName}");
-            }
-            catch (Exception e)
-            {
-                throw new InitWorkerInstanceException($"Unable to to load type {createInstanceInfo.TypeName} from {createInstanceInfo.AssemblyName}", e);
-            }
-
-            //TODO: inject message service here if applicable
-            try
-            {
-                instances[createInstanceInfo.InstanceId] = Activator.CreateInstance(type);
-            }
-            catch (Exception e)
-            {
-                throw new InitWorkerInstanceException($"Unable to to instanciate type {createInstanceInfo.TypeName} from {createInstanceInfo.AssemblyName}", e);
-            }
-
-            Instance.PostObject(
-                new InitInstanceComplete() { 
-                    CallId = createInstanceInfo.CallId 
-                });
+            //Console.WriteLine($"{nameof(WorkerInstanceManager)}.{nameof(InitInstance)}");
+            var r = SimpleInstanceService.Instance.InitInstance(createInstanceInfo.InstanceId, createInstanceInfo.TypeName, createInstanceInfo.AssemblyName);
+            //Console.WriteLine($"{nameof(WorkerInstanceManager)}.{nameof(InitInstance)} done. {r.IsSuccess}:{r.FullExceptionString}");
+            PostObject(new InitInstanceComplete() { CallId = createInstanceInfo.CallId });
         }
 
         public object Call(MethodCallParams instanceMethodCallParams)
         {
-            var instance = instances[instanceMethodCallParams.InstanceId];
+            var instance = SimpleInstanceService.Instance.instances[instanceMethodCallParams.InstanceId].Instance;
             var lambda = this.options.ExpressionSerializer.Deserialize(instanceMethodCallParams.SerializedExpression) 
                 as LambdaExpression;
             var dynamicDelegate = lambda.Compile();
@@ -190,7 +158,6 @@ namespace MonoWorker.BackgroundServiceHost
             this.wim = wim;
             InstanceId = instanceId;
             EventHandleId = eventHandleId;
-            
         }
 
         public long InstanceId { get; }
