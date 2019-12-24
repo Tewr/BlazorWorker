@@ -9,10 +9,12 @@ namespace MonoWorker.Core
     {
         public static readonly SimpleInstanceService Instance = new SimpleInstanceService();
         public readonly Dictionary<long, InstanceWrapper> instances = new Dictionary<long, InstanceWrapper>();
+
         public static readonly string MessagePrefix = $"{typeof(SimpleInstanceService).FullName}::";
         public static readonly string InitMessagePrefix = $"{nameof(InitInstance)}::";
         public static readonly string InitResultMessagePrefix = $"{nameof(InitInstanceResult)}::";
-        public static readonly string DiposeMessagePrefix = $"{nameof(InitInstance)}::";
+        public static readonly string DiposeMessagePrefix = $"{nameof(DisposeInstance)}::";
+        public static readonly string DiposeResultMessagePrefix = $"{nameof(DisposeResult)}::";
 
         public static void Init()
         {
@@ -38,16 +40,23 @@ namespace MonoWorker.Core
                 InitInstance(rawMessage);
                 return;
             }
+
+            if (rawMessage.StartsWith(DiposeMessagePrefix))
+            {
+                rawMessage = rawMessage.Substring(DiposeMessagePrefix.Length);
+                DisposeInstance(rawMessage);
+                return;
+            }
         }
 
         public void InitInstance(string initMessage)
         {
-            var splitMessage = initMessage.Split(';');
+            var splitMessage = initMessage.Split('|');
             var id = long.Parse(splitMessage[0]);
             var typeName = splitMessage[1];
             var assemblyName = splitMessage[2];
 
-            InitInstanceResult result = InitInstance(id, typeName, assemblyName);
+            var result = InitInstance(id, typeName, assemblyName);
 
             MessageService.PostMessage(
                 $"{MessagePrefix}{InitResultMessagePrefix}" +
@@ -56,11 +65,14 @@ namespace MonoWorker.Core
                 $"{result.FullExceptionString}");
         }
 
-        public InitInstanceResult InitInstance(long id, string typeName, string assemblyName)
+        public InitInstanceResult InitInstance(long id, string typeName, string assemblyName, 
+            IsInfrastructureMessage handler = null)
         {
             var InstanceWrapper = new InstanceWrapper();
             var result = InitInstance(typeName, assemblyName,
-                () => (IWorkerMessageService)(InstanceWrapper.Services = new InjectableMessageService()));
+                () => (IWorkerMessageService)(InstanceWrapper.Services 
+                    = new InjectableMessageService(m => m.StartsWith(MessagePrefix) || (handler?.Invoke(m)).GetValueOrDefault(false))));
+
             InstanceWrapper.Instance = result.Instance;
             if (result.IsSuccess)
             {
@@ -72,6 +84,13 @@ namespace MonoWorker.Core
             }
 
             return result;
+        }
+
+
+        private bool DisposeInstance(string message)
+        {
+            var id = long.Parse(message);
+            return DisposeInstance(id);
         }
 
         private bool DisposeInstance(long id)

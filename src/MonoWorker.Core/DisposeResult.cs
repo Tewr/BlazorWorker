@@ -2,12 +2,10 @@
 
 namespace MonoWorker.Core
 {
-    public class InitInstanceResult
+    public class DisposeResult
     {
         public bool IsSuccess { get; set; }
         public long InstanceId { get; set; }
-
-        public object Instance { get; set; }
 
         public string ExceptionMessage { get; set; } = string.Empty;
 

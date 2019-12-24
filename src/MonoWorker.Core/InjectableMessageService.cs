@@ -3,16 +3,20 @@ using System.Threading.Tasks;
 
 namespace MonoWorker.Core
 {
+    public delegate bool IsInfrastructureMessage(string message);
     public class InjectableMessageService : IWorkerMessageService, IDisposable
     {
-        public InjectableMessageService()
+        private readonly IsInfrastructureMessage isInfrastructureMessage;
+
+        public InjectableMessageService(IsInfrastructureMessage isInfrastructureMessage)
         {
             MessageService.Message += OnIncomingMessage;
+            this.isInfrastructureMessage = isInfrastructureMessage;
         }
 
         private void OnIncomingMessage(object sender, string e)
         {
-            if (e.StartsWith(SimpleInstanceService.MessagePrefix))
+            if (isInfrastructureMessage(e))
             {
                 return;
             }

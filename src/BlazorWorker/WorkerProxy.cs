@@ -48,7 +48,7 @@ namespace BlazorWorker.Core
         {
             await this.scriptLoader.InitScript();
 
-            var localStorageWebKey = $"{this.GetType().Assembly.GetName().Name}/resources/WebAssembly.Bindings.0.2.2.0.dll";
+            var resxKey = $"{this.GetType().Assembly.GetName().Name}/resources/WebAssembly.Bindings.0.2.2.0.dll";
             byte[] dllContent;
             var stream = this.GetType().Assembly.GetManifestResourceStream("BlazorWorker.Core.WebAssembly.Bindings.0.2.2.0.dll");
             using (stream)
@@ -71,11 +71,11 @@ namespace BlazorWorker.Core
                             "WebAssembly.Bindings.dll" 
                         },
                     FetchUrlOverride = new Map { {
-                            "WebAssembly.Bindings.dll", localStorageWebKey
+                            "WebAssembly.Bindings.dll", resxKey
                     } },
                     FetchOverride = new Dictionary<string, FetchResponse> {
-                        { localStorageWebKey,
-                            new FetchResponse() {
+                        { resxKey,
+                            new FetchResponse {
                                 Url = "WebAssembly.Bindings.dll", 
                                 Base64Data = Convert.ToBase64String(dllContent)}}
                     },

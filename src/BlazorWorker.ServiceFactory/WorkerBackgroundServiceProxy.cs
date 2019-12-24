@@ -23,7 +23,7 @@ namespace BlazorWorker.BackgroundServiceFactory
         private TaskCompletionSource<bool> initWorkerTask;
         // This doesnt really need to be static but easier to debug if messages have application-wide unique ids
         private static long messageRegisterIdSource;
-        private Dictionary<long, TaskCompletionSource<MethodCallResult>> messageRegister
+        private readonly Dictionary<long, TaskCompletionSource<MethodCallResult>> messageRegister
             = new Dictionary<long, TaskCompletionSource<MethodCallResult>>();
 
         private Dictionary<long, EventHandle> eventRegister
@@ -118,16 +118,17 @@ namespace BlazorWorker.BackgroundServiceFactory
             var baseMessage = this.options.MessageSerializer.Deserialize<BaseMessage>(rawMessage);
             if (baseMessage.MessageType == nameof(InitInstanceComplete))
             {
+                var message = this.options.MessageSerializer.Deserialize<InitInstanceComplete>(rawMessage);
                 Console.WriteLine($"{nameof(WorkerBackgroundServiceProxy<T>)}: {nameof(InitInstanceComplete)}: {rawMessage}");
-                this.initTask.SetResult(true);
-                this.IsInitialized = true;
+                OnInitInstanceComplete(message);
                 return;
             }
 
             if (baseMessage.MessageType == nameof(InitWorkerComplete))
             {
+                var message = this.options.MessageSerializer.Deserialize<InitWorkerComplete>(rawMessage);
                 Console.WriteLine($"{nameof(WorkerBackgroundServiceProxy<T>)}: {nameof(InitWorkerComplete)}: {rawMessage}");
-                this.initWorkerTask.SetResult(true);
+                OnInitWorkerComplete(message);
                 return;
             }
 
@@ -135,12 +136,8 @@ namespace BlazorWorker.BackgroundServiceFactory
             {
                 Console.WriteLine($"{nameof(WorkerBackgroundServiceProxy<T>)}: {nameof(EventRaised)}: {rawMessage}");
                 var message = this.options.MessageSerializer.Deserialize<EventRaised>(rawMessage);
-                if (!this.eventRegister.TryGetValue(message.EventHandleId, out var eventHandle)) {
-                    Console.WriteLine($"{nameof(WorkerBackgroundServiceProxy<T>)}: {nameof(EventRaised)}: Unknown event id {message.EventHandleId}");
-                    return;
-                }
-                
-                OnEventRaised(eventHandle, message.ResultPayload);
+
+                OnEventRaised(message);
             }
 
             if (baseMessage.MessageType == nameof(MethodCallResult))
@@ -149,12 +146,37 @@ namespace BlazorWorker.BackgroundServiceFactory
                 var message = this.options.MessageSerializer.Deserialize<MethodCallResult>(rawMessage);
                 if (!this.messageRegister.TryGetValue(message.CallId, out var taskCompletionSource))
                 {
-                    throw new UnknownMessageException($"{nameof(MethodCallResult)}, message {nameof(MethodCallResult.CallId)} {message.CallId}");
+                    return;
+                    //throw new UnknownMessageException($"{nameof(MethodCallResult)}, message {nameof(MethodCallResult.CallId)} {message.CallId}");
                 }
 
                 taskCompletionSource.SetResult(message);
                 return;
             }
+        }
+
+        private void OnEventRaised(EventRaised message)
+        {
+            if (!this.eventRegister.TryGetValue(message.EventHandleId, out var eventHandle))
+            {
+                Console.WriteLine($"{nameof(WorkerBackgroundServiceProxy<T>)}: {nameof(EventRaised)}: Unknown event id {message.EventHandleId}");
+                return;
+            }
+
+            OnEventRaised(eventHandle, message.ResultPayload);
+        }
+
+        private void OnInitWorkerComplete(InitWorkerComplete message)
+        {
+            var x = message;
+            this.initWorkerTask.SetResult(true);
+        }
+
+        private void OnInitInstanceComplete(InitInstanceComplete message)
+        {
+            var p = message;
+            this.initTask.SetResult(true);
+            this.IsInitialized = true;
         }
 
         private void OnEventRaised(EventHandle eventHandle, string eventPayload)

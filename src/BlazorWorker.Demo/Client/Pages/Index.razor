@@ -38,11 +38,7 @@ Output:
                 StateHasChanged();
                 var workerFactory = new BlazorWorker.Core.WorkerProxy(jsRuntime);
 
-                backgroundService = await workerFactory.CreateBackgroundServiceAsync<MathsService>(
-                    new WorkerInitOptions()
-                    {
-                        DependentAssemblyFilenames = new[] { "BlazorWorker.Demo.Shared.dll" }
-                    });
+                backgroundService = await workerFactory.CreateBackgroundServiceAsync<MathsService>();
 
                 await backgroundService.RegisterEventListenerAsync(nameof(MathsService.Pi),
                     (object s, int pinum) =>
@@ -51,20 +47,19 @@ Output:
                         StateHasChanged();
                     });
 
-                StateHasChanged();
+
                 output += $"{rn}{LogDate()} Background service created.";
+                StateHasChanged();
             }
 
-            var f = piIterations;
+            var localParamValue = piIterations;
 
             output += $"{rn}{LogDate()} Calling EstimatePI({piIterations})...";
-            var __ = backgroundService.RunAsync(s => s.EstimatePI(f)).ContinueWith(t =>
+            var __ = backgroundService.RunAsync(s => s.EstimatePI(localParamValue)).ContinueWith(t =>
             {
                 output += $"{rn}{LogDate()} EstimatePI({piIterations}) = {t.Result}";
                 StateHasChanged();
             });
-
-            //output += $"{rn}{DateTime.Now} Fib({fiboNumber}) = {await backgroundService.RunAsync(s => s.Fibonacci(f))}";
         }
         catch (Exception e)
         {
@@ -74,5 +69,5 @@ Output:
 
     private string LogDate() {
         return DateTime.Now.ToString("HH:mm:ss:fff");
-    }    
+    }
 }

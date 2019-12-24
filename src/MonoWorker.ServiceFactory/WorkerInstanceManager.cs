@@ -1,31 +1,32 @@
 ﻿using BlazorWorker.BackgroundServiceFactory;
 using BlazorWorker.BackgroundServiceFactory.Shared;
-using BlazorWorker.Core;
 using MonoWorker.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Reflection;
-using System.Threading.Tasks;
 
 namespace MonoWorker.BackgroundServiceHost
 {
-    public class WorkerInstanceManager
+    public partial class WorkerInstanceManager
     {
-       
         public readonly Dictionary<long, IEventWrapper> events =
              new Dictionary<long, IEventWrapper>();
 
         public static readonly WorkerInstanceManager Instance = new WorkerInstanceManager();
         internal readonly ISerializer serializer;
         private readonly WebWorkerOptions options;
-
-        public event EventHandler<string> IncomingMessage;
+        private readonly MessageHandlerRegistry messageHandlerRegistry;
 
         public WorkerInstanceManager()
         {
             this.serializer = new DefaultMessageSerializer();
             this.options = new WebWorkerOptions();
+
+            this.messageHandlerRegistry = new MessageHandlerRegistry(this.serializer);
+            this.messageHandlerRegistry.Add<InitInstanceParams>(InitInstance);
+            this.messageHandlerRegistry.Add<MethodCallParams>(HandleMethodCall);
+            this.messageHandlerRegistry.Add<RegisterEvent>(RegisterEvent);
+            this.messageHandlerRegistry.Add<UnRegisterEvent>(UnRegisterEvent);
         }
 
         public static void Init() {
@@ -45,59 +46,39 @@ namespace MonoWorker.BackgroundServiceHost
             PostMessage(this.serializer.Serialize(obj));
         }
 
+        private bool IsInfrastructureMessage(string message)
+        {
+            return this.messageHandlerRegistry.HandlesMessage(message);
+        }
+
         private void OnMessage(object sender, string message)
         {
-            var baseMessage = this.serializer.Deserialize<BaseMessage>(message);
-            if (baseMessage.MessageType == nameof(InitInstanceParams))
-            {
-                var initMessage = this.serializer.Deserialize<InitInstanceParams>(message);
-                InitInstance(initMessage);
-                return;
-            }
+            this.messageHandlerRegistry.HandleMessage(message);
+        }
 
-            if (baseMessage.MessageType == nameof(MethodCallParams))
+        private void HandleMethodCall(MethodCallParams methodCallMessage)
+        {
+            try
             {
-                var methodCallMessage = this.serializer.Deserialize<MethodCallParams>(message);
-                try
-                {
-                    var result = Call(methodCallMessage);
-                    PostObject(
-                        
-                        new MethodCallResult()
-                        {
-                            CallId = methodCallMessage.CallId,
-                            ResultPayload = this.serializer.Serialize(result)
-                        }
-                    );
-                }
-                catch (Exception e)
-                {
-                    PostObject(
-                        new MethodCallResult()
-                        {
-                            CallId = methodCallMessage.CallId,
-                            IsException = true,
-                            Exception = e
-                        });
-                }
-                return;
+                var result = MethodCall(methodCallMessage);
+                PostObject(
+                    new MethodCallResult()
+                    {
+                        CallId = methodCallMessage.CallId,
+                        ResultPayload = this.serializer.Serialize(result)
+                    }
+                );
             }
-
-            if (baseMessage.MessageType == nameof(RegisterEvent))
+            catch (Exception e)
             {
-                var registerEventMessage = this.serializer.Deserialize<RegisterEvent>(message);
-                RegisterEvent(registerEventMessage);
-                return;
+                PostObject(
+                    new MethodCallResult()
+                    {
+                        CallId = methodCallMessage.CallId,
+                        IsException = true,
+                        Exception = e
+                    });
             }
-
-            if (baseMessage.MessageType == nameof(UnRegisterEvent))
-            {
-                var unregisterEventMessage = this.serializer.Deserialize<UnRegisterEvent>(message);
-                UnRegisterEvent(unregisterEventMessage);
-                return;
-            }
-
-            IncomingMessage?.Invoke(this, message);
         }
 
         private void UnRegisterEvent(UnRegisterEvent unregisterEventMessage)
@@ -109,7 +90,6 @@ namespace MonoWorker.BackgroundServiceHost
             wrapper.Unregister();
 
             events.Remove(unregisterEventMessage.EventHandleId);
-
         }
 
         private void RegisterEvent(RegisterEvent registerEventMessage)
@@ -131,12 +111,14 @@ namespace MonoWorker.BackgroundServiceHost
         public void InitInstance(InitInstanceParams createInstanceInfo)
         {
             //Console.WriteLine($"{nameof(WorkerInstanceManager)}.{nameof(InitInstance)}");
-            var r = SimpleInstanceService.Instance.InitInstance(createInstanceInfo.InstanceId, createInstanceInfo.TypeName, createInstanceInfo.AssemblyName);
-            //Console.WriteLine($"{nameof(WorkerInstanceManager)}.{nameof(InitInstance)} done. {r.IsSuccess}:{r.FullExceptionString}");
-            PostObject(new InitInstanceComplete() { CallId = createInstanceInfo.CallId });
+            var initResult = SimpleInstanceService.Instance.InitInstance(createInstanceInfo.InstanceId, createInstanceInfo.TypeName, createInstanceInfo.AssemblyName);            //Console.WriteLine($"{nameof(WorkerInstanceManager)}.{nameof(InitInstance)} done. {r.IsSuccess}:{r.FullExceptionString}");
+            PostObject(new InitInstanceComplete() { 
+                CallId = createInstanceInfo.CallId, 
+                IsSuccess = initResult.IsSuccess, 
+                Exception = initResult.Exception });
         }
 
-        public object Call(MethodCallParams instanceMethodCallParams)
+        public object MethodCall(MethodCallParams instanceMethodCallParams)
         {
             var instance = SimpleInstanceService.Instance.instances[instanceMethodCallParams.InstanceId].Instance;
             var lambda = this.options.ExpressionSerializer.Deserialize(instanceMethodCallParams.SerializedExpression) 

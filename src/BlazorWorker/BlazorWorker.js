@@ -18,9 +18,7 @@
         var Module = {};
         config.file_list = [];
 
-        // Todo: Reverse DependentAssemblyCustomPathMap
-        // to get real url  
-        var fetch_file_cb = function (asset) {
+        const fetch_file_cb = function (asset) {
 
             const fetchOverride = initConf.FetchOverride[asset];
             if (fetchOverride) {
@@ -42,17 +40,15 @@
                 const resolve_func1 = function (resolve, reject) {
                     const response = {
                         ok: true,
-                        url: fetchOverride.url, //"WebAssembly.Bindings.dll",//asset,
+                        url: fetchOverride.url,
                         arrayBuffer: function () {
-                           
                             return new Promise(resolve_func2);
                         }
-                       
                     };
                     resolve(response);
                 };
                 return new Promise(resolve_func1);
-            };
+            }
             return fetch(asset, {
                 credentials: "same-origin"
             });
