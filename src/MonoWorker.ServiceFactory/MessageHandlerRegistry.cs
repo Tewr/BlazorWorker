@@ -5,44 +5,42 @@ using System.Collections.Generic;
 
 namespace MonoWorker.BackgroundServiceHost
 {
-    public partial class WorkerInstanceManager
+
+    public class MessageHandlerRegistry : Dictionary<string, Action<string>>
     {
-        private class MessageHandlerRegistry : Dictionary<string, Action<string>>
+
+        public MessageHandlerRegistry(ISerializer messageSerializer)
         {
+            MessageSerializer = messageSerializer;
+        }
 
-            public MessageHandlerRegistry(ISerializer messageSerializer)
+        public ISerializer MessageSerializer { get; }
+
+        public void Add<T>(Action<T> messageHandler) where T : BaseMessage
+        {
+            base.Add(typeof(T).Name, message => messageHandler(MessageSerializer.Deserialize<T>(message)));
+        }
+
+        public bool HandleMessage(string message)
+        {
+            if (this.TryGetValue(GetMessageType(message), out var handler))
             {
-                MessageSerializer = messageSerializer;
+                handler(message);
+                return true;
             }
 
-            public ISerializer MessageSerializer { get; }
+            return false;
+        }
 
-            public void Add<T>(Action<T> messageHandler) where T: BaseMessage
-            {
-                base.Add(typeof(T).Name, message => messageHandler(MessageSerializer.Deserialize<T>(message)));
-            }
+        public bool HandlesMessage(string message)
+        {
+            return this.ContainsKey(GetMessageType(message));
+        }
 
-            public bool HandleMessage(string message)
-            {
-                if (this.TryGetValue(GetMessageType(message), out var handler))
-                {
-                    handler(message);
-                    return true;
-                }
-
-                return false;
-            }
-
-            public bool HandlesMessage(string message)
-            {
-                return this.ContainsKey(GetMessageType(message));
-            }
-
-            private string GetMessageType(string message)
-            {
-                return this.MessageSerializer.Deserialize<BaseMessage>(message).MessageType;
-            }
+        private string GetMessageType(string message)
+        {
+            return this.MessageSerializer.Deserialize<BaseMessage>(message).MessageType;
         }
     }
-
 }
+

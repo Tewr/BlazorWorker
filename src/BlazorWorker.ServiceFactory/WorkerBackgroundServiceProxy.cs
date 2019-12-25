@@ -19,6 +19,7 @@ namespace BlazorWorker.BackgroundServiceFactory
         private long instanceId;
         private ISerializer messageSerializer;
         private object expressionSerializer;
+        private MessageHandlerRegistry messageHandlerRegistry;
         private TaskCompletionSource<bool> initTask;
         private TaskCompletionSource<bool> initWorkerTask;
         // This doesnt really need to be static but easier to debug if messages have application-wide unique ids
@@ -27,9 +28,7 @@ namespace BlazorWorker.BackgroundServiceFactory
             = new Dictionary<long, TaskCompletionSource<MethodCallResult>>();
 
         private Dictionary<long, EventHandle> eventRegister
-    = new Dictionary<long, EventHandle>();
-
-        public event EventHandler<string> Message;
+            = new Dictionary<long, EventHandle>();
 
         public bool IsInitialized { get; private set; }
 
@@ -48,6 +47,12 @@ namespace BlazorWorker.BackgroundServiceFactory
             this.instanceId = ++idSource;
             this.messageSerializer = this.options.MessageSerializer;
             this.expressionSerializer = this.options.ExpressionSerializer;
+            this.messageHandlerRegistry = new MessageHandlerRegistry(this.options.MessageSerializer);
+            this.messageHandlerRegistry.Add<InitInstanceComplete>(OnInitInstanceComplete);
+            this.messageHandlerRegistry.Add<InitWorkerComplete>(OnInitWorkerComplete);
+            this.messageHandlerRegistry.Add<EventRaised>(OnEventRaised);
+            this.messageHandlerRegistry.Add<MethodCallResult>(OnMethodCallResult);
+
         }
 
         public async Task InitAsync(WorkerInitOptions workerInitOptions = null)
@@ -115,44 +120,19 @@ namespace BlazorWorker.BackgroundServiceFactory
 
         private void OnMessage(object sender, string rawMessage)
         {
-            var baseMessage = this.options.MessageSerializer.Deserialize<BaseMessage>(rawMessage);
-            if (baseMessage.MessageType == nameof(InitInstanceComplete))
+            this.messageHandlerRegistry.HandleMessage(rawMessage);
+        }
+
+        private void OnMethodCallResult(MethodCallResult message)
+        {
+            if (!this.messageRegister.TryGetValue(message.CallId, out var taskCompletionSource))
             {
-                var message = this.options.MessageSerializer.Deserialize<InitInstanceComplete>(rawMessage);
-                Console.WriteLine($"{nameof(WorkerBackgroundServiceProxy<T>)}: {nameof(InitInstanceComplete)}: {rawMessage}");
-                OnInitInstanceComplete(message);
                 return;
+                //throw new UnknownMessageException($"{nameof(MethodCallResult)}, message {nameof(MethodCallResult.CallId)} {message.CallId}");
             }
 
-            if (baseMessage.MessageType == nameof(InitWorkerComplete))
-            {
-                var message = this.options.MessageSerializer.Deserialize<InitWorkerComplete>(rawMessage);
-                Console.WriteLine($"{nameof(WorkerBackgroundServiceProxy<T>)}: {nameof(InitWorkerComplete)}: {rawMessage}");
-                OnInitWorkerComplete(message);
-                return;
-            }
-
-            if (baseMessage.MessageType == nameof(EventRaised))
-            {
-                Console.WriteLine($"{nameof(WorkerBackgroundServiceProxy<T>)}: {nameof(EventRaised)}: {rawMessage}");
-                var message = this.options.MessageSerializer.Deserialize<EventRaised>(rawMessage);
-
-                OnEventRaised(message);
-            }
-
-            if (baseMessage.MessageType == nameof(MethodCallResult))
-            {
-                Console.WriteLine($"{nameof(WorkerBackgroundServiceProxy<T>)}: {nameof(MethodCallResult)}: {rawMessage}");
-                var message = this.options.MessageSerializer.Deserialize<MethodCallResult>(rawMessage);
-                if (!this.messageRegister.TryGetValue(message.CallId, out var taskCompletionSource))
-                {
-                    return;
-                    //throw new UnknownMessageException($"{nameof(MethodCallResult)}, message {nameof(MethodCallResult.CallId)} {message.CallId}");
-                }
-
-                taskCompletionSource.SetResult(message);
-                return;
-            }
+            taskCompletionSource.SetResult(message); 
+            this.messageRegister.Remove(message.CallId);
         }
 
         private void OnEventRaised(EventRaised message)
@@ -168,15 +148,20 @@ namespace BlazorWorker.BackgroundServiceFactory
 
         private void OnInitWorkerComplete(InitWorkerComplete message)
         {
-            var x = message;
             this.initWorkerTask.SetResult(true);
         }
 
         private void OnInitInstanceComplete(InitInstanceComplete message)
         {
-            var p = message;
-            this.initTask.SetResult(true);
-            this.IsInitialized = true;
+            if (message.IsSuccess)
+            {
+                this.initTask.SetResult(true);
+                this.IsInitialized = true;
+            }
+            else
+            {
+                this.initTask.SetException(message.Exception);
+            }
         }
 
         private void OnEventRaised(EventHandle eventHandle, string eventPayload)
