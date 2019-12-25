@@ -38,7 +38,7 @@ namespace BlazorWorker.BackgroundServiceFactory
             InitEndPoint = $"[{wim.Assembly.GetName().Name}]{wim.FullName}:{nameof(WorkerInstanceManager.Init)}";
         }
 
-        public WorkerBackgroundServiceProxy(
+        internal WorkerBackgroundServiceProxy(
             IWorker worker,
             WebWorkerOptions options)
         {
@@ -47,12 +47,22 @@ namespace BlazorWorker.BackgroundServiceFactory
             this.instanceId = ++idSource;
             this.messageSerializer = this.options.MessageSerializer;
             this.expressionSerializer = this.options.ExpressionSerializer;
+
             this.messageHandlerRegistry = new MessageHandlerRegistry(this.options.MessageSerializer);
             this.messageHandlerRegistry.Add<InitInstanceComplete>(OnInitInstanceComplete);
             this.messageHandlerRegistry.Add<InitWorkerComplete>(OnInitWorkerComplete);
             this.messageHandlerRegistry.Add<EventRaised>(OnEventRaised);
             this.messageHandlerRegistry.Add<MethodCallResult>(OnMethodCallResult);
+        }
 
+        private bool IsInfrastructureMessage(string message)
+        {
+            return this.messageHandlerRegistry.HandlesMessage(message);
+        }
+
+        public IWorkerMessageService GetWorkerMessageService()
+        {
+            return new InjectableMessageService(IsInfrastructureMessage);
         }
 
         public async Task InitAsync(WorkerInitOptions workerInitOptions = null)
@@ -75,7 +85,6 @@ namespace BlazorWorker.BackgroundServiceFactory
                 initWorkerTask = new TaskCompletionSource<bool>();
                 await this.worker.InitAsync(new WorkerInitOptions() { 
                     DependentAssemblyFilenames = new[] { 
-                        $"{this.GetType().Assembly.GetName().Name}.dll",
                         $"{typeof(BaseMessage).Assembly.GetName().Name}.dll",
                         $"{typeof(WorkerInstanceManager).Assembly.GetName().Name}.dll",
                         $"{typeof(Newtonsoft.Json.JsonConvert).Assembly.GetName().Name}.dll",
@@ -248,11 +257,6 @@ namespace BlazorWorker.BackgroundServiceFactory
             };
 
             return this.options.MessageSerializer.Serialize(methodCall);
-        }
-
-        public async Task PostMessageAsync(string message)
-        {
-            await this.worker.PostMessageAsync(message);
         }
     }
 }

@@ -71,7 +71,7 @@ namespace MonoWorker.Core
             var InstanceWrapper = new InstanceWrapper();
             var result = InitInstance(typeName, assemblyName,
                 () => (IWorkerMessageService)(InstanceWrapper.Services 
-                    = new InjectableMessageService(m => m.StartsWith(MessagePrefix) || (handler?.Invoke(m)).GetValueOrDefault(false))));
+                    = new InjectableMessageService(message => (handler?.Invoke(message)).GetValueOrDefault(false))));
 
             InstanceWrapper.Instance = result.Instance;
             if (result.IsSuccess)

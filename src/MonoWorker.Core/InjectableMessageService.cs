@@ -14,14 +14,14 @@ namespace MonoWorker.Core
             this.isInfrastructureMessage = isInfrastructureMessage;
         }
 
-        private void OnIncomingMessage(object sender, string e)
+        private void OnIncomingMessage(object sender, string rawMessage)
         {
-            if (isInfrastructureMessage(e))
+            if (rawMessage.StartsWith(SimpleInstanceService.MessagePrefix) || isInfrastructureMessage(rawMessage))
             {
                 return;
             }
 
-            IncomingMessage?.Invoke(sender, e);
+            IncomingMessage?.Invoke(sender, rawMessage);
         }
 
         public event EventHandler<string> IncomingMessage;

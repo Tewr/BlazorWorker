@@ -111,7 +111,10 @@ namespace MonoWorker.BackgroundServiceHost
         public void InitInstance(InitInstanceParams createInstanceInfo)
         {
             //Console.WriteLine($"{nameof(WorkerInstanceManager)}.{nameof(InitInstance)}");
-            var initResult = SimpleInstanceService.Instance.InitInstance(createInstanceInfo.InstanceId, createInstanceInfo.TypeName, createInstanceInfo.AssemblyName);            //Console.WriteLine($"{nameof(WorkerInstanceManager)}.{nameof(InitInstance)} done. {r.IsSuccess}:{r.FullExceptionString}");
+            var initResult = SimpleInstanceService.Instance.InitInstance(
+                createInstanceInfo.InstanceId, 
+                createInstanceInfo.TypeName, 
+                createInstanceInfo.AssemblyName, IsInfrastructureMessage);            //Console.WriteLine($"{nameof(WorkerInstanceManager)}.{nameof(InitInstance)} done. {r.IsSuccess}:{r.FullExceptionString}");
             PostObject(new InitInstanceComplete() { 
                 CallId = createInstanceInfo.CallId, 
                 IsSuccess = initResult.IsSuccess, 
