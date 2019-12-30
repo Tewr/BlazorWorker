@@ -3,11 +3,9 @@ using MonoWorker.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading.Tasks;
 using Map = System.Collections.Generic.Dictionary<string, string>;
+
 namespace BlazorWorker.Core
 {
     [DependencyHint(typeof(MessageService))]

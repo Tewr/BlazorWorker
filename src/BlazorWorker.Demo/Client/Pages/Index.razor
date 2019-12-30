@@ -10,7 +10,9 @@ Welcome to your new multithreaded app.
 
 <br/>
 <input type="text" @bind="piIterations" placeholder="pi length" />
-<button @onclick="OnClick">Estimate pi in a new thread</button>
+<button @onclick="OnClick">Estimate pi</button>
+
+<button disabled="@disabled" @onclick="OnDispose">Dispose Service</button>
 <br/>
 <progress max="@piIterations" value="@piProgress" />
 <br />
@@ -25,6 +27,8 @@ Output:
     int piProgress = 0;
     string output;
     IWorkerBackgroundService<MathsService> backgroundService;
+    string disabled = "disabled";
+
 
     public async Task OnClick(EventArgs _)
     {
@@ -34,6 +38,7 @@ Output:
         {
             if (backgroundService == null)
             {
+                disabled = null;
                 output = $"{rn}{LogDate()} Creating background service...";
                 StateHasChanged();
                 var workerFactory = new BlazorWorker.Core.WorkerProxy(jsRuntime);
@@ -65,6 +70,13 @@ Output:
         {
             output = $"{rn}Error = {e}";
         }
+    }
+
+    public async Task OnDispose()
+    {
+        await backgroundService.DisposeAsync();
+        backgroundService = null;
+        disabled = "disabled";
     }
 
     private string LogDate() {

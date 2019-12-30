@@ -2,11 +2,11 @@
 
 namespace BlazorWorker.BackgroundServiceFactory.Shared
 {
-    public class InitInstanceParams : BaseMessage
+    public class InitInstance : BaseMessage
     {
-        public InitInstanceParams()
+        public InitInstance()
         {
-            MessageType = nameof(InitInstanceParams);
+            MessageType = nameof(InitInstance);
         }
 
         public long WorkerId { get; set; }

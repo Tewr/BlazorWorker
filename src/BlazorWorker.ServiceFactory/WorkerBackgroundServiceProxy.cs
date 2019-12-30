@@ -21,6 +21,7 @@ namespace BlazorWorker.BackgroundServiceFactory
         private object expressionSerializer;
         private MessageHandlerRegistry messageHandlerRegistry;
         private TaskCompletionSource<bool> initTask;
+        private TaskCompletionSource<bool> disposeTask;
         private TaskCompletionSource<bool> initWorkerTask;
         // This doesnt really need to be static but easier to debug if messages have application-wide unique ids
         private static long messageRegisterIdSource;
@@ -31,6 +32,7 @@ namespace BlazorWorker.BackgroundServiceFactory
             = new Dictionary<long, EventHandle>();
 
         public bool IsInitialized { get; private set; }
+        public bool IsDisposed { get; private set; }
 
         static WorkerBackgroundServiceProxy()
         {
@@ -51,8 +53,22 @@ namespace BlazorWorker.BackgroundServiceFactory
             this.messageHandlerRegistry = new MessageHandlerRegistry(this.options.MessageSerializer);
             this.messageHandlerRegistry.Add<InitInstanceComplete>(OnInitInstanceComplete);
             this.messageHandlerRegistry.Add<InitWorkerComplete>(OnInitWorkerComplete);
+            this.messageHandlerRegistry.Add<DisposeInstanceComplete>(OnDisposeInstanceComplete);
             this.messageHandlerRegistry.Add<EventRaised>(OnEventRaised);
             this.messageHandlerRegistry.Add<MethodCallResult>(OnMethodCallResult);
+        }
+
+        private void OnDisposeInstanceComplete(DisposeInstanceComplete message)
+        {
+            if (message.IsSuccess)
+            {
+                this.disposeTask.SetResult(true);
+                this.IsDisposed = true;
+            }
+            else
+            {
+                this.disposeTask.SetException(message.Exception);
+            }
         }
 
         private bool IsInfrastructureMessage(string message)
@@ -114,7 +130,7 @@ namespace BlazorWorker.BackgroundServiceFactory
             }
 
             var message = this.options.MessageSerializer.Serialize(
-                    new InitInstanceParams()
+                    new InitInstance()
                     {
                         WorkerId = this.worker.Identifier, // TODO: This should not really be necessary?
                         InstanceId = instanceId,
@@ -257,6 +273,32 @@ namespace BlazorWorker.BackgroundServiceFactory
             };
 
             return this.options.MessageSerializer.Serialize(methodCall);
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (this.disposeTask != null)
+            {
+                await disposeTask.Task;
+            }
+
+            if (this.IsDisposed)
+            {
+                return;
+            }
+
+            disposeTask = new TaskCompletionSource<bool>();
+
+            var message = this.options.MessageSerializer.Serialize(
+                   new DisposeInstance
+                   {
+                        InstanceId = instanceId,
+                   });
+            Console.WriteLine($"{nameof(WorkerBackgroundServiceProxy<T>)}.DisposeAsync(): {this.worker.Identifier} {message}");
+
+            await this.worker.PostMessageAsync(message);
+
+            await disposeTask.Task;
         }
     }
 }

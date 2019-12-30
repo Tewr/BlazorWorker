@@ -27,25 +27,25 @@ namespace BlazorWorker.BackgroundServiceFactory
         public static string[] GuessReferencedDlls(this System.Type source)
         {
             var assembly = source.Assembly;
-            return GuessReferencedDlls(assembly, new List<AssemblyName>()).ToArray();
+            return GuessReferencedDlls(assembly, new List<string>()).Distinct().ToArray();
         }
 
-        private static IEnumerable<string> GuessReferencedDlls(Assembly forAssembly, List<AssemblyName> alreadyCovered)
+        private static IEnumerable<string> GuessReferencedDlls(Assembly forAssembly, List<string> alreadyCovered)
         {
             yield return $"{forAssembly.GetName().Name}.dll";
 
             foreach (var assembly in forAssembly.GetReferencedAssemblies())
             {
-                if (alreadyCovered.Contains(assembly))
+                if (alreadyCovered.Contains(assembly.FullName))
                 {
                     continue;
                 }
-                alreadyCovered.Add(assembly);
+                alreadyCovered.Add(assembly.FullName);
 
                 yield return $"{assembly.Name}.dll";
-                
+
                 // recursion
-                foreach (var childDep in GuessReferencedDlls(Assembly.ReflectionOnlyLoad(assembly.FullName), alreadyCovered))
+                foreach (var childDep in GuessReferencedDlls(Assembly.Load(assembly.FullName), alreadyCovered))
                 {
                     yield return childDep;
                 }

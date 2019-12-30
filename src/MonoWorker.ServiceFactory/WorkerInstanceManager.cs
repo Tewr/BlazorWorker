@@ -23,7 +23,8 @@ namespace MonoWorker.BackgroundServiceHost
             this.options = new WebWorkerOptions();
 
             this.messageHandlerRegistry = new MessageHandlerRegistry(this.serializer);
-            this.messageHandlerRegistry.Add<InitInstanceParams>(InitInstance);
+            this.messageHandlerRegistry.Add<InitInstance>(InitInstance);
+            this.messageHandlerRegistry.Add<DisposeInstance>(DisposeInstance);
             this.messageHandlerRegistry.Add<MethodCallParams>(HandleMethodCall);
             this.messageHandlerRegistry.Add<RegisterEvent>(RegisterEvent);
             this.messageHandlerRegistry.Add<UnRegisterEvent>(UnRegisterEvent);
@@ -108,17 +109,28 @@ namespace MonoWorker.BackgroundServiceHost
             events.Add(wrapper.EventHandleId, wrapper);
         }
 
-        public void InitInstance(InitInstanceParams createInstanceInfo)
+        public void InitInstance(InitInstance createInstanceInfo)
         {
-            //Console.WriteLine($"{nameof(WorkerInstanceManager)}.{nameof(InitInstance)}");
             var initResult = SimpleInstanceService.Instance.InitInstance(
                 createInstanceInfo.InstanceId, 
                 createInstanceInfo.TypeName, 
-                createInstanceInfo.AssemblyName, IsInfrastructureMessage);            //Console.WriteLine($"{nameof(WorkerInstanceManager)}.{nameof(InitInstance)} done. {r.IsSuccess}:{r.FullExceptionString}");
+                createInstanceInfo.AssemblyName, IsInfrastructureMessage);            
+            
             PostObject(new InitInstanceComplete() { 
                 CallId = createInstanceInfo.CallId, 
                 IsSuccess = initResult.IsSuccess, 
                 Exception = initResult.Exception });
+        }
+
+        public void DisposeInstance(DisposeInstance dispose)
+        {
+            var res = SimpleInstanceService.Instance.DisposeInstance(dispose.InstanceId);
+            PostObject(new DisposeInstanceComplete
+            {
+                CallId = dispose.CallId,
+                IsSuccess = res.IsSuccess,
+                Exception = res.Exception
+            });
         }
 
         public object MethodCall(MethodCallParams instanceMethodCallParams)

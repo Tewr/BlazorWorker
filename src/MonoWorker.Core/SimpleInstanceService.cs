@@ -60,7 +60,7 @@ namespace MonoWorker.Core
 
             MessageService.PostMessage(
                 $"{MessagePrefix}{InitResultMessagePrefix}" +
-                $"{(result.IsSuccess ? "1" : "0")}:" +
+                $"{(result.IsSuccess ? 1 : 0)}:" +
                 $"{result.ExceptionMessage}:" +
                 $"{result.FullExceptionString}");
         }
@@ -87,16 +87,27 @@ namespace MonoWorker.Core
         }
 
 
-        private bool DisposeInstance(string message)
+        private void DisposeInstance(string message)
         {
             var id = long.Parse(message);
-            return DisposeInstance(id);
+
+            var result = DisposeInstance(id);
+
+            MessageService.PostMessage(
+                $"{MessagePrefix}{DiposeResultMessagePrefix}" +
+                $"{(result.IsSuccess ? 1 : 0)}:" +
+                $"{result.ExceptionMessage}:" +
+                $"{result.FullExceptionString}");
         }
 
-        private bool DisposeInstance(long id)
+        public DisposeResult DisposeInstance(long id)
         {
             if (!instances.TryGetValue(id, out var instanceWrapper)) {
-                return false;
+                return new DisposeResult
+                {
+                    InstanceId = id,
+                    IsSuccess = false
+                };
             }
 
             try
@@ -104,11 +115,21 @@ namespace MonoWorker.Core
                 instanceWrapper.Dispose();
 
                 instances.Remove(id);
-                return true;
+                return new DisposeResult { 
+                    InstanceId = id,
+                    IsSuccess = true
+                };
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                return false;
+                return new DisposeResult
+                {
+                    InstanceId = id,
+                    IsSuccess = false,
+                    Exception = e,
+                    ExceptionMessage = e.Message,
+                    FullExceptionString = e.ToString()
+                };
             }
         }
 

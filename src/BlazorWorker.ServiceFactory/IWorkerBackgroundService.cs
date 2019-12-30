@@ -12,5 +12,7 @@ namespace BlazorWorker.BackgroundServiceFactory
         Task RunAsync(Expression<Action<T>> action);
 
         IWorkerMessageService GetWorkerMessageService();
+
+        ValueTask DisposeAsync();
     }
 }
