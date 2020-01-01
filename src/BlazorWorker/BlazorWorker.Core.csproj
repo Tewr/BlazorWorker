@@ -23,8 +23,4 @@
     <ProjectReference Include="..\MonoWorker.Core\MonoWorker.Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="SimpleInstanceService\" />
-  </ItemGroup>
-
 </Project>

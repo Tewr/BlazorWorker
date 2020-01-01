@@ -5,10 +5,8 @@ using System.Collections.Generic;
 
 namespace MonoWorker.BackgroundServiceHost
 {
-
     public class MessageHandlerRegistry : Dictionary<string, Action<string>>
     {
-
         public MessageHandlerRegistry(ISerializer messageSerializer)
         {
             MessageSerializer = messageSerializer;

@@ -1,6 +1,7 @@
 ﻿using BlazorWorker.BackgroundServiceFactory;
 using BlazorWorker.BackgroundServiceFactory.Shared;
 using MonoWorker.Core;
+using MonoWorker.Core.SimpleInstanceService;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -112,9 +113,12 @@ namespace MonoWorker.BackgroundServiceHost
         public void InitInstance(InitInstance createInstanceInfo)
         {
             var initResult = SimpleInstanceService.Instance.InitInstance(
-                createInstanceInfo.InstanceId, 
-                createInstanceInfo.TypeName, 
-                createInstanceInfo.AssemblyName, IsInfrastructureMessage);            
+                new InitInstanceRequest
+                {
+                    Id = createInstanceInfo.InstanceId,
+                    TypeName = createInstanceInfo.TypeName,
+                    AssemblyName = createInstanceInfo.AssemblyName
+                }, IsInfrastructureMessage);            
             
             PostObject(new InitInstanceComplete() { 
                 CallId = createInstanceInfo.CallId, 
@@ -124,10 +128,15 @@ namespace MonoWorker.BackgroundServiceHost
 
         public void DisposeInstance(DisposeInstance dispose)
         {
-            var res = SimpleInstanceService.Instance.DisposeInstance(dispose.InstanceId);
+            var res = SimpleInstanceService.Instance.DisposeInstance(
+                new DisposeInstanceRequest { 
+                    InstanceId = dispose.InstanceId,
+                    CallId = dispose.CallId
+                });
+
             PostObject(new DisposeInstanceComplete
             {
-                CallId = dispose.CallId,
+                CallId = res.CallId,
                 IsSuccess = res.IsSuccess,
                 Exception = res.Exception
             });
@@ -142,43 +151,4 @@ namespace MonoWorker.BackgroundServiceHost
             return dynamicDelegate.DynamicInvoke(instance);
         }
     }
-
-    public class EventHandlerWrapper<T> : IEventWrapper
-    {
-        private readonly WorkerInstanceManager wim;
-
-        public EventHandlerWrapper(
-            WorkerInstanceManager wim, 
-            long instanceId, 
-            long eventHandleId)
-        {
-            this.wim = wim;
-            InstanceId = instanceId;
-            EventHandleId = eventHandleId;
-        }
-
-        public long InstanceId { get; }
-        public long EventHandleId { get; }
-
-        public Action Unregister { get; set; }
-
-        public void OnEvent(object _, T eventArgs)
-        {
-            //Console.WriteLine("ONEVENT");
-            wim.PostObject(new EventRaised()
-            {
-                EventHandleId = EventHandleId,
-                InstanceId = InstanceId,
-                ResultPayload = wim.serializer.Serialize(eventArgs)
-            });
-        }
-    }
-
-    public interface IEventWrapper
-    {
-        long InstanceId { get; }
-        long EventHandleId { get; }
-        Action Unregister { get; set; }
-    }
-
 }

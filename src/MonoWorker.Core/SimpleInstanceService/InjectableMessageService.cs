@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace MonoWorker.Core
+namespace MonoWorker.Core.SimpleInstanceService
 {
     public delegate bool IsInfrastructureMessage(string message);
     public class InjectableMessageService : IWorkerMessageService, IDisposable

@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 
-namespace MonoWorker.Core
+namespace MonoWorker.Core.SimpleInstanceService
 {
     public class SimpleInstanceService : ISimpleInstanceService
     {
@@ -33,50 +34,48 @@ namespace MonoWorker.Core
                 return;
             }
 
-            rawMessage = rawMessage.Substring(MessagePrefix.Length);
-
-            if (rawMessage.StartsWith(InitMessagePrefix)) {
-                rawMessage = rawMessage.Substring(InitMessagePrefix.Length);
-                InitInstance(rawMessage);
-                return;
-            }
-
-            if (rawMessage.StartsWith(DiposeMessagePrefix))
+            if (InitInstanceRequest.CanDeserialize(rawMessage)) 
             {
-                rawMessage = rawMessage.Substring(DiposeMessagePrefix.Length);
-                DisposeInstance(rawMessage);
+                InitInstance(InitInstanceRequest.Deserialize(rawMessage));
+                return;
+            }
+
+            if (DisposeInstanceRequest.CanDeserialize(rawMessage))
+            {
+                DisposeInstance(DisposeInstanceRequest.Deserialize(rawMessage));
                 return;
             }
         }
 
-        public void InitInstance(string initMessage)
+        public async Task InitInstance(string initMessage)
         {
-            var splitMessage = initMessage.Split('|');
-            var id = long.Parse(splitMessage[0]);
-            var typeName = splitMessage[1];
-            var assemblyName = splitMessage[2];
-
-            var result = InitInstance(id, typeName, assemblyName);
-
-            MessageService.PostMessage(
-                $"{MessagePrefix}{InitResultMessagePrefix}" +
-                $"{(result.IsSuccess ? 1 : 0)}:" +
-                $"{result.ExceptionMessage}:" +
-                $"{result.FullExceptionString}");
+            var result = await InitInstance(InitInstanceRequest.Deserialize(initMessage));
+            MessageService.PostMessage(result.Serialize());
         }
 
-        public InitInstanceResult InitInstance(long id, string typeName, string assemblyName, 
+        public async Task DisposeInstance(string message)
+        {
+            var result = await DisposeInstance(DisposeInstanceRequest.Deserialize(message));
+            MessageService.PostMessage(result.Serialize());
+        }
+
+        public async Task<InitInstanceResult> InitInstance(InitInstanceRequest initInstanceRequest)
+        {
+            return InitInstance(initInstanceRequest, null);
+        }
+
+        public InitInstanceResult InitInstance(InitInstanceRequest initInstanceRequest, 
             IsInfrastructureMessage handler = null)
         {
             var InstanceWrapper = new InstanceWrapper();
-            var result = InitInstance(typeName, assemblyName,
+            var result = InitInstance(initInstanceRequest.TypeName, initInstanceRequest.AssemblyName,
                 () => (IWorkerMessageService)(InstanceWrapper.Services 
                     = new InjectableMessageService(message => (handler?.Invoke(message)).GetValueOrDefault(false))));
 
             InstanceWrapper.Instance = result.Instance;
             if (result.IsSuccess)
             {
-                instances[id] = InstanceWrapper;
+                instances[initInstanceRequest.Id] = InstanceWrapper;
             }
             else
             {
@@ -87,25 +86,15 @@ namespace MonoWorker.Core
         }
 
 
-        private void DisposeInstance(string message)
+
+
+        public async Task<DisposeResult> DisposeInstance(DisposeInstanceRequest request)
         {
-            var id = long.Parse(message);
-
-            var result = DisposeInstance(id);
-
-            MessageService.PostMessage(
-                $"{MessagePrefix}{DiposeResultMessagePrefix}" +
-                $"{(result.IsSuccess ? 1 : 0)}:" +
-                $"{result.ExceptionMessage}:" +
-                $"{result.FullExceptionString}");
-        }
-
-        public DisposeResult DisposeInstance(long id)
-        {
-            if (!instances.TryGetValue(id, out var instanceWrapper)) {
+            if (!instances.TryGetValue(request.InstanceId, out var instanceWrapper)) {
                 return new DisposeResult
                 {
-                    InstanceId = id,
+                    CallId = request.CallId,
+                    InstanceId = request.InstanceId,
                     IsSuccess = false
                 };
             }
@@ -114,9 +103,10 @@ namespace MonoWorker.Core
             {
                 instanceWrapper.Dispose();
 
-                instances.Remove(id);
+                instances.Remove(request.InstanceId);
                 return new DisposeResult { 
-                    InstanceId = id,
+                    InstanceId = request.InstanceId,
+                    CallId = request.CallId,
                     IsSuccess = true
                 };
             }
@@ -124,7 +114,8 @@ namespace MonoWorker.Core
             {
                 return new DisposeResult
                 {
-                    InstanceId = id,
+                    CallId = request.CallId,
+                    InstanceId = request.InstanceId,
                     IsSuccess = false,
                     Exception = e,
                     ExceptionMessage = e.Message,

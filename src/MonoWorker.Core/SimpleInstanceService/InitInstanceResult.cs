@@ -1,0 +1,54 @@
+﻿using MonoWorker.Core.SimpleInstanceService;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace MonoWorker.Core.SimpleInstanceService
+{
+    public class InitInstanceResult
+    {
+        public static readonly string Prefix = $"{SimpleInstanceService.MessagePrefix}{SimpleInstanceService.InitResultMessagePrefix}";
+
+        public long CallId { get; set; }
+        public bool IsSuccess { get; set; }
+        public long InstanceId { get; set; }
+
+        public object Instance { get; set; }
+
+        public string ExceptionMessage { get; set; } = string.Empty;
+
+        public string FullExceptionString { get; set; } = string.Empty;
+
+        public Exception Exception { get; internal set; }
+
+        internal string Serialize()
+        {
+            return
+                $"{Prefix}" +
+                $"{this.CallId}:" +
+                $"{(this.IsSuccess ? 1 : 0)}:" +
+                $"{this.ExceptionMessage}:" +
+                $"{this.FullExceptionString}";
+        }
+        public static bool CanDeserialize(string message)
+        {
+            return message.StartsWith(Prefix);
+        }
+
+        public static InitInstanceResult Deserialize(string message)
+        {
+            var result = new InitInstanceResult();
+
+            var parsers = new Queue<Action<string>>(
+                new Action<string>[] {
+                    s => result.CallId = long.Parse(s),
+                    s => result.IsSuccess = s == "1", 
+                    s => result.ExceptionMessage = s, 
+                    s => result.FullExceptionString = s
+            });
+
+            CSVDeserializer.Deserialize(message, Prefix, parsers);
+            return result;
+        }
+    }
+}

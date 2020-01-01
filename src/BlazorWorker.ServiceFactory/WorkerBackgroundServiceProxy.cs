@@ -78,7 +78,7 @@ namespace BlazorWorker.BackgroundServiceFactory
 
         public IWorkerMessageService GetWorkerMessageService()
         {
-            return new InjectableMessageService(IsInfrastructureMessage);
+            return this.worker;
         }
 
         public async Task InitAsync(WorkerInitOptions workerInitOptions = null)
