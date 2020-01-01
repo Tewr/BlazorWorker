@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MonoWorker.Core
 {
-    public class SimpleInstanceService
+    public class SimpleInstanceService : ISimpleInstanceService
     {
         public static readonly SimpleInstanceService Instance = new SimpleInstanceService();
         public readonly Dictionary<long, InstanceWrapper> instances = new Dictionary<long, InstanceWrapper>();

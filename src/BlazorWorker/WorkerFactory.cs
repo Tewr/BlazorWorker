@@ -12,10 +12,10 @@ namespace BlazorWorker.Core
             this.jsRuntime = jsRuntime;
         }
 
-        public async Task<IWorker> CreateAsync(WorkerInitOptions initOptions)
+        public async Task<IWorker> CreateAsync()//WorkerInitOptions initOptions)
         {
             var worker = new WorkerProxy(jsRuntime);
-            await worker.InitAsync(initOptions);
+            //await worker.InitAsync(initOptions);
             return worker;
         }
     }

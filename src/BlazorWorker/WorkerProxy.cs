@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Map = System.Collections.Generic.Dictionary<string, string>;
-
 namespace BlazorWorker.Core
 {
     [DependencyHint(typeof(MessageService))]
@@ -16,7 +15,7 @@ namespace BlazorWorker.Core
         private readonly IJSRuntime jsRuntime;
         private readonly ScriptLoader scriptLoader;
         private static long idSource;
-        
+        private bool isDisposed = false;
         /// <summary>
         /// [MonoWorker.Core]MonoWorker.Core.MessageService:OnMessage"
         /// </summary>
@@ -37,9 +36,13 @@ namespace BlazorWorker.Core
             this.Identifier = ++idSource;
         }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
-            this.jsRuntime.InvokeVoidAsync("BlazorWorker.disposeWorker", this.Identifier);
+            if (!isDisposed)
+            {
+                await this.jsRuntime.InvokeVoidAsync("BlazorWorker.disposeWorker", this.Identifier);
+                isDisposed = true;
+            }
         }
 
         public async Task InitAsync(WorkerInitOptions initOptions)

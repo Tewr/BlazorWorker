@@ -1,3 +1,4 @@
+using BlazorWorker.Core;
 using Microsoft.AspNetCore.Components.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -7,6 +8,7 @@ namespace BlazorWorker.Demo.Client
     {
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddWorkerFactory();
         }
 
         public void Configure(IComponentsApplicationBuilder app)

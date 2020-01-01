@@ -1,5 +1,6 @@
 ﻿@page "/"
-@inject IJSRuntime jsRuntime
+@inject IWorkerFactory workerFactory
+
 @using BlazorWorker.BackgroundServiceFactory
 @using BlazorWorker.Demo.Shared
 @using BlazorWorker.Core
@@ -26,6 +27,7 @@ Output:
     int piIterations = 5_000_000;
     int piProgress = 0;
     string output;
+    IWorker worker;
     IWorkerBackgroundService<MathsService> backgroundService;
     string disabled = "disabled";
 
@@ -36,14 +38,18 @@ Output:
         var rn = Environment.NewLine;
         try
         {
+            if (worker == null)
+            {
+                worker = await workerFactory.CreateAsync();
+            }
+
             if (backgroundService == null)
             {
                 disabled = null;
                 output = $"{rn}{LogDate()} Creating background service...";
                 StateHasChanged();
-                var workerFactory = new BlazorWorker.Core.WorkerProxy(jsRuntime);
 
-                backgroundService = await workerFactory.CreateBackgroundServiceAsync<MathsService>();
+                backgroundService = await worker.CreateBackgroundServiceAsync<MathsService>();
 
                 await backgroundService.RegisterEventListenerAsync(nameof(MathsService.Pi),
                     (object s, int pinum) =>
@@ -76,6 +82,11 @@ Output:
     {
         await backgroundService.DisposeAsync();
         backgroundService = null;
+        
+
+        await worker.DisposeAsync();
+        worker = null;
+
         disabled = "disabled";
     }
 
