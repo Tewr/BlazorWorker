@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MonoWorker.Core.SimpleInstanceService
 {
-    public class SimpleInstanceService : ISimpleInstanceService
+    public class SimpleInstanceService
     {
         public static readonly SimpleInstanceService Instance = new SimpleInstanceService();
         public readonly Dictionary<long, InstanceWrapper> instances = new Dictionary<long, InstanceWrapper>();
@@ -47,19 +47,19 @@ namespace MonoWorker.Core.SimpleInstanceService
             }
         }
 
-        public async Task InitInstance(string initMessage)
+        public void InitInstance(string initMessage)
         {
-            var result = await InitInstance(InitInstanceRequest.Deserialize(initMessage));
+            var result = InitInstance(InitInstanceRequest.Deserialize(initMessage));
             MessageService.PostMessage(result.Serialize());
         }
 
-        public async Task DisposeInstance(string message)
+        public void DisposeInstance(string message)
         {
-            var result = await DisposeInstance(DisposeInstanceRequest.Deserialize(message));
+            var result = DisposeInstance(DisposeInstanceRequest.Deserialize(message));
             MessageService.PostMessage(result.Serialize());
         }
 
-        public async Task<InitInstanceResult> InitInstance(InitInstanceRequest initInstanceRequest)
+        public async Task<InitInstanceResult> InitInstanceAsync(InitInstanceRequest initInstanceRequest)
         {
             return InitInstance(initInstanceRequest, null);
         }
@@ -85,10 +85,7 @@ namespace MonoWorker.Core.SimpleInstanceService
             return result;
         }
 
-
-
-
-        public async Task<DisposeResult> DisposeInstance(DisposeInstanceRequest request)
+        public DisposeResult DisposeInstance(DisposeInstanceRequest request)
         {
             if (!instances.TryGetValue(request.InstanceId, out var instanceWrapper)) {
                 return new DisposeResult

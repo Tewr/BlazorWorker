@@ -5,6 +5,7 @@ using MonoWorker.Core.SimpleInstanceService;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace MonoWorker.BackgroundServiceHost
 {

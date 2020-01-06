@@ -1,14 +1,13 @@
 ﻿using MonoWorker.Core;
 using MonoWorker.Core.SimpleInstanceService;
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace BlazorWorker.Core.SimpleInstanceService
 {
-    class SimpleInstanceServiceProxy : ISimpleInstanceService
+    public class SimpleInstanceServiceProxy : ISimpleInstanceService
     {
-        private IWorkerMessageService source;
+        private readonly IWorkerMessageService source;
         private Dictionary<long, TaskCompletionSource<DisposeResult>> disposeResultSourceByCallId = 
             new Dictionary<long, TaskCompletionSource<DisposeResult>>();
         private Dictionary<long, TaskCompletionSource<InitInstanceResult>> initInstanceResultByCallId =

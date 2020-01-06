@@ -21,7 +21,7 @@ namespace MonoWorker.BackgroundServiceHost
 
         public bool HandleMessage(string message)
         {
-            if (this.TryGetValue(GetMessageType(message), out var handler))
+            if (base.TryGetValue(GetMessageType(message), out var handler))
             {
                 handler(message);
                 return true;
@@ -32,7 +32,8 @@ namespace MonoWorker.BackgroundServiceHost
 
         public bool HandlesMessage(string message)
         {
-            return this.ContainsKey(GetMessageType(message));
+            var key = GetMessageType(message);
+            return base.ContainsKey(key);
         }
 
         private string GetMessageType(string message)
