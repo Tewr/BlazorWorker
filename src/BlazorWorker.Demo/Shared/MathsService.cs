@@ -24,7 +24,7 @@ namespace BlazorWorker.Demo.Shared
             return (4 * AlternatingSequence().Take(sumLength)
                 .Select((x, i) => {
 
-                    // Keep reporting events down a bit, serializaion is expensive!
+                    // Keep reporting events down a bit, serialization is expensive!
                     var progressDelta = (Math.Abs(i - lastReport) / (double)sumLength) * 100;
                     if (progressDelta > 3 || i >= sumLength - 1)
                     {
