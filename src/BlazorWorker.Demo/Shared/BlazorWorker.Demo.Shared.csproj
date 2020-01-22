@@ -5,4 +5,8 @@
     <LangVersion>7.3</LangVersion>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\MonoWorker.Core\MonoWorker.Core.csproj" />
+  </ItemGroup>
+
 </Project>

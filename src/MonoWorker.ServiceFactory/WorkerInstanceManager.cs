@@ -124,7 +124,8 @@ namespace MonoWorker.BackgroundServiceHost
             PostObject(new InitInstanceComplete() { 
                 CallId = createInstanceInfo.CallId, 
                 IsSuccess = initResult.IsSuccess, 
-                Exception = initResult.Exception });
+                Exception = initResult.Exception,
+            });
         }
 
         public void DisposeInstance(DisposeInstance dispose)

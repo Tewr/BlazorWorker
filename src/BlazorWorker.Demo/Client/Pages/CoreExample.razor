@@ -1,13 +1,16 @@
-﻿@page "/"
+﻿@page "/CoreExample"
 @inject IWorkerFactory workerFactory
 
-@using BlazorWorker.BackgroundServiceFactory
+@using BlazorWorker.Core.CoreInstanceService
 @using BlazorWorker.Demo.Shared
 @using BlazorWorker.Core
 
 <h1>Hello, threads!</h1>
 
 Welcome to your new multithreaded app.
+
+This example uses the Core module, which does not provide any serialization. This is useful for scenarios with simple
+API's - faster, less bandwidth, less ram,
 
 <br/>
 <input type="text" @bind="piIterations" placeholder="estimation iterations" />
@@ -28,19 +31,21 @@ Output:
     int piProgress = 0;
     string output;
     IWorker worker;
-    IWorkerBackgroundService<MathsService> backgroundService;
+    ICoreInstanceService backgroundService;
+    IInstanceHandle handle;
     string disabled = "disabled";
-
+    string rn = Environment.NewLine;
 
     public async Task OnClick(EventArgs _)
     {
         output = "";
-        var rn = Environment.NewLine;
+        
         try
         {
             if (worker == null)
             {
                 worker = await workerFactory.CreateAsync();
+                worker.IncomingMessage += this.OnWorkerMessage;
             }
 
             if (backgroundService == null)
@@ -49,30 +54,18 @@ Output:
                 output = $"{rn}{LogDate()} Creating background service...";
                 StateHasChanged();
 
-                backgroundService = await worker.CreateBackgroundServiceAsync<MathsService>();
+                backgroundService = worker.CreateSimpleInstanceService(); //.<MathsService>();
 
-                await backgroundService.RegisterEventListenerAsync(nameof(MathsService.Pi),
-                    (object s, int pinum) =>
-                    {
-                        piProgress = pinum;
-                        StateHasChanged();
-                    });
+                handle = await backgroundService.CreateInstance<CoreMathsService>();
+
 
                 output += $"{rn}{LogDate()} Background service created.";
                 StateHasChanged();
             }
 
-            // We cannot pass piIterations directly, as it would create a reference to the current class 
-            // which is difficult to serialize over process borders
-            // local variables are fine though
-            var localParamValue = piIterations;
-
             output += $"{rn}{LogDate()} Calling EstimatePI({piIterations})...";
-            var __ = backgroundService.RunAsync(s => s.EstimatePI(localParamValue)).ContinueWith(t =>
-            {
-                output += $"{rn}{LogDate()} EstimatePI({piIterations}) = {t.Result}";
-                StateHasChanged();
-            });
+            await worker.PostMessageAsync($"{nameof(MathsService.EstimatePI)}({piIterations})");
+            // Result is obtained in message listener "OnWorkerMessage"
         }
         catch (Exception e)
         {
@@ -80,11 +73,27 @@ Output:
         }
     }
 
+    public void OnWorkerMessage(object sender, string message) {
+        if (message.StartsWith($"{CoreMathsService.EventsPi}:"))
+        {
+            piProgress = int.Parse(message.Substring($"{CoreMathsService.EventsPi}:".Length).Trim());
+            StateHasChanged();
+        }
+
+        if (message.StartsWith($"{CoreMathsService.ResultMessage}:"))
+        {
+            var result = double.Parse(message.Substring($"{CoreMathsService.ResultMessage}:".Length).Trim());
+            output += $"{rn}{LogDate()} EstimatePI({piIterations}) = {result}";
+                StateHasChanged();
+            StateHasChanged();
+        }
+    }
+
     public async Task OnDispose()
     {
-        await backgroundService.DisposeAsync();
+        await handle.DisposeAsync();
         backgroundService = null;
-        
+
 
         await worker.DisposeAsync();
         worker = null;

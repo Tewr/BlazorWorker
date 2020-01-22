@@ -16,8 +16,9 @@ namespace MonoWorker.Core.SimpleInstanceService
 
         private void OnIncomingMessage(object sender, string rawMessage)
         {
-            if (rawMessage.StartsWith(SimpleInstanceService.MessagePrefix) || isInfrastructureMessage(rawMessage))
+            if (isInfrastructureMessage(rawMessage))
             {
+                // Prevents Infrastructure messages from propagating downwards
                 return;
             }
 
@@ -33,7 +34,8 @@ namespace MonoWorker.Core.SimpleInstanceService
 
         public async Task PostMessageAsync(string message)
         {
-            await Task.Run(() => MessageService.PostMessage(message));
+            Console.WriteLine($"{nameof(InjectableMessageService)}.{nameof(PostMessageAsync)}('{message}')");
+            MessageService.PostMessage(message);
         }
     }
 }

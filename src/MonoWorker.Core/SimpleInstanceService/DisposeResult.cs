@@ -20,11 +20,11 @@ namespace MonoWorker.Core.SimpleInstanceService
 
         internal string Serialize()
         {
-            return $"{Prefix}" +
-               $"{this.CallId}:" +
-               $"{(this.IsSuccess ? 1 : 0)}:" +
-               $"{this.ExceptionMessage.Replace(":", @"\:")}:" +
-               $"{this.FullExceptionString}";
+            return CSVSerializer.Serialize(Prefix,
+               this.CallId,
+               (this.IsSuccess ? 1 : 0),
+               CSVSerializer.EscapeString(this.ExceptionMessage),
+               CSVSerializer.EscapeString(this.FullExceptionString));
         }
 
         public static bool CanDeserialize(string message)
@@ -44,7 +44,7 @@ namespace MonoWorker.Core.SimpleInstanceService
                     s => result.FullExceptionString = s
             });
 
-            CSVDeserializer.Deserialize(message, Prefix, parsers);
+            CSVSerializer.Deserialize(Prefix, message, parsers);
             return result;
         }
     }

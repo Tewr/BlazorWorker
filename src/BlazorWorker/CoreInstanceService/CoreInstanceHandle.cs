@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace BlazorWorker.Core.CoreInstanceService
 {
-    public class CoreInstanceHandle : IInstanceHandle
+    internal class CoreInstanceHandle : IInstanceHandle
     {
         private Func<Task> onDispose;
 

@@ -1,0 +1,41 @@
+﻿using MonoWorker.Core;
+using System;
+using System.Net.Http;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+
+namespace BlazorWorker.Demo.Shared
+{
+    public class CoreMathsService
+    {
+        public static readonly string EventsPi = $"Events.{nameof(MathsService.Pi)}";
+        public static readonly string ResultMessage = $"Methods.{nameof(MathsService.EstimatePI)}.Result";
+
+        private readonly MathsService mathsService;
+        private readonly IWorkerMessageService messageService;
+
+        public CoreMathsService(IWorkerMessageService messageService)
+        {
+            this.messageService = messageService;
+            this.messageService.IncomingMessage += OnMessage;
+            mathsService = new MathsService();
+            mathsService.Pi += (s, progress) => messageService.PostMessageAsync($"{EventsPi}:{progress}");
+        }
+
+        private void OnMessage(object sender, string message)
+        {
+            if (message.StartsWith(nameof(mathsService.EstimatePI)))
+            {
+                var messageParams = message.Substring(nameof(mathsService.EstimatePI).Length).Trim();
+                var rx = new Regex(@"\((?<arg>[^\)]+)\)");
+                var arg0 = rx.Match(messageParams).Groups["arg"].Value.Trim();
+                var iterations = int.Parse(arg0);
+                var result = mathsService.EstimatePI(iterations);
+                messageService.PostMessageAsync($"{ResultMessage}:{result}");
+                return;
+            }
+        }
+
+        
+    }
+}

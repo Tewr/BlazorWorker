@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using WebAssembly.Net.Http.HttpClient;
 
 namespace MonoWorker.Core.SimpleInstanceService
 {
@@ -12,8 +14,9 @@ namespace MonoWorker.Core.SimpleInstanceService
         public readonly Dictionary<long, InstanceWrapper> instances = new Dictionary<long, InstanceWrapper>();
 
         public static readonly string MessagePrefix = $"{typeof(SimpleInstanceService).FullName}::";
-        public static readonly string InitMessagePrefix = $"{nameof(InitInstance)}::";
-        public static readonly string InitResultMessagePrefix = $"{nameof(InitInstanceResult)}::";
+        public static readonly string InitServiceResultMessagePrefix = $"{nameof(InitServiceResult)}::";
+        public static readonly string InitInstanceMessagePrefix = $"{nameof(InitInstance)}::";
+        public static readonly string InitInstanceResultMessagePrefix = $"{nameof(InitInstanceResult)}::";
         public static readonly string DiposeMessagePrefix = $"{nameof(DisposeInstance)}::";
         public static readonly string DiposeResultMessagePrefix = $"{nameof(DisposeResult)}::";
 
@@ -25,6 +28,7 @@ namespace MonoWorker.Core.SimpleInstanceService
         private void InnerInit()
         {
             MessageService.Message += OnMessage;
+            MessageService.PostMessage(new InitServiceResult().Serialize());
         }
 
         private void OnMessage(object sender, string rawMessage)
@@ -36,13 +40,13 @@ namespace MonoWorker.Core.SimpleInstanceService
 
             if (InitInstanceRequest.CanDeserialize(rawMessage)) 
             {
-                InitInstance(InitInstanceRequest.Deserialize(rawMessage));
+                InitInstance(rawMessage);
                 return;
             }
 
             if (DisposeInstanceRequest.CanDeserialize(rawMessage))
             {
-                DisposeInstance(DisposeInstanceRequest.Deserialize(rawMessage));
+                DisposeInstance(rawMessage);
                 return;
             }
         }
@@ -59,18 +63,15 @@ namespace MonoWorker.Core.SimpleInstanceService
             MessageService.PostMessage(result.Serialize());
         }
 
-        public async Task<InitInstanceResult> InitInstanceAsync(InitInstanceRequest initInstanceRequest)
-        {
-            return InitInstance(initInstanceRequest, null);
-        }
-
         public InitInstanceResult InitInstance(InitInstanceRequest initInstanceRequest, 
             IsInfrastructureMessage handler = null)
         {
             var InstanceWrapper = new InstanceWrapper();
-            var result = InitInstance(initInstanceRequest.TypeName, initInstanceRequest.AssemblyName,
-                () => (IWorkerMessageService)(InstanceWrapper.Services 
-                    = new InjectableMessageService(message => (handler?.Invoke(message)).GetValueOrDefault(false))));
+            var result = InitInstance(
+                initInstanceRequest.CallId, 
+                initInstanceRequest.TypeName, 
+                initInstanceRequest.AssemblyName,
+                () => (IWorkerMessageService)(InstanceWrapper.Services = new InjectableMessageService(IsInfrastructureMessage(handler))));
 
             InstanceWrapper.Instance = result.Instance;
             if (result.IsSuccess)
@@ -83,6 +84,12 @@ namespace MonoWorker.Core.SimpleInstanceService
             }
 
             return result;
+        }
+
+        private static IsInfrastructureMessage IsInfrastructureMessage(IsInfrastructureMessage handler)
+        {
+            return message => message.StartsWith(MessagePrefix) ||
+                                (handler?.Invoke(message)).GetValueOrDefault(false);
         }
 
         public DisposeResult DisposeInstance(DisposeInstanceRequest request)
@@ -121,7 +128,7 @@ namespace MonoWorker.Core.SimpleInstanceService
             }
         }
 
-        private static InitInstanceResult InitInstance(string typeName, string assemblyName, Func<IWorkerMessageService> workerMessageServiceFactory)
+        private static InitInstanceResult InitInstance(long callId, string typeName, string assemblyName, Func<IWorkerMessageService> workerMessageServiceFactory)
         {
             try
             {
@@ -166,6 +173,7 @@ namespace MonoWorker.Core.SimpleInstanceService
 
                 return new InitInstanceResult()
                 {
+                    CallId = callId,
                     Instance = instance,
                     IsSuccess = true
                 };
@@ -174,6 +182,7 @@ namespace MonoWorker.Core.SimpleInstanceService
             {
                 return new InitInstanceResult
                 {
+                    CallId = callId,
                     ExceptionMessage = e.Message,
                     FullExceptionString = e.ToString(),
                     Exception = e,

@@ -3,9 +3,11 @@ using System.Threading.Tasks;
 using BlazorWorker.Core.SimpleInstanceService;
 using MonoWorker.Core.SimpleInstanceService;
 
+
 namespace BlazorWorker.Core.CoreInstanceService
 {
-    public class CoreInstanceService : ICoreInstanceService
+    using TargetType = MonoWorker.Core.SimpleInstanceService.SimpleInstanceService;
+    internal class CoreInstanceService : ICoreInstanceService
     {
         private static long sourceId;
         private readonly SimpleInstanceServiceProxy simpleInstanceServiceProxy;
@@ -21,7 +23,14 @@ namespace BlazorWorker.Core.CoreInstanceService
         public async Task<IInstanceHandle> CreateInstance(Type t)
         {
             var id = ++sourceId;
-
+            if (!this.simpleInstanceServiceProxy.IsInitialized)
+            {
+                await this.simpleInstanceServiceProxy.InitializeAsync(new WorkerInitOptions()
+                {
+                    DependentAssemblyFilenames = new[] { $"{t.Assembly.GetName().Name}.dll" },
+                    InitEndPoint = $"[{typeof(TargetType).Assembly.GetName().Name}]{typeof(TargetType).FullName}:{nameof(TargetType.Init)}"
+            });
+            }
             var initResult = await this.simpleInstanceServiceProxy.InitInstance(
                 new InitInstanceRequest()
                 {

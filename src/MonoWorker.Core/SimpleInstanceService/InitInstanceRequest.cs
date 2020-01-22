@@ -7,7 +7,7 @@ namespace MonoWorker.Core.SimpleInstanceService
     public class InitInstanceRequest
     {
 
-        public static readonly string Prefix = $"{SimpleInstanceService.MessagePrefix}{SimpleInstanceService.InitMessagePrefix}";
+        public static readonly string Prefix = $"{SimpleInstanceService.MessagePrefix}{SimpleInstanceService.InitInstanceMessagePrefix}";
         public long CallId { get; set; }
         public long Id { get; set; }
         public string TypeName { get; set; }
@@ -20,24 +20,27 @@ namespace MonoWorker.Core.SimpleInstanceService
 
         internal static InitInstanceRequest Deserialize(string initMessage)
         {
-            var splitMessage = initMessage.Substring(Prefix.Length).Split('|');
-            var callId = long.Parse(splitMessage[0]);
-            var id = long.Parse(splitMessage[1]);
-            var typeName = splitMessage[2];
-            var assemblyName = splitMessage[3];
+            var result = new InitInstanceRequest();
 
-            return new InitInstanceRequest
-            {
-                CallId = callId,
-                Id = id,
-                TypeName = typeName,
-                AssemblyName = assemblyName
-            };
+            var parsers = new Queue<Action<string>>(
+                new Action<string>[] {
+                    s => result.CallId = long.Parse(s),
+                    s => result.Id = long.Parse(s),
+                    s => result.TypeName = s,
+                    s => result.AssemblyName = s
+            });
+
+            CSVSerializer.Deserialize(Prefix, initMessage, parsers);
+            return result;
         }
 
         public string Serialize()
         {
-            return Prefix + string.Join("|", new object[] { CallId, Id, TypeName, AssemblyName });
+            return CSVSerializer.Serialize(Prefix, 
+                CallId, 
+                Id, 
+                CSVSerializer.EscapeString(TypeName), 
+                CSVSerializer.EscapeString(AssemblyName));
         }
     }
 }

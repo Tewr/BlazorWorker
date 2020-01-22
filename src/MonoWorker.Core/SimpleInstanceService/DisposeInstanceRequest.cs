@@ -28,14 +28,14 @@ namespace MonoWorker.Core.SimpleInstanceService
                     s => result.InstanceId = long.Parse(s)
                 });
             
-            CSVDeserializer.Deserialize(message, Prefix, parsers);
+            CSVSerializer.Deserialize(Prefix, message, parsers);
             
             return result;
         }
 
         public string Serialize()
         {
-            return Prefix + string.Join("|", new object[] { CallId, InstanceId });
+            return CSVSerializer.Serialize(Prefix, CallId, InstanceId);
         }
     }
 }
