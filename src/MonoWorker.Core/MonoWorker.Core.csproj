@@ -8,9 +8,6 @@
     <Reference Include="WebAssembly.Bindings">
       <HintPath>Lib\WebAssembly.Bindings.0.2.2.0.dll</HintPath>
     </Reference>
-    <Reference Include="WebAssembly.Net.Http">
-      <HintPath>Lib\WebAssembly.Net.Http.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
   <ItemGroup>
