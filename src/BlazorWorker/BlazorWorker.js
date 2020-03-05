@@ -101,7 +101,7 @@
             }
         };
                 
-        self.importScripts(`${initConf.appRoot}/${initConf.wasmRoot}/mono.js`);
+        self.importScripts(`${initConf.appRoot}/${initConf.wasmRoot}/dotnet.js`);
     };
 
     const inlineWorker = `self.onmessage = ${workerDef}()`; 
