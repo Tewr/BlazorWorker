@@ -147,12 +147,12 @@
         const initConf = {
             appRoot: appRoot,
             DependentAssemblyFilenames: initOptions.dependentAssemblyFilenames,
-            FetchUrlOverride: initOptions.fetchUrlOverride,
+            //FetchUrlOverride: initOptions.fetchUrlOverride,
             deploy_prefix: "_framework/_bin",
             MessageEndPoint: initOptions.messageEndPoint,
             InitEndPoint: initOptions.initEndPoint,
             wasmRoot: "_framework/wasm",
-            FetchOverride: initOptions.fetchOverride.
+            //FetchOverride: initOptions.fetchOverride,
             debug: initOptions.debug
         };
         // Initialize worker

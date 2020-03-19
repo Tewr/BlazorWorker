@@ -6,7 +6,8 @@ namespace MonoWorker.Core
     // Serves as a wrapper around a JSObject.
     class DOMObject : IDisposable
     {
-        public JSObject ManagedJSObject { get; private set; }
+        
+        public WebAssembly.JSObject ManagedJSObject { get; private set; }
 
         public DOMObject(object jsobject)
         {
