@@ -9,8 +9,4 @@
     <PackageReference Include="Tewr.BlazorWorker.Core" Version="1.0.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\BlazorWorker.ServiceFactory.Shared\BlazorWorker.BackgroundServiceFactory.Shared.csproj" />
-  </ItemGroup>
-
 </Project>

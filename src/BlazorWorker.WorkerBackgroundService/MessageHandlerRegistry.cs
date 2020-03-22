@@ -1,6 +1,4 @@
-﻿using BlazorWorker.BackgroundServiceFactory;
-using BlazorWorker.BackgroundServiceFactory.Shared;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace BlazorWorker.WorkerBackgroundService

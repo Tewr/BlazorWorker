@@ -12,7 +12,9 @@ namespace BlazorWorker.Core
             this.jsRuntime = jsRuntime;
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public async Task<IWorker> CreateAsync()//WorkerInitOptions initOptions)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             var worker = new WorkerProxy(jsRuntime);
             //await worker.InitAsync(initOptions);

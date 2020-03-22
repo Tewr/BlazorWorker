@@ -1,12 +1,10 @@
-﻿using Microsoft.JSInterop;
-using System;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using BlazorWorker.BackgroundServiceFactory.Shared;
-using BlazorWorker.Core;
-using System.Collections.Generic;
+﻿using BlazorWorker.Core;
 using BlazorWorker.WorkerBackgroundService;
 using BlazorWorker.WorkerCore;
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace BlazorWorker.BackgroundServiceFactory
 {

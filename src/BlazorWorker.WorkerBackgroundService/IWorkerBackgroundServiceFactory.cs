@@ -1,12 +1,10 @@
 ﻿using BlazorWorker.Core;
 using System.Threading.Tasks;
 
-namespace BlazorWorker.BackgroundServiceFactory
+namespace BlazorWorker.WorkerBackgroundService
 {
     public interface IWorkerBackgroundServiceFactory
     {
         Task<IWorker> CreateWebworkerAsync();
-
-        //Task<IWorkerBackgroundService<T>> CreateBackgroundServiceAsync<T>(IWorker webWorkerProxy) where T : class;
     }
 }

@@ -15,9 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BlazorWorker.ServiceFactory.Shared\BlazorWorker.BackgroundServiceFactory.Shared.csproj">
-      <PrivateAssets>all</PrivateAssets>
-    </ProjectReference>
     <ProjectReference Include="..\BlazorWorker.WorkerBackgroundService\BlazorWorker.WorkerBackgroundService.csproj">
       <PrivateAssets>all</PrivateAssets>
     </ProjectReference>
@@ -34,6 +31,10 @@
     <RepositoryUrl>https://github.com/Tewr/BlazorWorker</RepositoryUrl>
     <PackageTags>WebWorker Worker Process Threading Multithreading Blazor Isolation</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>C:\Users\Tor\source\repos\BlazorWorker\src\BlazorWorker.ServiceFactory\BlazorWorker.BackgroundServiceFactory.xml</DocumentationFile>
   </PropertyGroup>
 
   <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">

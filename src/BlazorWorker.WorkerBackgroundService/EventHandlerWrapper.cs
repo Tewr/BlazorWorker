@@ -1,4 +1,4 @@
-﻿using BlazorWorker.BackgroundServiceFactory.Shared;
+﻿using BlazorWorker.WorkerBackgroundService;
 using System;
 
 namespace BlazorWorker.WorkerBackgroundService

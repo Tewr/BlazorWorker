@@ -13,8 +13,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorWorker.Core", "Blazor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorWorker.WorkerCore", "BlazorWorker.WorkerCore\BlazorWorker.WorkerCore.csproj", "{8CA72346-9A79-4000-99CA-76E3363ABC9A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorWorker.BackgroundServiceFactory.Shared", "BlazorWorker.ServiceFactory.Shared\BlazorWorker.BackgroundServiceFactory.Shared.csproj", "{426DF54D-D092-4548-A57D-68FBD2F503EF}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorWorker.WorkerBackgroundService", "BlazorWorker.WorkerBackgroundService\BlazorWorker.WorkerBackgroundService.csproj", "{200356FF-169F-412F-9B75-14C776758576}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorWorker.BackgroundServiceFactory", "BlazorWorker.ServiceFactory\BlazorWorker.BackgroundServiceFactory.csproj", "{812BE8C1-B20F-40AC-A174-239053076CB9}"
@@ -50,10 +48,6 @@ Global
 		{8CA72346-9A79-4000-99CA-76E3363ABC9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8CA72346-9A79-4000-99CA-76E3363ABC9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8CA72346-9A79-4000-99CA-76E3363ABC9A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{426DF54D-D092-4548-A57D-68FBD2F503EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{426DF54D-D092-4548-A57D-68FBD2F503EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{426DF54D-D092-4548-A57D-68FBD2F503EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{426DF54D-D092-4548-A57D-68FBD2F503EF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{200356FF-169F-412F-9B75-14C776758576}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{200356FF-169F-412F-9B75-14C776758576}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{200356FF-169F-412F-9B75-14C776758576}.Release|Any CPU.ActiveCfg = Release|Any CPU

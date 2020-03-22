@@ -1,5 +1,4 @@
-﻿using BlazorWorker.BackgroundServiceFactory;
-using BlazorWorker.BackgroundServiceFactory.Shared;
+﻿using BlazorWorker.WorkerBackgroundService;
 using BlazorWorker.WorkerCore;
 using BlazorWorker.WorkerCore.SimpleInstanceService;
 using System;
