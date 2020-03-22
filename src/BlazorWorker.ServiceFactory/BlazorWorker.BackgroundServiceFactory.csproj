@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <PackageId>BlazorWorker.BackgroundService</PackageId>
+    <PackageId>Tewr.BlazorWorker.BackgroundService</PackageId>
     <Authors>Tewr</Authors>
     <Product>BlazorWorker</Product>
   </PropertyGroup>
@@ -11,12 +11,35 @@
     <PackageReference Include="Microsoft.JSInterop" Version="5.0.0-preview.1.20120.4" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Serialize.Linq" Version="1.8.1" />
+    <PackageReference Include="Tewr.BlazorWorker.Core" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BlazorWorker.ServiceFactory.Shared\BlazorWorker.BackgroundServiceFactory.Shared.csproj" />
-    <ProjectReference Include="..\BlazorWorker.WorkerBackgroundService\BlazorWorker.WorkerBackgroundService.csproj" />
-    <ProjectReference Include="..\BlazorWorker.WorkerCore\BlazorWorker.WorkerCore.csproj" />
+    <ProjectReference Include="..\BlazorWorker.ServiceFactory.Shared\BlazorWorker.BackgroundServiceFactory.Shared.csproj">
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
+    <ProjectReference Include="..\BlazorWorker.WorkerBackgroundService\BlazorWorker.WorkerBackgroundService.csproj">
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
+    <ProjectReference Include="..\BlazorWorker.WorkerCore\BlazorWorker.WorkerCore.csproj">
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
   </ItemGroup>
+
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Description>Use dotnet Web Workers Threads in Blazor</Description>
+    <PackageProjectUrl>https://github.com/Tewr/BlazorWorker</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Tewr/BlazorWorker</RepositoryUrl>
+    <PackageTags>WebWorker Worker Process Threading Multithreading Blazor Isolation</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths-&gt;WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))" />
+    </ItemGroup>
+  </Target>
 
 </Project>

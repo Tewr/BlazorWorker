@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Tewr.BlazorWorker.Core</id>
+    <version>1.0.0</version>
+    <authors>Tor Knutsson (Tewr)</authors>
+    <owners>Tor Knutsson (Tewr)</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <projectUrl>https://github.com/Tewr/BlazorWorker</projectUrl>
+    <description>Package Description</description>
+    <tags>WebWorker Worker Process Threading Multithreading Blazor Isolation</tags>
+    <repository url="https://github.com/Tewr/BlazorFileReader" />
+    <dependencies>
+      <group targetFramework=".NETStandard2.1">
+        <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="5.0.0-preview.1.20120.4" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.JSInterop" version="5.0.0-preview.1.20120.4" exclude="Build,Analyzers" />
+        <dependency id="Newtonsoft.Json" version="12.0.3" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

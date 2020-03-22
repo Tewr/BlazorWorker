@@ -6,12 +6,11 @@
 
   <ItemGroup>
     <PackageReference Include="Serialize.Linq" Version="1.8.1" />
+    <PackageReference Include="Tewr.BlazorWorker.Core" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\BlazorWorker.ServiceFactory.Shared\BlazorWorker.BackgroundServiceFactory.Shared.csproj" />
-    <ProjectReference Include="..\BlazorWorker.WorkerCore\BlazorWorker.WorkerCore.csproj" />
-    <ProjectReference Include="..\BlazorWorker\BlazorWorker.Core.csproj" />
   </ItemGroup>
 
 </Project>

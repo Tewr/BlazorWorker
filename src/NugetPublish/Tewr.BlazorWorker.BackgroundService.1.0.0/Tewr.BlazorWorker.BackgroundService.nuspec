@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Tewr.BlazorWorker.BackgroundService</id>
+    <version>1.0.0</version>
+    <authors>Tewr</authors>
+    <owners>Tewr</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <projectUrl>https://github.com/Tewr/BlazorWorker</projectUrl>
+    <description>Use dotnet Web Workers Threads in Blazor</description>
+    <tags>WebWorker Worker Process Threading Multithreading Blazor Isolation</tags>
+    <repository url="https://github.com/Tewr/BlazorWorker" />
+    <dependencies>
+      <group targetFramework=".NETStandard2.1">
+        <dependency id="Microsoft.JSInterop" version="5.0.0-preview.1.20120.4" exclude="Build,Analyzers" />
+        <dependency id="Newtonsoft.Json" version="12.0.3" exclude="Build,Analyzers" />
+        <dependency id="Serialize.Linq" version="1.8.1" exclude="Build,Analyzers" />
+        <dependency id="Tewr.BlazorWorker.Core" version="1.0.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>
