@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace MonoWorker.Core.SimpleInstanceService
+namespace BlazorWorker.WorkerCore.SimpleInstanceService
 {
     public delegate bool IsInfrastructureMessage(string message);
     public class InjectableMessageService : IWorkerMessageService, IDisposable

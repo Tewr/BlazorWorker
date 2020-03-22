@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
 using BlazorWorker.Core.SimpleInstanceService;
-using MonoWorker.Core.SimpleInstanceService;
+using BlazorWorker.WorkerCore.SimpleInstanceService;
 
 
 namespace BlazorWorker.Core.CoreInstanceService
 {
-    using TargetType = MonoWorker.Core.SimpleInstanceService.SimpleInstanceService;
+    using TargetType = BlazorWorker.WorkerCore.SimpleInstanceService.SimpleInstanceService;
     internal class CoreInstanceService : ICoreInstanceService
     {
         private static long sourceId;

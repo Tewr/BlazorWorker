@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MonoWorker.Core
+namespace BlazorWorker.WorkerCore
 {
     public class InstanceWrapper : IDisposable
     {

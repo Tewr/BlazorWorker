@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MonoWorker.BackgroundServiceHost
+namespace BlazorWorker.WorkerBackgroundService
 {
     public interface IEventWrapper
     {

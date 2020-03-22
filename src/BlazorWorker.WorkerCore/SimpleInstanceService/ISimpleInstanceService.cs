@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace MonoWorker.Core.SimpleInstanceService
+namespace BlazorWorker.WorkerCore.SimpleInstanceService
 {
     public interface ISimpleInstanceService
     {

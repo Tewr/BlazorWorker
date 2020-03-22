@@ -1,5 +1,5 @@
-﻿using MonoWorker.Core;
-using MonoWorker.Core.SimpleInstanceService;
+﻿using BlazorWorker.WorkerCore;
+using BlazorWorker.WorkerCore.SimpleInstanceService;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace MonoWorker.Core.SimpleInstanceService
+namespace BlazorWorker.WorkerCore.SimpleInstanceService
 {
     public class DisposeResult
     {

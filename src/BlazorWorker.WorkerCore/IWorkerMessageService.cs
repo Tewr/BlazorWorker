@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace MonoWorker.Core
+namespace BlazorWorker.WorkerCore
 {
     public interface IWorkerMessageService
     {

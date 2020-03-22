@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace MonoWorker.Core.SimpleInstanceService
+namespace BlazorWorker.WorkerCore.SimpleInstanceService
 {
     public class DisposeInstanceRequest
     {

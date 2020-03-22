@@ -1,28 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="WebAssembly.Bindings.0.2.2.0.dll" />
-    <None Remove="WebAssembly.Net.Http.dll" />
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Include="BlazorWorker.js" />
-    <EmbeddedResource Include="WebAssembly.Bindings.0.2.2.0.dll" />
-    <EmbeddedResource Include="WebAssembly.Net.Http.dll" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.0" />
-    <PackageReference Include="Microsoft.JSInterop" Version="3.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0-preview.1.20120.4" />
+    <PackageReference Include="Microsoft.JSInterop" Version="5.0.0-preview.1.20120.4" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MonoWorker.Core\MonoWorker.Core.csproj" />
+    <ProjectReference Include="..\BlazorWorker.WorkerCore\BlazorWorker.WorkerCore.csproj" />
   </ItemGroup>
 
 </Project>

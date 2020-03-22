@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,8 +10,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BlazorWorker.ServiceFactory.Shared\BlazorWorker.BackgroundServiceFactory.Shared.csproj" />
+    <ProjectReference Include="..\BlazorWorker.WorkerCore\BlazorWorker.WorkerCore.csproj" />
     <ProjectReference Include="..\BlazorWorker\BlazorWorker.Core.csproj" />
-    <ProjectReference Include="..\MonoWorker.Core\MonoWorker.Core.csproj" />
   </ItemGroup>
 
 </Project>

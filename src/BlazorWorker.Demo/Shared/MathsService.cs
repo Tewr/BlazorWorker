@@ -6,6 +6,9 @@ using System.Text;
 
 namespace BlazorWorker.Demo.Shared
 {
+    /// <summary>
+    /// This service runs insinde the worker.
+    /// </summary>
     public class MathsService
     {
         public event EventHandler<int> Pi;

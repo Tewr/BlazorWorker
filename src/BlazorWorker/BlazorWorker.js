@@ -11,103 +11,128 @@
     };
 
     const workerDef = function () {
+        const onReady = () => {
+            const messageHandler =
+                Module.mono_bind_static_method(initConf.MessageEndPoint);
+            // Future messages goes directly to the message handler
+            self.onmessage = msg => {
+                messageHandler(msg.data);
+            };
 
+            if (!initConf.InitEndPoint) {
+                return;
+            }
+
+            try {
+                Module.mono_call_static_method(initConf.InitEndPoint, []);
+            } catch (e) {
+                console.error(`Init method ${initConf.InitEndPoint} failed`, e);
+                throw e;
+            }
+        };
+
+        const onError = (err) => {
+            console.error(err);
+        };
+
+        function asyncLoad(url) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', url, /* async: */ true);
+                xhr.responseType = 'arraybuffer';
+                xhr.onload = function xhr_onload() {
+                    if (xhr.status == 200 || xhr.status == 0 && xhr.response) {
+                        const asm = new Uint8Array(xhr.response);
+                        resolve(asm);
+                    } else {
+                        reject(xhr);
+                    }
+                };
+                xhr.onerror = reject;
+                xhr.send(undefined);
+            });
+        }
         const initConf = JSON.parse('$initConf$');
-        console.debug("BlazorWorker.js:16:workerDef - initConf", initConf);
         var config = {};
         var Module = {};
-        config.file_list = [];
+        
+        const wasmBinaryFile = `${initConf.appRoot}/_framework/wasm/dotnet.wasm`;
+        const suppressMessages = ['DEBUGGING ENABLED'];
+        const appBinDirName = 'appBinDir';
 
-        const fetch_file_cb = function (asset) {
+        Module.print = line => (suppressMessages.indexOf(line) < 0 && console.log(`WASM: ${line}`));
 
-            const fetchOverride = initConf.FetchOverride[asset];
-            if (fetchOverride) {
+        Module.printErr = line => {
+            console.error(`WASM: ${line}`);
+            showErrorNotification();
+        };
+        Module.preRun = [];
+        Module.postRun = [];
+        Module.preloadPlugins = [];
 
-                const resolve_func2 = function (resolve, reject) {
-                    
-                    const raw = self.atob(fetchOverride.base64Data);
-                    const rawLength = raw.length;
-                    const arrayBuffer = new ArrayBuffer(rawLength);
-                    const writableBuffer = new Uint8Array(arrayBuffer);
-
-                    for (i = 0; i < rawLength; i++) {
-                        writableBuffer[i] = raw.charCodeAt(i);
-                    }
-                    
-                    resolve(arrayBuffer);
-                };
-
-                const resolve_func1 = function (resolve, reject) {
-                    const response = {
-                        ok: true,
-                        url: fetchOverride.url,
-                        arrayBuffer: function () {
-                            return new Promise(resolve_func2);
-                        }
-                    };
-                    resolve(response);
-                };
-                return new Promise(resolve_func1);
+        Module.locateFile = fileName => {
+            switch (fileName) {
+                case 'dotnet.wasm': return wasmBinaryFile;
+                default: return fileName;
             }
-            return fetch(asset, {
-                credentials: "same-origin"
-            });
         };
 
+        Module.preRun.push(() => {
+            const mono_wasm_add_assembly = Module.cwrap('mono_wasm_add_assembly', null, [
+                'string',
+                'number',
+                'number',
+            ]);
+
+            mono_string_get_utf8 = Module.cwrap('mono_wasm_string_get_utf8', 'number', ['number']);
+
+            MONO.loaded_files = [];
+            var baseUrl = `${initConf.appRoot}/${initConf.deploy_prefix}`;
+            initConf.DependentAssemblyFilenames.forEach(url => {
+                
+                const runDependencyId = `blazor:${url}`;
+                addRunDependency(runDependencyId);
+                asyncLoad(baseUrl+'/'+ url).then(
+                    data => {
+                        const heapAddress = Module._malloc(data.length);
+                        const heapMemory = new Uint8Array(Module.HEAPU8.buffer, heapAddress, data.length);
+                        heapMemory.set(data);
+                        mono_wasm_add_assembly(url, heapAddress, data.length);
+                        MONO.loaded_files.push(url);
+                        removeRunDependency(runDependencyId);
+                    },
+                    errorInfo => {
+                        const isPdb404 = errorInfo instanceof XMLHttpRequest
+                            && errorInfo.status === 404
+                            && filename.match(/\.pdb$/);
+                        if (!isPdb404) {
+                            onError(errorInfo);
+                        }
+                        removeRunDependency(runDependencyId);
+                    }
+                );
+            });
+        });
+
+        Module.postRun.push(() => {
+            MONO.mono_wasm_setenv("MONO_URI_DOTNETRELATIVEORABSOLUTE", "true");
+            const load_runtime = Module.cwrap('mono_wasm_load_runtime', null, ['string', 'number']);
+            load_runtime(appBinDirName, 0);
+            MONO.mono_wasm_runtime_is_ready = true;
+            onReady();
+        });
+
+        config.file_list = [];
         
         global = globalThis;
-        Module = self.Module = {
-            onRuntimeInitialized: function () {
-                MONO.mono_load_runtime_and_bcl(
-                    'app', //config.vfs_prefix,
-                    `${initConf.appRoot}/${initConf.deploy_prefix}`, //config.deploy_prefix,
-                    true, //config.enable_debugging
-                    initConf.DependentAssemblyFilenames,
-                    function () {
-                        console.debug("mono loaded.");
-                        const messageHandler =
-                            Module.mono_bind_static_method(initConf.MessageEndPoint);
-                        // Future messages goes directly to the message handler
-                        self.onmessage = msg => {
-                            messageHandler(msg.data);
-                        };  
-                        
-                        if (!initConf.InitEndPoint) {
-                            return;
-                        }
+        self.Module = Module;
 
-                        try {
-                            Module.mono_call_static_method(initConf.InitEndPoint, []);
-                        } catch (e) {
-                            console.error(`Init method ${initConf.InitEndPoint} failed`, e);
-                            throw e;
-                        }
-                    },
-                    fetch_file_cb
-                );
-            },
-            locateFile: function (path, scriptDirectory) {
-                const fileParts = (path || '').split("/");
-                const fileName = fileParts[fileParts.length - 1];
-                if (initConf.FetchUrlOverride[fileName]) {
-                    return initConf.FetchUrlOverride[fileName];
-                }
-                if (path.startsWith(initConf.appRoot)) {
-                    return path;
-                }
-
-                scriptDirectory = scriptDirectory || `${initConf.appRoot}/${initConf.wasmRoot}/`;
-                return scriptDirectory + path;
-            }
-        };
-                
-        self.importScripts(`${initConf.appRoot}/${initConf.wasmRoot}/mono.js`);
+        self.importScripts(`${initConf.appRoot}/${initConf.wasmRoot}/dotnet.js`); 
     };
 
     const inlineWorker = `self.onmessage = ${workerDef}()`; 
 
     const initWorker = function (id, callbackInstance, initOptions) {
-        console.debug("initWorker", id, callbackInstance, initOptions);
         let appRoot = (document.getElementsByTagName('base')[0] || { href: window.location.origin }).href || "";
         if (appRoot.endsWith("/")) {
             appRoot = appRoot.substr(0, appRoot.length - 1);
@@ -116,13 +141,13 @@
         const initConf = {
             appRoot: appRoot,
             DependentAssemblyFilenames: initOptions.dependentAssemblyFilenames,
-            FetchUrlOverride: initOptions.fetchUrlOverride,
             deploy_prefix: "_framework/_bin",
             MessageEndPoint: initOptions.messageEndPoint,
             InitEndPoint: initOptions.initEndPoint,
             wasmRoot: "_framework/wasm",
-            FetchOverride: initOptions.fetchOverride
+            debug: initOptions.debug
         };
+
         // Initialize worker
         const renderedConfig = JSON.stringify(initConf).replace('$appRoot$', appRoot);
         const renderedInlineWorker = inlineWorker.replace('$initConf$', renderedConfig);
@@ -132,14 +157,14 @@
         workers[id] = worker;
 
         worker.onmessage = function (ev) {
-            //const message = JSON.stringify({ id, data: ev.data });
-            console.debug(`BlazorWorker.js:worker->blazor`, initOptions.callbackMethod, ev.data);
+            if (initOptions.debug) {
+                console.debug(`BlazorWorker.js:worker[${id}]->blazor`, initOptions.callbackMethod, ev.data);
+            }
             callbackInstance.invokeMethod(initOptions.callbackMethod, ev.data);
         };
     };
 
     const postMessage = function (workerId, message) {
-        console.debug('window:postMessage', workerId, message);
         workers[workerId].postMessage(message);
     };
 
