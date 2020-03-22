@@ -1,3 +1,5 @@
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=AC77J8GFQ6LYA&item_name=BlazorWorker+Project&currency_code=EUR&source=url)
+
 # BlazorWorker
 Library that provides a simple API for exposing dotnet [web workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) in Client-side Blazor.
 
@@ -32,13 +34,12 @@ The starting point of a BlazorWorker is a service class that must be defined by 
 
 Each worker process can contain multiple service classes. 
 
-Example (see the demo project for a fully working example):
+Example (see the [demo project](src/BlazorWorker.Demo/Client/Pages) for a fully working example):
 ```cs
-// MyService.cs
+// MyCPUIntensiveService.cs
 public class MyCPUIntensiveService {
   public int MyMethod(int parameter) {
     while(i < 5000000) i += (i*parameter);
-
     return i;
   }
 }
@@ -57,7 +58,8 @@ public class MyCPUIntensiveService {
         // Create worker.
         var worker = await workerFactory.CreateAsync();
         
-        // Create service reference. For most scenarios, it's safe to keep this reference somewhere to avoid the startup cost.
+        // Create service reference. For most scenarios, it's safe (and best) to keep this 
+        // reference around somewhere to avoid the startup cost.
         var service = await worker.CreateBackgroundServiceAsync<MyCPUIntensiveService>();
         
         var result = await service.RunAsync(s => s.MyMethod(5));
