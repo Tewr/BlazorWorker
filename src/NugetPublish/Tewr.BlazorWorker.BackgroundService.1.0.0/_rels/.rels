@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-  <Relationship Type="http://schemas.microsoft.com/packaging/2010/07/manifest" Target="/Tewr.BlazorWorker.BackgroundService.nuspec" Id="R4F7FA6D6B52A8C12" />
-  <Relationship Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="/package/services/metadata/core-properties/e0658d72c9054edeb694c9d61b7c4ed4.psmdcp" Id="R1966017A801F963E" />
-</Relationships>
