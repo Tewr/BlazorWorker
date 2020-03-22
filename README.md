@@ -16,6 +16,11 @@ The library comes in two flavours, one built on top of the other:
 - BlazorWorker.WorkerCore: A low-level API to communicate with a new .NET process in a web worker
 
 ## Installation
+Nuget package:
+```
+Install-Package Tewr.BlazorWorker.BackgroundService
+```
+
 Add the following line in `Program.cs`:
 
 ```cs
