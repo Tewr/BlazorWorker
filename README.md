@@ -28,19 +28,17 @@ And then in a `.razor` View:
 ## BlazorWorker.BackgroundService
 A high-level API that abstracts the complexity of messaging by exposing a strongly typed interface with [Expressions](https://docs.microsoft.com/en-us/dotnet/api/system.linq.expressions.expression). Ties to mimic [Task.Run](https://docs.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.run) as closely as possible.
 
-The starting point of a BlazorWorker is a service class that must be defined by the caller. The public methods that you expose in your service can then be called from the IWorkerBackgroundService interface. You can also call back into blazor during the method execution using Events.
+The starting point of a BlazorWorker is a service class that must be defined by the caller. The public methods that you expose in your service can then be called from the IWorkerBackgroundService interface. If you declare a public [event](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/event) on your service, it can be used to call back into blazor during a method execution (useful for progress reporting).
 
 Each worker process can contain multiple service classes. 
 
 Example (see the demo project for a fully working example):
 ```cs
 // MyService.cs
-public class MyService {
+public class MyCPUIntensiveService {
   public int MyMethod(int parameter) {
-    while(i < 50000000 ) {
-      i += (i*parameter);
-    }
-    
+    while(i < 5000000) i += (i*parameter);
+
     return i;
   }
 }
@@ -60,7 +58,7 @@ public class MyService {
         var worker = await workerFactory.CreateAsync();
         
         // Create service reference
-        var service = await worker.CreateBackgroundServiceAsync<MyService>();
+        var service = await worker.CreateBackgroundServiceAsync<MyCPUIntensiveService>();
         
         var result = await service.RunAsync(s => s.MyMethod(5));
     }
