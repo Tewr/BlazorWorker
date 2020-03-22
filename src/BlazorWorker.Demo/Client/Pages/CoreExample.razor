@@ -54,7 +54,7 @@ Output:
                 output = $"{rn}{LogDate()} Creating background service...";
                 StateHasChanged();
 
-                backgroundService = worker.CreateSimpleInstanceService(); //.<MathsService>();
+                backgroundService = worker.CreateCoreInstanceService();
 
                 handle = await backgroundService.CreateInstance<CoreMathsService>();
 

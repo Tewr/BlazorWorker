@@ -2,6 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
+    <PackageId>BlazorWorker.BackgroundService</PackageId>
+    <Authors>Tewr</Authors>
+    <Product>BlazorWorker</Product>
   </PropertyGroup>
 
   <ItemGroup>
