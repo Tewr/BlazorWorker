@@ -7,7 +7,7 @@
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Serialize.Linq" Version="1.8.1" />
-    <PackageReference Include="System.Text.Json" Version="4.7.0-preview3.19551.4" />
+    <PackageReference Include="System.Text.Json" Version="5.0.0-preview.1.20120.5" />
   </ItemGroup>
 
 </Project>
