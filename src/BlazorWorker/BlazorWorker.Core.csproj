@@ -2,6 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
+    <Authors>Tor Knutsson (Tewr)</Authors>
+    <Product>BlazorWorker</Product>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Tewr/BlazorWorker</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
