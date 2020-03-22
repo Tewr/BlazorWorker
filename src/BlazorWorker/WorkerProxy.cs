@@ -1,9 +1,6 @@
-﻿using Microsoft.JSInterop;
-using BlazorWorker.WorkerCore;
+﻿using BlazorWorker.WorkerCore;
+using Microsoft.JSInterop;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 namespace BlazorWorker.Core
 {
@@ -11,8 +8,6 @@ namespace BlazorWorker.Core
     
     public class WorkerProxy : IWorker
     {
-        private static readonly IReadOnlyDictionary<string, string> escapeScriptTextReplacements =
-            new Dictionary<string, string> { { @"\", @"\\" }, { "\r", @"\r" }, { "\n", @"\n" }, { "'", @"\'" }, { "\"", @"\""" } };
         private readonly IJSRuntime jsRuntime;
         private readonly ScriptLoader scriptLoader;
         private static long idSource;
@@ -37,7 +32,6 @@ namespace BlazorWorker.Core
         public async ValueTask DisposeAsync()
         {
             if (!isDisposed)
-    
             {
                 await this.jsRuntime.InvokeVoidAsync("BlazorWorker.disposeWorker", this.Identifier);
                 isDisposed = true;
