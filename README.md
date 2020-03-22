@@ -11,7 +11,7 @@ To people coming from the .NET world, an analogy for what this library does is c
 
 The library comes in two flavours, one built on top of the other:
 - BlazorWorker.BackgroundService: A high-level API that hides the complexity of messaging
-- BlazorWorker.WorkerCore: A low-level API to start and communicate with a new .NET process in a web worker
+- BlazorWorker.WorkerCore: A low-level API to communicate with a new .NET process in a web worker
 
 ## Installation
 Add the following line in `Program.cs`:
@@ -28,7 +28,7 @@ And then in a `.razor` View:
 ## BlazorWorker.BackgroundService
 A high-level API that abstracts the complexity of messaging by exposing a strongly typed interface with [Expressions](https://docs.microsoft.com/en-us/dotnet/api/system.linq.expressions.expression). Ties to mimic [Task.Run](https://docs.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.run) as closely as possible.
 
-The starting point of a BlazorWorker is a service class that must be defined by the caller. The methods t
+The starting point of a BlazorWorker is a service class that must be defined by the caller. The public methods that you expose in your service can then be called from the IWorkerBackgroundService interface. You can also call back into blazor during the method execution using Events.
 
 Each worker process can contain multiple service classes. 
 
