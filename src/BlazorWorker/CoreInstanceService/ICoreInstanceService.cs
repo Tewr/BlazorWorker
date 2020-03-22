@@ -9,8 +9,6 @@ namespace BlazorWorker.Core.CoreInstanceService
         Task<IInstanceHandle> CreateInstance<T>();
     }
 
-    public interface IInstanceHandle {
-
-        ValueTask DisposeAsync();
+    public interface IInstanceHandle : IAsyncDisposable {
     }
 }

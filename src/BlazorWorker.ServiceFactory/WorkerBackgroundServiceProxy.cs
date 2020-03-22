@@ -153,7 +153,6 @@ namespace BlazorWorker.BackgroundServiceFactory
             if (!this.messageRegister.TryGetValue(message.CallId, out var taskCompletionSource))
             {
                 return;
-                //throw new UnknownMessageException($"{nameof(MethodCallResult)}, message {nameof(MethodCallResult.CallId)} {message.CallId}");
             }
 
             taskCompletionSource.SetResult(message); 
@@ -239,7 +238,7 @@ namespace BlazorWorker.BackgroundServiceFactory
         private async Task<TResult> InvokeAsyncInternal<TResult>(Expression action)
         {
             // If Blazor ever gets multithreaded this would need to be locked for race conditions
-            // However, when/if that happens, this entire project is obsolete
+            // However, when/if that happens, most of this project is obsolete anyway
             var id = ++messageRegisterIdSource;
             var taskCompletionSource = new TaskCompletionSource<MethodCallResult>();
             this.messageRegister.Add(id, taskCompletionSource);
@@ -294,7 +293,6 @@ namespace BlazorWorker.BackgroundServiceFactory
                    {
                         InstanceId = instanceId,
                    });
-            Console.WriteLine($"{nameof(WorkerBackgroundServiceProxy<T>)}.DisposeAsync(): {this.worker.Identifier} {message}");
 
             await this.worker.PostMessageAsync(message);
 

@@ -1,5 +1,4 @@
-﻿using BlazorWorker.WorkerCore;
-using BlazorWorker.WorkerCore.SimpleInstanceService;
+﻿using BlazorWorker.WorkerCore.SimpleInstanceService;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
