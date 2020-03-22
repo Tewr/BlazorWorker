@@ -1,11 +1,12 @@
-﻿using MonoWorker.Core;
-using System;
-using System.Net.Http;
+﻿using BlazorWorker.WorkerCore;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace BlazorWorker.Demo.Shared
 {
+    /// <summary>
+    /// This service runs in the worker.
+    /// Uses hand-written seriaization of messages.
+    /// </summary>
     public class CoreMathsService
     {
         public static readonly string EventsPi = $"Events.{nameof(MathsService.Pi)}";

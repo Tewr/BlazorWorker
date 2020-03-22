@@ -10,8 +10,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BlazorWorker.ServiceFactory.Shared\BlazorWorker.BackgroundServiceFactory.Shared.csproj" />
+    <ProjectReference Include="..\BlazorWorker.WorkerCore\BlazorWorker.WorkerCore.csproj" />
     <ProjectReference Include="..\BlazorWorker\BlazorWorker.Core.csproj" />
-    <ProjectReference Include="..\MonoWorker.Core\MonoWorker.Core.csproj" />
   </ItemGroup>
 
 </Project>

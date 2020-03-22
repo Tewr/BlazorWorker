@@ -1,7 +1,7 @@
 ﻿using BlazorWorker.BackgroundServiceFactory.Shared;
 using System;
 
-namespace MonoWorker.BackgroundServiceHost
+namespace BlazorWorker.WorkerBackgroundService
 {
     public class EventHandlerWrapper<T> : IEventWrapper
     {

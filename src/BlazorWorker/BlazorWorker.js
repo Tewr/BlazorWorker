@@ -12,7 +12,6 @@
 
     const workerDef = function () {
         const onReady = () => {
-            console.debug("mono loaded.");
             const messageHandler =
                 Module.mono_bind_static_method(initConf.MessageEndPoint);
             // Future messages goes directly to the message handler
@@ -79,7 +78,6 @@
         };
 
         Module.preRun.push(() => {
-            // By now, emscripten should be initialised enough that we can capture these methods for later use
             const mono_wasm_add_assembly = Module.cwrap('mono_wasm_add_assembly', null, [
                 'string',
                 'number',
@@ -104,9 +102,6 @@
                         removeRunDependency(runDependencyId);
                     },
                     errorInfo => {
-                        // If it's a 404 on a .pdb, we don't want to block the app from starting up.
-                        // We'll just skip that file and continue (though the 404 is logged in the console).
-                        // This happens if you build a Debug build but then run in Production environment.
                         const isPdb404 = errorInfo instanceof XMLHttpRequest
                             && errorInfo.status === 404
                             && filename.match(/\.pdb$/);
@@ -124,7 +119,6 @@
             const load_runtime = Module.cwrap('mono_wasm_load_runtime', null, ['string', 'number']);
             load_runtime(appBinDirName, 0);
             MONO.mono_wasm_runtime_is_ready = true;
-            //attachInteropInvoker();
             onReady();
         });
 
@@ -147,14 +141,13 @@
         const initConf = {
             appRoot: appRoot,
             DependentAssemblyFilenames: initOptions.dependentAssemblyFilenames,
-            //FetchUrlOverride: initOptions.fetchUrlOverride,
             deploy_prefix: "_framework/_bin",
             MessageEndPoint: initOptions.messageEndPoint,
             InitEndPoint: initOptions.initEndPoint,
             wasmRoot: "_framework/wasm",
-            //FetchOverride: initOptions.fetchOverride,
             debug: initOptions.debug
         };
+
         // Initialize worker
         const renderedConfig = JSON.stringify(initConf).replace('$appRoot$', appRoot);
         const renderedInlineWorker = inlineWorker.replace('$initConf$', renderedConfig);
@@ -165,7 +158,7 @@
 
         worker.onmessage = function (ev) {
             if (initOptions.debug) {
-                console.debug(`BlazorWorker.js:worker->blazor`, initOptions.callbackMethod, ev.data);
+                console.debug(`BlazorWorker.js:worker[${id}]->blazor`, initOptions.callbackMethod, ev.data);
             }
             callbackInstance.invokeMethod(initOptions.callbackMethod, ev.data);
         };

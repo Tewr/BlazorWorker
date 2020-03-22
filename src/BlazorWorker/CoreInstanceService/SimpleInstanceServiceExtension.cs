@@ -1,5 +1,5 @@
 ﻿using BlazorWorker.Core.SimpleInstanceService;
-using MonoWorker.Core;
+using BlazorWorker.WorkerCore;
 
 namespace BlazorWorker.Core.CoreInstanceService
 {

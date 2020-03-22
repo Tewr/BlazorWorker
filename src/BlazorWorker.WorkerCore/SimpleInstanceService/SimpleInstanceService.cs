@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonoWorker.Core.SimpleInstanceService
+namespace BlazorWorker.WorkerCore.SimpleInstanceService
 {
     public class SimpleInstanceService
     {

@@ -3,7 +3,7 @@ using BlazorWorker.BackgroundServiceFactory.Shared;
 using System;
 using System.Collections.Generic;
 
-namespace MonoWorker.BackgroundServiceHost
+namespace BlazorWorker.WorkerBackgroundService
 {
     public class MessageHandlerRegistry : Dictionary<string, Action<string>>
     {

@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\MonoWorker.Core\MonoWorker.Core.csproj" />
+    <ProjectReference Include="..\..\BlazorWorker.WorkerCore\BlazorWorker.WorkerCore.csproj" />
   </ItemGroup>
 
 </Project>

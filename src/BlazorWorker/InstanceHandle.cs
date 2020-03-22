@@ -1,4 +1,4 @@
-﻿using MonoWorker.Core;
+﻿using BlazorWorker.WorkerCore;
 using System;
 
 namespace BlazorWorker.Core

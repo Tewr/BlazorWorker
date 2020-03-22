@@ -5,14 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="WebAssembly.Bindings.0.2.2.0.dll" />
-    <None Remove="WebAssembly.Net.Http.dll" />
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Include="BlazorWorker.js" />
-    <EmbeddedResource Include="WebAssembly.Bindings.0.2.2.0.dll" />
-    <EmbeddedResource Include="WebAssembly.Net.Http.dll" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MonoWorker.Core\MonoWorker.Core.csproj" />
+    <ProjectReference Include="..\BlazorWorker.WorkerCore\BlazorWorker.WorkerCore.csproj" />
   </ItemGroup>
 
 </Project>

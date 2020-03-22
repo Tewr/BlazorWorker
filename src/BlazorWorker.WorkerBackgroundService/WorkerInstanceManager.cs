@@ -1,13 +1,13 @@
 ﻿using BlazorWorker.BackgroundServiceFactory;
 using BlazorWorker.BackgroundServiceFactory.Shared;
-using MonoWorker.Core;
-using MonoWorker.Core.SimpleInstanceService;
+using BlazorWorker.WorkerCore;
+using BlazorWorker.WorkerCore.SimpleInstanceService;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace MonoWorker.BackgroundServiceHost
+namespace BlazorWorker.WorkerBackgroundService
 {
     public partial class WorkerInstanceManager
     {
@@ -34,13 +34,13 @@ namespace MonoWorker.BackgroundServiceHost
 
         public static void Init() {
             MessageService.Message += Instance.OnMessage;
-            Console.WriteLine("MonoWorker.BackgroundServiceHost.Init(): Done.");
+            Console.WriteLine("BlazorWorker.WorkerBackgroundService.Init(): Done.");
             Instance.PostObject(new InitWorkerComplete());
         }
 
         public void PostMessage(string message)
         {
-            Console.WriteLine($"MonoWorker.BackgroundServiceHost.PostMessage(): {message}.");
+            Console.WriteLine($"BlazorWorker.WorkerBackgroundService.PostMessage(): {message}.");
             MessageService.PostMessage(message);
         }
 

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MonoWorker.Core
+namespace BlazorWorker.WorkerCore
 {
     /// <summary>
     /// Simple static message service that runs in the worker thread.

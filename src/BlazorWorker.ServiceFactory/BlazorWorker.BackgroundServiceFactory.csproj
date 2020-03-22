@@ -12,8 +12,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BlazorWorker.ServiceFactory.Shared\BlazorWorker.BackgroundServiceFactory.Shared.csproj" />
-    <ProjectReference Include="..\BlazorWorker\BlazorWorker.Core.csproj" />
-    <ProjectReference Include="..\MonoWorker.ServiceFactory\MonoWorker.BackgroundServiceHost.csproj" />
+    <ProjectReference Include="..\BlazorWorker.WorkerBackgroundService\BlazorWorker.WorkerBackgroundService.csproj" />
+    <ProjectReference Include="..\BlazorWorker.WorkerCore\BlazorWorker.WorkerCore.csproj" />
   </ItemGroup>
 
 </Project>

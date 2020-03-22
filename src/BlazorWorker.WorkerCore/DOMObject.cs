@@ -1,7 +1,7 @@
 ﻿using System;
 using WebAssembly;
 
-namespace MonoWorker.Core
+namespace BlazorWorker.WorkerCore
 {
     // Serves as a wrapper around a JSObject.
     class DOMObject : IDisposable

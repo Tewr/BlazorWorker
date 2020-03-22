@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using BlazorWorker.BackgroundServiceFactory.Shared;
 using BlazorWorker.Core;
 using System.Collections.Generic;
-using MonoWorker.BackgroundServiceHost;
-using MonoWorker.Core;
+using BlazorWorker.WorkerBackgroundService;
+using BlazorWorker.WorkerCore;
 
 namespace BlazorWorker.BackgroundServiceFactory
 {
