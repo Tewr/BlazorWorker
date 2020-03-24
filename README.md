@@ -14,8 +14,7 @@ To people coming from the .NET world, an analogy for what this library does is c
 
 The library comes in two flavours, one built on top of the other:
 - BlazorWorker.BackgroundService: A high-level API that hides the complexity of messaging
-- BlazorWorker.Core
-Core: A low-level API to communicate with a new .NET process in a web worker
+- BlazorWorker.Core: A low-level API to communicate with a new .NET process in a web worker
 
 ## Installation
 Nuget package:
