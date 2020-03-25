@@ -30,6 +30,7 @@ Add the following line in `Program.cs`:
 
 And then in a `.razor` View:
 ```cs
+@using BlazorWorker.BackgroundServiceFactory
 @inject IWorkerFactory workerFactory
 ```
 
@@ -53,8 +54,8 @@ public class MyCPUIntensiveService {
 
 ```cs
 // .razor view
-@inject IWorkerFactory workerFactory
 @using BlazorWorker.BackgroundServiceFactory
+@inject IWorkerFactory workerFactory
 
 <button @onclick="OnClick">Test!</button>
 @code {
