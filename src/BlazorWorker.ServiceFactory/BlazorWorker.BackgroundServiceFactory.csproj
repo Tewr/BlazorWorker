@@ -11,7 +11,7 @@
     <PackageReference Include="Microsoft.JSInterop" Version="5.0.0-preview.1.20120.4" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Serialize.Linq" Version="1.8.1" />
-    <PackageReference Include="Tewr.BlazorWorker.Core" Version="1.0.0" />
+    <PackageReference Include="Tewr.BlazorWorker.Core" Version="1.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,6 +31,7 @@
     <RepositoryUrl>https://github.com/Tewr/BlazorWorker</RepositoryUrl>
     <PackageTags>WebWorker Worker Process Threading Multithreading Blazor Isolation</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
