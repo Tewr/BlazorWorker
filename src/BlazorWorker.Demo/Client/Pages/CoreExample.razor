@@ -4,104 +4,112 @@
 @using BlazorWorker.Core.CoreInstanceService
 @using BlazorWorker.Demo.Shared
 @using BlazorWorker.Core
+    <div class="row">
+        <div class="col-5">
+            <h1>.NET Worker threads with messaging.</h1>
 
-<h1>Hello, threads!</h1>
+            Welcome to your new multithreaded app.
 
-Welcome to your new multithreaded app.
+            This example uses the Core module, which does not provide any serialization. This is useful for scenarios with simple
+            API's, or for building a custom high-level API.
 
-This example uses the Core module, which does not provide any serialization. This is useful for scenarios with simple
-API's, or for building a custom high-level API.
+            <br />
+            <input type="text" @bind="piIterations" placeholder="estimation iterations" />
+            <button @onclick="OnClick">Estimate pi</button>
 
-<br/>
-<input type="text" @bind="piIterations" placeholder="estimation iterations" />
-<button @onclick="OnClick">Estimate pi</button>
-
-<button disabled="@disabled" @onclick="OnDispose">Dispose Service</button>
-<br/>
-<progress max="@piIterations" value="@piProgress" />
-<br />
-<br />
-Output:
-<br />
+            <button disabled="@disabled" @onclick="OnDispose">Dispose Service</button>
+            <br />
+            <progress max="@piIterations" value="@piProgress" />
+            <br />
+            <br />
+            Output:
+            <br />
 <pre>
 @output
 </pre>
-@code {
-    int piIterations = 5_000_000;
-    int piProgress = 0;
-    string output;
-    IWorker worker;
-    ICoreInstanceService backgroundService;
-    IInstanceHandle handle;
-    string disabled = "disabled";
-    string rn = Environment.NewLine;
+        </div>
+        <div class="col-7">
+            <GithubSource RelativePath="Pages/CoreExample.razor" />
+        </div>
+    </div>
+        @code {
+            int piIterations = 5_000_000;
+            int piProgress = 0;
+            string output;
+            IWorker worker;
+            ICoreInstanceService backgroundService;
+            IInstanceHandle handle;
+            string disabled = "disabled";
+            string rn = Environment.NewLine;
 
-    public async Task OnClick(EventArgs _)
-    {
-        output = "";
-        
-        try
-        {
-            if (worker == null)
+            public async Task OnClick(EventArgs _)
             {
-                worker = await workerFactory.CreateAsync();
-                worker.IncomingMessage += this.OnWorkerMessage;
+                output = "";
+
+                try
+                {
+                    if (worker == null)
+                    {
+                        worker = await workerFactory.CreateAsync();
+                        worker.IncomingMessage += this.OnWorkerMessage;
+                    }
+
+                    if (backgroundService == null)
+                    {
+                        disabled = null;
+                        output = $"{rn}{LogDate()} Creating background service...";
+                        StateHasChanged();
+
+                        backgroundService = worker.CreateCoreInstanceService();
+
+                        handle = await backgroundService.CreateInstance<CoreMathsService>();
+
+
+                        output += $"{rn}{LogDate()} Background service created.";
+                        StateHasChanged();
+                    }
+
+                    output += $"{rn}{LogDate()} Calling EstimatePI({piIterations})...";
+                    await worker.PostMessageAsync($"{nameof(MathsService.EstimatePI)}({piIterations})");
+                    // Result is obtained in message listener "OnWorkerMessage"
+                }
+                catch (Exception e)
+                {
+                    output = $"{rn}Error = {e}";
+                }
             }
 
-            if (backgroundService == null)
+            public void OnWorkerMessage(object sender, string message)
             {
-                disabled = null;
-                output = $"{rn}{LogDate()} Creating background service...";
-                StateHasChanged();
+                if (message.StartsWith($"{CoreMathsService.EventsPi}:"))
+                {
+                    piProgress = int.Parse(message.Substring($"{CoreMathsService.EventsPi}:".Length).Trim());
+                    StateHasChanged();
+                }
 
-                backgroundService = worker.CreateCoreInstanceService();
-
-                handle = await backgroundService.CreateInstance<CoreMathsService>();
-
-
-                output += $"{rn}{LogDate()} Background service created.";
-                StateHasChanged();
+                if (message.StartsWith($"{CoreMathsService.ResultMessage}:"))
+                {
+                    var result = double.Parse(message.Substring($"{CoreMathsService.ResultMessage}:".Length).Trim());
+                    output += $"{rn}{LogDate()} EstimatePI({piIterations}) = {result}";
+                    StateHasChanged();
+                    StateHasChanged();
+                }
             }
 
-            output += $"{rn}{LogDate()} Calling EstimatePI({piIterations})...";
-            await worker.PostMessageAsync($"{nameof(MathsService.EstimatePI)}({piIterations})");
-            // Result is obtained in message listener "OnWorkerMessage"
+            public async Task OnDispose()
+            {
+                await handle.DisposeAsync();
+                backgroundService = null;
+
+
+                await worker.DisposeAsync();
+                worker = null;
+
+                disabled = "disabled";
+            }
+
+            private string LogDate()
+            {
+                return DateTime.Now.ToString("HH:mm:ss:fff");
+            }
         }
-        catch (Exception e)
-        {
-            output = $"{rn}Error = {e}";
-        }
-    }
-
-    public void OnWorkerMessage(object sender, string message) {
-        if (message.StartsWith($"{CoreMathsService.EventsPi}:"))
-        {
-            piProgress = int.Parse(message.Substring($"{CoreMathsService.EventsPi}:".Length).Trim());
-            StateHasChanged();
-        }
-
-        if (message.StartsWith($"{CoreMathsService.ResultMessage}:"))
-        {
-            var result = double.Parse(message.Substring($"{CoreMathsService.ResultMessage}:".Length).Trim());
-            output += $"{rn}{LogDate()} EstimatePI({piIterations}) = {result}";
-                StateHasChanged();
-            StateHasChanged();
-        }
-    }
-
-    public async Task OnDispose()
-    {
-        await handle.DisposeAsync();
-        backgroundService = null;
-
-
-        await worker.DisposeAsync();
-        worker = null;
-
-        disabled = "disabled";
-    }
-
-    private string LogDate() {
-        return DateTime.Now.ToString("HH:mm:ss:fff");
-    }
-}

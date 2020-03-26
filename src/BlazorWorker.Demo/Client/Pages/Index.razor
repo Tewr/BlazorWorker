@@ -4,95 +4,102 @@
 @using BlazorWorker.BackgroundServiceFactory
 @using BlazorWorker.Demo.Shared
 @using BlazorWorker.Core
+    <div class="row">
+        <div class="col-5">
+            <h1>.NET Worker Threads with strongly typed method invoking.</h1>
 
-<h1>Hello, threads!</h1>
+            Welcome to your new multithreaded app.
 
-Welcome to your new multithreaded app.
+            <br />
+            <input type="text" @bind="piIterations" placeholder="estimation iterations" />
+            <button @onclick="OnClick">Estimate pi</button>
 
-<br/>
-<input type="text" @bind="piIterations" placeholder="estimation iterations" />
-<button @onclick="OnClick">Estimate pi</button>
-
-<button disabled="@disabled" @onclick="OnDispose">Dispose Service</button>
-<br/>
-<progress max="@piIterations" value="@piProgress" />
-<br />
-<br />
-Output:
-<br />
+            <button disabled="@disabled" @onclick="OnDispose">Dispose Service</button>
+            <br />
+            <progress max="@piIterations" value="@piProgress" />
+            <br />
+            <br />
+            Output:
+            <br />
 <pre>
 @output
 </pre>
-@code {
-    int piIterations = 5_000_000;
-    int piProgress = 0;
-    string output;
-    IWorker worker;
-    IWorkerBackgroundService<MathsService> backgroundService;
-    string disabled = "disabled";
+        </div>
+        <div class="col-7">
+            <GithubSource RelativePath="Pages/Index.razor" />
+        </div>
+        </div>
+        @code {
+            int piIterations = 5_000_000;
+            int piProgress = 0;
+            string output;
+            IWorker worker;
+            BlazorWorker.WorkerBackgroundService.IWorkerBackgroundService<MathsService> backgroundService;
+            string disabled = "disabled";
 
 
-    public async Task OnClick(EventArgs _)
-    {
-        output = "";
-        var rn = Environment.NewLine;
-        try
-        {
-            if (worker == null)
+            public async Task OnClick(EventArgs _)
             {
-                worker = await workerFactory.CreateAsync();
-            }
-
-            if (backgroundService == null)
-            {
-                disabled = null;
-                output = $"{rn}{LogDate()} Creating background service...";
-                StateHasChanged();
-
-                backgroundService = await worker.CreateBackgroundServiceAsync<MathsService>();
-
-                await backgroundService.RegisterEventListenerAsync(nameof(MathsService.Pi),
-                    (object s, int pinum) =>
+                output = "";
+                var rn = Environment.NewLine;
+                try
+                {
+                    if (worker == null)
                     {
-                        piProgress = pinum;
+                        worker = await workerFactory.CreateAsync();
+                    }
+
+                    if (backgroundService == null)
+                    {
+                        disabled = null;
+                        output = $"{rn}{LogDate()} Creating background service...";
+                        StateHasChanged();
+
+                        backgroundService = await worker.CreateBackgroundServiceAsync<MathsService>();
+
+                        await backgroundService.RegisterEventListenerAsync(nameof(MathsService.Pi),
+                            (object s, int pinum) =>
+                            {
+                                piProgress = pinum;
+                                StateHasChanged();
+                            });
+
+                        output += $"{rn}{LogDate()} Background service created.";
+                        StateHasChanged();
+                    }
+
+                    // We cannot pass piIterations directly, as it would create a reference to the current class
+                    // which is difficult to serialize over process borders
+                    // local variables are fine though
+                    var localParamValue = piIterations;
+
+                    output += $"{rn}{LogDate()} Calling EstimatePI({piIterations})...";
+                    var __ = backgroundService.RunAsync(s => s.EstimatePI(localParamValue)).ContinueWith(t =>
+                    {
+                        output += $"{rn}{LogDate()} EstimatePI({piIterations}) = {t.Result}";
                         StateHasChanged();
                     });
-
-                output += $"{rn}{LogDate()} Background service created.";
-                StateHasChanged();
+                }
+                catch (Exception e)
+                {
+                    output = $"{rn}Error = {e}";
+                }
             }
 
-            // We cannot pass piIterations directly, as it would create a reference to the current class 
-            // which is difficult to serialize over process borders
-            // local variables are fine though
-            var localParamValue = piIterations;
-
-            output += $"{rn}{LogDate()} Calling EstimatePI({piIterations})...";
-            var __ = backgroundService.RunAsync(s => s.EstimatePI(localParamValue)).ContinueWith(t =>
+            public async Task OnDispose()
             {
-                output += $"{rn}{LogDate()} EstimatePI({piIterations}) = {t.Result}";
-                StateHasChanged();
-            });
+                await backgroundService.DisposeAsync();
+                backgroundService = null;
+
+
+                await worker.DisposeAsync();
+                worker = null;
+
+                disabled = "disabled";
+            }
+
+            private string LogDate()
+            {
+                return DateTime.Now.ToString("HH:mm:ss:fff");
+            }
         }
-        catch (Exception e)
-        {
-            output = $"{rn}Error = {e}";
-        }
-    }
-
-    public async Task OnDispose()
-    {
-        await backgroundService.DisposeAsync();
-        backgroundService = null;
-        
-
-        await worker.DisposeAsync();
-        worker = null;
-
-        disabled = "disabled";
-    }
-
-    private string LogDate() {
-        return DateTime.Now.ToString("HH:mm:ss:fff");
-    }
-}
