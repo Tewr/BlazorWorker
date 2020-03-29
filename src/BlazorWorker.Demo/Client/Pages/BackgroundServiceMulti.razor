@@ -6,8 +6,8 @@
 @using BlazorWorker.Demo.Shared
 @using BlazorWorker.Core
     <div class="row">
-        <div class="col-5">
-            <h1>.NET Worker Threads</h1>
+        <div class="col-6">
+            <h1>.NET Worker Multithreading</h1>
 
             Welcome to your new multithreaded app.
 
@@ -15,8 +15,8 @@
             Pi estimation demo. Specify number of iterations.<br />
             <input type="text" @bind="piIterations" placeholder="estimation iterations" /><br />
             Specify number of workers to use.<br />
-            <input type="text" @bind="workerNum" placeholder="Number of workers" /><br />
-            <button @onclick="OnClick">Estimate pi</button><br />
+            <input type="text" @bind="workerNum" placeholder="Number of workers" /><br /><br />
+            <button @onclick="OnClick" class="btn btn-primary">Run Test</button><br />
             @foreach (var workerProgress in piProgress.Take(workerNum))
             {
                 <progress max="100" value="@(workerProgress.Progress)" /><br/>
@@ -24,13 +24,13 @@
 
             <br />
             <br />
-            Output:
-            <br />
+            <strong>Output:</strong>
+            <hr />
 <pre>
 @output
 </pre>
         </div>
-        <div class="col-7">
+        <div class="col-6">
             <GithubSource RelativePath="Pages/BackgroundServiceMulti.razor" />
         </div>
         </div>
@@ -66,10 +66,12 @@
             List<IWorkerBackgroundService<MathsService>> backgroundServices =
                 new List<IWorkerBackgroundService<MathsService>>();
 
-            Task multiTask;
+            string RunDisabled => Running ? "disabled" : null;
+            bool Running = false;
 
             public async Task OnClick(EventArgs _)
             {
+                Running = true;
                 piProgress.ForEach(p => p.Progress = 0);
                 output = "";
                 var rn = Environment.NewLine;
@@ -77,7 +79,7 @@
                 {
                     sliceSize = (int)Math.Floor((decimal)piIterations / workerNum);
 
-                    while (workers.Count() != workerNum)
+                    while (workers.Count() < workerNum)
                     {
                         output += $"{rn}{LogDate()} Initializing a worker.";
                         var worker = await workerFactory.CreateAsync();
@@ -99,24 +101,19 @@
                     sw.Start();
                     var allTasks = new List<Task<double>>();
                     var servicesStarted = 0;
-                    foreach (var backgroundService in backgroundServices)
+                    foreach (var backgroundService in backgroundServices.Take(workerNum))
                     {
                         var end = start + sliceSize;
 
                         var localStart = start;
                         var localSliceSize = sliceSize;
-                        output += $"{rn}{LogDate()} Worker {servicesStarted + 1}: Calling EstimatePISlice({localStart},{localSliceSize})...";
+                        output += $"{rn}{LogDate()} Worker {servicesStarted + 1}: EstimatePISlice({localStart},{localSliceSize})...";
                         var task = backgroundService.RunAsync(s => s.EstimatePISlice(localStart, localSliceSize));
                         allTasks.Add(task);
 
-                        start = end + 1;
+                        start = end;
                         servicesStarted++;
-                        if (servicesStarted == workerNum)
-                        {
-                            break;
-                        }
                     }
-
 
                     var result  = await Task.WhenAll(allTasks.ToArray()).ContinueWith(t =>
                     {
@@ -135,6 +132,10 @@
                 catch (Exception e)
                 {
                     output = $"{rn}Error = {e}";
+                }
+                finally
+                {
+                    Running = false;
                 }
             }
 

@@ -13,19 +13,22 @@ namespace BlazorWorker.Demo.Shared
     {
         public event EventHandler<int> Pi;
 
-        private IEnumerable<int> AlternatingSequence(int start  = 0)
+        private IEnumerable<int> AlternatingSequence(int start = 0)
         {
             int i;
+            bool flip;
             if (start == 0)
             {
                 yield return 1;
                 i = 1;
+                flip = false;
             }
             else
             {
                 i = (start * 2) - 1;
+                flip = start % 2 == 0;
             }
-            var flip = start%2==1;
+
             while (true) yield return ((flip = !flip) ? -1 : 1) * (i += 2);
         }
 

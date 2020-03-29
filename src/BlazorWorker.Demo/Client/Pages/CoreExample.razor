@@ -6,24 +6,25 @@
 @using BlazorWorker.Core
     <div class="row">
         <div class="col-5">
-            <h1>.NET Worker threads with messaging.</h1>
+            <h1>Core .NET Worker threads with messaging.</h1>
 
             Welcome to your new multithreaded app.
 
-            This example uses the Core module, which does not provide any serialization. This is useful for scenarios with simple
-            API's, or for building a custom high-level API.
+            This example uses the Core module, which does not provide any serialization.<br />
 
-            <br />
+            This is useful for scenarios with simple API's (smaller download size), or for building a custom high-level API.
+            <br /><br />
+            Pi estimation demo. Specify number of iterations.<br />
             <input type="text" @bind="piIterations" placeholder="estimation iterations" />
-            <button @onclick="OnClick">Estimate pi</button>
+            <br />
+            <progress max="@piIterations" value="@piProgress" /><br /><br />
+            <button disabled=@RunDisabled @onclick="OnClick" class="btn btn-primary">Run Test</button>
 
-            <button disabled="@disabled" @onclick="OnDispose">Dispose Service</button>
-            <br />
-            <progress max="@piIterations" value="@piProgress" />
+            <button disabled="@disabled" @onclick="OnDispose" class="btn btn-secondary">Dispose Service</button>
             <br />
             <br />
-            Output:
-            <br />
+            <strong>Output:</strong>
+            <hr />
 <pre>
 @output
 </pre>
@@ -33,6 +34,8 @@
         </div>
     </div>
         @code {
+            string RunDisabled => Running ? "disabled" : null;
+            bool Running = false;
             int piIterations = 5_000_000;
             int piProgress = 0;
             string output;
@@ -64,11 +67,10 @@
 
                         handle = await backgroundService.CreateInstance<CoreMathsService>();
 
-
                         output += $"{rn}{LogDate()} Background service created.";
                         StateHasChanged();
                     }
-
+                    
                     output += $"{rn}{LogDate()} Calling EstimatePI({piIterations})...";
                     await worker.PostMessageAsync($"{nameof(MathsService.EstimatePI)}({piIterations})");
                     // Result is obtained in message listener "OnWorkerMessage"

@@ -6,21 +6,21 @@
 @using BlazorWorker.Core
     <div class="row">
         <div class="col-5">
-            <h1>.NET Worker Threads</h1>
+            <h1>Simple .NET Worker Thread</h1>
 
-            Welcome to your new multithreaded app.
+            Welcome to your new threaded app.
 
             <br /><br />
             Pi estimation demo. Specify number of iterations.<br />
             <input type="text" @bind="piIterations" placeholder="estimation iterations" /><br />
-            <button @onclick="OnClick">Estimate pi</button><br />
-            <button disabled="@canDisposeService" @onclick="OnDisposeService">Dispose Service</button><br />
-            <button disabled="@canDisposeWorker" @onclick="OnDisposeWorker">Dispose Worker</button><br />
-            <progress max="@piIterations" value="@piProgress" />
+            <progress max=@piIterations value="@piProgress" /><br /><br />
+            <button disabled=@RunDisabled @onclick=OnClick class="btn btn-primary">Run test</button><br /><br />
+            <button disabled="@canDisposeService" @onclick="OnDisposeService" class="btn btn-secondary">Dispose Service</button>&nbsp;&nbsp;
+            <button disabled="@canDisposeWorker" @onclick="OnDisposeWorker" class="btn btn-secondary">Dispose Worker</button><br />
             <br />
             <br />
-            Output:
-            <br />
+            <strong>Output:</strong>
+            <hr />
 <pre>
 @output
 </pre>
@@ -37,10 +37,12 @@
             BlazorWorker.WorkerBackgroundService.IWorkerBackgroundService<MathsService> backgroundService;
             string canDisposeWorker => worker == null ? null : "disabled";
             string canDisposeService => backgroundService == null ? null : "disabled";
-
+            string RunDisabled => Running ? "disabled" : null;
+            bool Running = false;
 
             public async Task OnClick(EventArgs _)
             {
+                Running = true;
                 output = "";
                 var rn = Environment.NewLine;
                 try
@@ -86,6 +88,10 @@
                 catch (Exception e)
                 {
                     output = $"{rn}Error = {e}";
+                }
+                finally
+                {
+                    Running = false;
                 }
             }
 
