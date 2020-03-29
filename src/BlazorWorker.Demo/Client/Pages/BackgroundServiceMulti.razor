@@ -107,22 +107,6 @@
                         var localSliceSize = sliceSize;
                         output += $"{rn}{LogDate()} Worker {servicesStarted + 1}: Calling EstimatePISlice({localStart},{localSliceSize})...";
                         var task = backgroundService.RunAsync(s => s.EstimatePISlice(localStart, localSliceSize));
-                        /*var __ = task.ContinueWith(t =>
-                        {
-                            if (!allTasks.All(tt => tt.IsCompleted))
-                            {
-                                return;
-                            }
-
-                            sw.Stop();
-                            output += $"{rn}{LogDate()} All calls complete.";
-                            output += $"{rn}{LogDate()} EstimatePISlice({piIterations}) = {4 * allTasks.Select(tt => tt.Result).Sum()}" +
-                                      $"{rn}   (Workers: {workerNum} Time: {sw.Elapsed})";
-                            piProgress.ForEach(p => p.Progress = 100);
-
-                            StateHasChanged();
-                        });*/
-
                         allTasks.Add(task);
 
                         start = end + 1;
@@ -133,17 +117,20 @@
                         }
                     }
 
-                    multiTask = Task.WhenAll(allTasks.ToArray()).ContinueWith(t =>
-                        {
 
-                            sw.Stop();
-                            output += $"{rn}{LogDate()} All calls complete.";
-                            output += $"{rn}{LogDate()} EstimatePISlice({piIterations}) = {4 * t.Result.Sum()}" +
-                                      $"{rn}   (Workers: {workerNum} Time: {sw.Elapsed})";
-                            piProgress.ForEach(p => p.Progress = 100);
+                    var result  = await Task.WhenAll(allTasks.ToArray()).ContinueWith(t =>
+                    {
+                        return 4 * t.Result.Sum();
+                    });
 
-                            StateHasChanged();
-                        });
+                    sw.Stop();
+                    output += $"{rn}{LogDate()} All calls complete.";
+                    output += $"{rn}{LogDate()} EstimatePISlice({piIterations}) = {result}" +
+                              $"{rn}   (Workers: {workerNum} Time: {sw.Elapsed})";
+                    piProgress.ForEach(p => p.Progress = 100);
+
+                    StateHasChanged();
+
                 }
                 catch (Exception e)
                 {
