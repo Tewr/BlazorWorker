@@ -13,11 +13,19 @@ namespace BlazorWorker.Demo.Shared
     {
         public event EventHandler<int> Pi;
 
-        private IEnumerable<int> AlternatingSequence()
+        private IEnumerable<int> AlternatingSequence(int start  = 0)
         {
-            var i = 1;
-            yield return i;
-            var flip = false;
+            int i;
+            if (start == 0)
+            {
+                yield return 1;
+                i = 1;
+            }
+            else
+            {
+                i = (start * 2) - 1;
+            }
+            var flip = start%2==1;
             while (true) yield return ((flip = !flip) ? -1 : 1) * (i += 2);
         }
 
@@ -26,7 +34,6 @@ namespace BlazorWorker.Demo.Shared
             var lastReport = 0;
             return (4 * AlternatingSequence().Take(sumLength)
                 .Select((x, i) => {
-
                     // Keep reporting events down a bit, serialization is expensive!
                     var progressDelta = (Math.Abs(i - lastReport) / (double)sumLength) * 100;
                     if (progressDelta > 3 || i >= sumLength - 1)
@@ -36,6 +43,27 @@ namespace BlazorWorker.Demo.Shared
                     }
                     return x; })
                 .Sum(x => 1.0 / x));
+        }
+
+        public double EstimatePISlice(int sumStart, int sumLength)
+        {
+            Console.WriteLine($"EstimatePISlice({sumStart},{sumLength})");
+            var lastReport = 0;
+            return AlternatingSequence(sumStart)
+                .Take(sumLength)
+                .Select((x, i) => {
+
+                    // Keep reporting events down a bit, serialization is expensive!
+                    var progressDelta = (Math.Abs(i - lastReport) / (double)sumLength) * 100;
+                    if (progressDelta > 3 || i >= sumLength - 1)
+                    {
+                        lastReport = i;
+                        Pi?.Invoke(this, i);
+                    }
+                    return x;
+                })
+                .Sum(x => 1.0 / x);
+
         }
     }
 }

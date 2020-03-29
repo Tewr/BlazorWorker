@@ -36,7 +36,5 @@ namespace BlazorWorker.Demo.Shared
                 return;
             }
         }
-
-        
     }
 }

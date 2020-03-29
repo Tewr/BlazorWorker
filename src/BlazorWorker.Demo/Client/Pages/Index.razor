@@ -6,16 +6,16 @@
 @using BlazorWorker.Core
     <div class="row">
         <div class="col-5">
-            <h1>.NET Worker Threads with strongly typed method invoking.</h1>
+            <h1>.NET Worker Threads</h1>
 
             Welcome to your new multithreaded app.
 
-            <br />
-            <input type="text" @bind="piIterations" placeholder="estimation iterations" />
-            <button @onclick="OnClick">Estimate pi</button>
-
-            <button disabled="@disabled" @onclick="OnDispose">Dispose Service</button>
-            <br />
+            <br /><br />
+            Pi estimation demo. Specify number of iterations.<br />
+            <input type="text" @bind="piIterations" placeholder="estimation iterations" /><br />
+            <button @onclick="OnClick">Estimate pi</button><br />
+            <button disabled="@canDisposeService" @onclick="OnDisposeService">Dispose Service</button><br />
+            <button disabled="@canDisposeWorker" @onclick="OnDisposeWorker">Dispose Worker</button><br />
             <progress max="@piIterations" value="@piProgress" />
             <br />
             <br />
@@ -35,7 +35,8 @@
             string output;
             IWorker worker;
             BlazorWorker.WorkerBackgroundService.IWorkerBackgroundService<MathsService> backgroundService;
-            string disabled = "disabled";
+            string canDisposeWorker => worker == null ? null : "disabled";
+            string canDisposeService => backgroundService == null ? null : "disabled";
 
 
             public async Task OnClick(EventArgs _)
@@ -44,27 +45,29 @@
                 var rn = Environment.NewLine;
                 try
                 {
+
                     if (worker == null)
                     {
                         worker = await workerFactory.CreateAsync();
                     }
 
+                    var sw = new System.Diagnostics.Stopwatch();
                     if (backgroundService == null)
                     {
-                        disabled = null;
                         output = $"{rn}{LogDate()} Creating background service...";
                         StateHasChanged();
 
+                        sw.Start();
                         backgroundService = await worker.CreateBackgroundServiceAsync<MathsService>();
 
                         await backgroundService.RegisterEventListenerAsync(nameof(MathsService.Pi),
-                            (object s, int pinum) =>
-                            {
-                                piProgress = pinum;
-                                StateHasChanged();
-                            });
-
-                        output += $"{rn}{LogDate()} Background service created.";
+                                (object s, int pinum) =>
+                                {
+                                    piProgress = pinum;
+                                    StateHasChanged();
+                                });
+                        sw.Stop();
+                        output += $"{rn}{LogDate()} Background service created in {sw.ElapsedMilliseconds}ms";
                         StateHasChanged();
                     }
 
@@ -86,16 +89,17 @@
                 }
             }
 
-            public async Task OnDispose()
+            public async Task OnDisposeService()
             {
                 await backgroundService.DisposeAsync();
                 backgroundService = null;
+            }
 
-
+            public async Task OnDisposeWorker()
+            {
                 await worker.DisposeAsync();
                 worker = null;
-
-                disabled = "disabled";
+                backgroundService = null;
             }
 
             private string LogDate()
