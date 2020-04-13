@@ -41,7 +41,7 @@ A high-level API that abstracts the complexity of messaging by exposing a strong
 
 The starting point of a BlazorWorker is a service class that must be defined by the caller. The public methods that you expose in your service can then be called from the IWorkerBackgroundService interface. If you declare a public [event](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/event) on your service, it can be used to call back into blazor during a method execution (useful for progress reporting).
 
-Each worker process can contain multiple service classes. 
+Each worker process can contain multiple service classes, but each single worker can work with only one thread. For multiple concurrent threads, you must create a new worker for each (see the [Multithreading example]( https://tewr.github.io/BlazorWorker/BackgroundServiceMulti) for a way of organizing this.
 
 Example (see the [demo project](src/BlazorWorker.Demo/Client/Pages) for a fully working example):
 ```cs
@@ -61,7 +61,8 @@ public class MyCPUIntensiveService {
 
 <button @onclick="OnClick">Test!</button>
 @code {
-
+    int parameterValue = 5;
+    
     public async Task OnClick(EventArgs _)
     {
         // Create worker.
@@ -71,7 +72,10 @@ public class MyCPUIntensiveService {
         // reference around somewhere to avoid the startup cost.
         var service = await worker.CreateBackgroundServiceAsync<MyCPUIntensiveService>();
         
-        var result = await service.RunAsync(s => s.MyMethod(5));
+        // Reference that live outside of the current scope should not be passed into the expression.
+        // To circumvent this, create a scope-local variable like this, and pass the local variable.
+        var localParameterValue = this.parameterValue;
+        var result = await service.RunAsync(s => s.MyMethod(localParameterValue));
     }
 }
 
