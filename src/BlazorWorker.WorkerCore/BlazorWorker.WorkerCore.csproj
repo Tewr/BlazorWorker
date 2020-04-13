@@ -8,6 +8,10 @@
     <DocumentationFile>C:\Users\Tor\source\repos\BlazorWorker\src\BlazorWorker.WorkerCore\BlazorWorker.WorkerCore.xml</DocumentationFile>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>C:\Users\Tor\source\repos\BlazorWorker\src\BlazorWorker.WorkerCore\BlazorWorker.WorkerCore.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="WebAssembly.Bindings" Version="3.0.2" />
   </ItemGroup>

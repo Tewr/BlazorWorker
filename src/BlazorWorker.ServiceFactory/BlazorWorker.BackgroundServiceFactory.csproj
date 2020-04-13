@@ -31,10 +31,14 @@
     <RepositoryUrl>https://github.com/Tewr/BlazorWorker</RepositoryUrl>
     <PackageTags>WebWorker Worker Process Threading Multithreading Blazor Isolation</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.1</Version>
+    <Version>1.0.0</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>C:\Users\Tor\source\repos\BlazorWorker\src\BlazorWorker.ServiceFactory\BlazorWorker.BackgroundServiceFactory.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>C:\Users\Tor\source\repos\BlazorWorker\src\BlazorWorker.ServiceFactory\BlazorWorker.BackgroundServiceFactory.xml</DocumentationFile>
   </PropertyGroup>
 
