@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>BlazorWorker.WorkerCore</name>
+    </assembly>
+    <members>
+        <member name="T:BlazorWorker.WorkerCore.MessageService">
+            <summary>
+            Simple static message service that runs in the worker thread.
+            </summary>
+        </member>
+    </members>
+</doc>

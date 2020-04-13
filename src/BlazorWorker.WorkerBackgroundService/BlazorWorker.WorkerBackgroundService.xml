@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>BlazorWorker.WorkerBackgroundService</name>
+    </assembly>
+    <members>
+        <member name="M:BlazorWorker.WorkerBackgroundService.IWorkerBackgroundService`1.RegisterEventListenerAsync``1(System.String,System.EventHandler{``0})">
+            <summary>
+            Registers an event listener to the specified event.
+            </summary>
+            <typeparam name="TResult"></typeparam>
+            <param name="eventName"></param>
+            <param name="myHandler"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BlazorWorker.WorkerBackgroundService.IWorkerBackgroundService`1.RunAsync``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
+            <summary>
+            Queues the specified work to run on the underlying worker and returns a <see cref="T:System.Threading.Tasks.Task"/> object that represents that work.
+            </summary>
+            <typeparam name="TResult"></typeparam>
+            <param name="function"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BlazorWorker.WorkerBackgroundService.IWorkerBackgroundService`1.RunAsync(System.Linq.Expressions.Expression{System.Action{`0}})">
+            <summary>
+            Queues the specified work to run on the underlying worker and returns a <see cref="T:System.Threading.Tasks.Task"/> object that represents that work.
+            </summary>
+            <param name="action"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BlazorWorker.WorkerBackgroundService.IWorkerBackgroundService`1.GetWorkerMessageService">
+            <summary>
+            Returns the message service used by the underlying worker.
+            </summary>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

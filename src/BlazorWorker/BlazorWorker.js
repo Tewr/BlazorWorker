@@ -104,7 +104,7 @@
                     errorInfo => {
                         const isPdb404 = errorInfo instanceof XMLHttpRequest
                             && errorInfo.status === 404
-                            && filename.match(/\.pdb$/);
+                            && url.match(/\.pdb$/);
                         if (!isPdb404) {
                             onError(errorInfo);
                         }
