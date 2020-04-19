@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Linq;
+using Microsoft.AspNetCore.HttpOverrides;
 
 namespace BlazorWorker.Demo.Server
 {
@@ -29,18 +32,18 @@ namespace BlazorWorker.Demo.Server
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseBlazorDebugging();
+                app.UseWebAssemblyDebugging();
             }
 
             app.UseStaticFiles();
-            app.UseClientSideBlazorFiles<Client.Program>();
+            app.UseBlazorFrameworkFiles();
 
             app.UseRouting();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapDefaultControllerRoute();
-                endpoints.MapFallbackToClientSideBlazor<Client.Program>("index.html");
+                endpoints.MapFallbackToFile("index.html");
             });
         }
     }

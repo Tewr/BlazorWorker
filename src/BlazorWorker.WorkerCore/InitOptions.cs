@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json.Serialization;
 
 namespace BlazorWorker.Core
 {
@@ -19,7 +18,7 @@ namespace BlazorWorker.Core
         public Dictionary<string, string> FetchUrlOverride { get; set; }
         public string MessageEndPoint { get; set; }
         public string InitEndPoint { get; set; }
-        public string CallbackMethod { get; internal set; }
+        public string CallbackMethod { get; set; }
 
         public WorkerInitOptions MergeWith(WorkerInitOptions initOptions)
         {

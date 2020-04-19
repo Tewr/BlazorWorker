@@ -60,7 +60,7 @@
         const suppressMessages = ['DEBUGGING ENABLED'];
         const appBinDirName = 'appBinDir';
 
-        Module.print = line => (suppressMessages.indexOf(line) < 0 && console.log(`WASM: ${line}`));
+        Module.print = line => (suppressMessages.indexOf(line) < 0 && console.log(`WASM-WORKER: ${line}`));
 
         Module.printErr = line => {
             console.error(`WASM: ${line}`);

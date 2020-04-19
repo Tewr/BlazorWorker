@@ -1,5 +1,8 @@
 ﻿using BlazorWorker.Core;
-using Microsoft.AspNetCore.Blazor.Hosting;
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace BlazorWorker.Demo.Client
@@ -12,9 +15,10 @@ namespace BlazorWorker.Demo.Client
             builder.RootComponents.Add<App>("app");
             
             builder.Services.AddWorkerFactory();
+            builder.Services.AddSingleton(new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
             await builder.Build().RunAsync();
-
+            
         }
     }
 }
