@@ -127,7 +127,7 @@
         global = globalThis;
         self.Module = Module;
 
-        self.importScripts(`${initConf.appRoot}/${initConf.wasmRoot}/dotnet.js`); 
+        self.importScripts(`${initConf.appRoot}/${initConf.wasmRoot}/${initConf.dotnetjs}`); 
     };
 
     const inlineWorker = `self.onmessage = ${workerDef}()`; 
@@ -145,6 +145,7 @@
             MessageEndPoint: initOptions.messageEndPoint,
             InitEndPoint: initOptions.initEndPoint,
             wasmRoot: "_framework/wasm",
+            dotnetjs: "dotnet.3.2.0-preview5.20210.1.js",
             debug: initOptions.debug
         };
 
