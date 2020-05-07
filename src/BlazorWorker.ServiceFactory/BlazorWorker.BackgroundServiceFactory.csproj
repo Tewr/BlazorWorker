@@ -38,7 +38,7 @@
 
   </ItemGroup>
 
-  <PropertyGroup  Condition="'$(Configuration)|$(Platform)'=='Nuget|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Nuget|AnyCPU'">
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
     
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -46,7 +46,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <DocumentationFile>C:\Users\Tor\source\repos\BlazorWorker\src\BlazorWorker.ServiceFactory\BlazorWorker.BackgroundServiceFactory.xml</DocumentationFile>
+    <DocumentationFile>BlazorWorker.BackgroundServiceFactory.xml</DocumentationFile>
   </PropertyGroup>
 
   <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">

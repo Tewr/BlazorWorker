@@ -7,15 +7,15 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>C:\Users\Tor\source\repos\BlazorWorker\src\BlazorWorker.WorkerBackgroundService\BlazorWorker.WorkerBackgroundService.xml</DocumentationFile>
+    <DocumentationFile>BlazorWorker.WorkerBackgroundService.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Nuget|AnyCPU'">
-    <DocumentationFile>C:\Users\Tor\source\repos\BlazorWorker\src\BlazorWorker.WorkerBackgroundService\BlazorWorker.WorkerBackgroundService.xml</DocumentationFile>
+    <DocumentationFile>BlazorWorker.WorkerBackgroundService.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>C:\Users\Tor\source\repos\BlazorWorker\src\BlazorWorker.WorkerBackgroundService\BlazorWorker.WorkerBackgroundService.xml</DocumentationFile>
+    <DocumentationFile>BlazorWorker.WorkerBackgroundService.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
