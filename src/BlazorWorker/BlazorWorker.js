@@ -11,6 +11,7 @@
     };
 
     const workerDef = function () {
+        const initConf = JSON.parse('$initConf$');
         const onReady = () => {
             const messageHandler =
                 Module.mono_bind_static_method(initConf.MessageEndPoint);
@@ -35,15 +36,20 @@
             console.error(err);
         };
 
-        function asyncLoad(url) {
+        function asyncLoad(url, reponseType) {
             return new Promise((resolve, reject) => {
                 const xhr = new XMLHttpRequest();
+                const arrayBufferType = 'arraybuffer';
                 xhr.open('GET', url, /* async: */ true);
-                xhr.responseType = 'arraybuffer';
+                xhr.responseType = reponseType || arrayBufferType;
                 xhr.onload = function xhr_onload() {
                     if (xhr.status == 200 || xhr.status == 0 && xhr.response) {
-                        const asm = new Uint8Array(xhr.response);
-                        resolve(asm);
+                        if (this.responseType === arrayBufferType) {
+                            const asm = new Uint8Array(xhr.response);
+                            resolve(asm);
+                        } else {
+                            resolve(xhr.response);
+                        }
                     } else {
                         reject(xhr);
                     }
@@ -52,7 +58,7 @@
                 xhr.send(undefined);
             });
         }
-        const initConf = JSON.parse('$initConf$');
+        
         var config = {};
         var Module = {};
         
@@ -63,7 +69,7 @@
         Module.print = line => (suppressMessages.indexOf(line) < 0 && console.log(`WASM-WORKER: ${line}`));
 
         Module.printErr = line => {
-            console.error(`WASM: ${line}`);
+            console.error(`WASM-WORKER: ${line}`);
             showErrorNotification();
         };
         Module.preRun = [];
@@ -127,7 +133,25 @@
         global = globalThis;
         self.Module = Module;
 
-        self.importScripts(`${initConf.appRoot}/${initConf.wasmRoot}/${initConf.dotnetjs}`); 
+        //TODO: This call could/should be session cached. But will the built-in blazor fetch service worker override 
+        // (PWA et al) do this already if configured ?
+        asyncLoad(`${initConf.appRoot}/${initConf.blazorBoot}`, 'json')
+            .then(blazorboot => {
+                let dotnetjsfilename = '';
+                const runttimeSection = blazorboot.resources.runtime;
+                for (var p in runttimeSection) {
+                    if (Object.prototype.hasOwnProperty.call(runttimeSection, p) && p.endsWith('.js')) {
+                        dotnetjsfilename = p;
+                    }
+                }
+
+                if (dotnetjsfilename === '') {
+                    throw 'BlazorWorker: Unable to locate dotnetjs file in blazor boot config.';
+                }
+
+                self.importScripts(`${initConf.appRoot}/${initConf.wasmRoot}/${dotnetjsfilename}`);
+            
+            }, errorInfo => onError(errorInfo));
     };
 
     const inlineWorker = `self.onmessage = ${workerDef}()`; 
@@ -145,7 +169,7 @@
             MessageEndPoint: initOptions.messageEndPoint,
             InitEndPoint: initOptions.initEndPoint,
             wasmRoot: "_framework/wasm",
-            dotnetjs: "dotnet.3.2.0-preview5.20210.1.js",
+            blazorBoot: "_framework/blazor.boot.json",
             debug: initOptions.debug
         };
 
