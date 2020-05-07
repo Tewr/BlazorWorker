@@ -2,10 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <LangVersion>7.3</LangVersion>
+    <Configurations>Debug;Release;Nuget</Configurations>
   </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="Tewr.BlazorWorker.Core" Version="1.0.1" />
+    <ProjectReference Include="..\..\BlazorWorker.WorkerCore\BlazorWorker.WorkerCore.csproj" />
   </ItemGroup>
 
 </Project>

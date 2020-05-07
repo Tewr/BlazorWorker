@@ -2,15 +2,29 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
+    <Nullable></Nullable>
+    <Configurations>Debug;Release;Nuget</Configurations>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DocumentationFile>C:\Users\Tor\source\repos\BlazorWorker\src\BlazorWorker.WorkerBackgroundService\BlazorWorker.WorkerBackgroundService.xml</DocumentationFile>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Nuget|AnyCPU'">
+    <DocumentationFile>C:\Users\Tor\source\repos\BlazorWorker\src\BlazorWorker.WorkerBackgroundService\BlazorWorker.WorkerBackgroundService.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>C:\Users\Tor\source\repos\BlazorWorker\src\BlazorWorker.WorkerBackgroundService\BlazorWorker.WorkerBackgroundService.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Serialize.Linq" Version="1.8.1" />
-    <PackageReference Include="Tewr.BlazorWorker.Core" Version="1.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BlazorWorker.WorkerCore\BlazorWorker.WorkerCore.csproj" />
   </ItemGroup>
 
 </Project>

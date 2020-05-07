@@ -26,9 +26,9 @@ Source for this page<br/>
             this.StateHasChanged();
             await JsRuntime.InvokeVoidAsync("highLight");
         }
-        catch (Exception)
+        catch (Exception e)
         {
-            Code = "Failed to load " + RelativePath;
+            Code = "Failed to load " + RelativePath + ": " + e.ToString();
         }
 
         await base.OnInitializedAsync();
