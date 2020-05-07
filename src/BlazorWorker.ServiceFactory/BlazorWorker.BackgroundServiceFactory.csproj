@@ -11,7 +11,7 @@
     <Authors>Tewr</Authors>
     <Product>BlazorWorker</Product>
     <Configurations>Debug;Release;Nuget</Configurations>
-    <Version>1.0.4</Version>
+    <Version>1.1.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)|$(Platform)'=='Nuget|AnyCPU'">
-    <PackageReference Include="Tewr.BlazorWorker.Core" Version="1.0.4" />
+    <PackageReference Include="Tewr.BlazorWorker.Core" Version="1.1.1" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)|$(Platform)'!='Nuget|AnyCPU'">
@@ -52,6 +52,7 @@
   <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">
     <ItemGroup>
       <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths-&gt;WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))" />
+      <BuildOutputInPackage Include="..\BlazorWorker.WorkerBackgroundService\BlazorWorker.WorkerBackgroundService.xml"/>
     </ItemGroup>
   </Target>
 
