@@ -18,7 +18,9 @@ namespace BlazorWorker.WorkerCore
         public static void OnMessage(string message)
         {
             Message?.Invoke(null, message);
+#if DEBUG
             Console.WriteLine($"{nameof(MessageService)}.{nameof(OnMessage)}: {message}");
+#endif
         }
 
         public static void PostMessage(string message)

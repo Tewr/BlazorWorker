@@ -33,13 +33,17 @@ namespace BlazorWorker.WorkerBackgroundService
 
         public static void Init() {
             MessageService.Message += Instance.OnMessage;
-            Console.WriteLine("BlazorWorker.WorkerBackgroundService.Init(): Done.");
             Instance.PostObject(new InitWorkerComplete());
+#if DEBUG
+            Console.WriteLine($"BlazorWorker.WorkerBackgroundService.{nameof(WorkerInstanceManager)}.Init(): Done.");
+#endif
         }
 
         public void PostMessage(string message)
         {
-            Console.WriteLine($"BlazorWorker.WorkerBackgroundService.PostMessage(): {message}.");
+#if DEBUG
+            Console.WriteLine($"BlazorWorker.WorkerBackgroundService.{nameof(WorkerInstanceManager)}.PostMessage(): {message}.");
+#endif
             MessageService.PostMessage(message);
         }
 
