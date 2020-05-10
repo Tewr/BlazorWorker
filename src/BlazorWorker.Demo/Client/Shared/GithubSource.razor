@@ -1,36 +1,15 @@
-﻿@using System.Net.Http
-@inject HttpClient Http
-@inject IJSRuntime JsRuntime
-Source for this page<br/>
+﻿Source for this page<br/>
 <a href=@FullUrl>@RelativePath</a>
 <br />
-<pre><code class="hljs cshtml">
-@Code
-</code></pre>
+<PrettyCode CodeFile="@FullRawUrl"  />
 @code {
-    private const string Root = "https://rawcdn.githack.com/Tewr/BlazorWorker/master/src/BlazorWorker.Demo/Client/";
+    private const string Fragment = "Tewr/BlazorWorker/master/src/BlazorWorker.Demo/Client/";
+    private const string RawRoot = "https://rawcdn.githack.com/" + Fragment;
+    private const string Root = "https://github.com/" + Fragment;
 
     [Parameter]
     public string RelativePath { get; set; }
 
-    public string FullUrl { get; set; }
-
-    public string Code { get; set; } = "Loading...";
-
-    protected override async Task OnInitializedAsync()
-    {
-        FullUrl = $"{Root}{RelativePath}";
-        try
-        {
-            Code = await Http.GetStringAsync(FullUrl);
-            this.StateHasChanged();
-            await JsRuntime.InvokeVoidAsync("highLight");
-        }
-        catch (Exception e)
-        {
-            Code = "Failed to load " + RelativePath + ": " + e.ToString();
-        }
-
-        await base.OnInitializedAsync();
-    }
+    public string FullRawUrl => RawRoot + RelativePath;
+    public string FullUrl => Root + RelativePath;
 }

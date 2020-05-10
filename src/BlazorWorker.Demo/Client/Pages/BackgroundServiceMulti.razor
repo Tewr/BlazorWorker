@@ -82,6 +82,7 @@
                     while (workers.Count() < workerNum)
                     {
                         output += $"{rn}{LogDate()} Initializing a worker.";
+                        StateHasChanged();
                         var worker = await workerFactory.CreateAsync();
                         workers.Add(await workerFactory.CreateAsync());
                         var service = await worker.CreateBackgroundServiceAsync<MathsService>();
