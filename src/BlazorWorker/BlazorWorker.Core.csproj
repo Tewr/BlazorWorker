@@ -13,8 +13,12 @@
     <Version>1.1.1</Version>
     <AssemblyVersion>1.1.1.0</AssemblyVersion>
     <DocumentationFile>BlazorWorker.Core.xml</DocumentationFile>
+    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
-
+  <ItemGroup>
+    <None Include="icon.png" Pack="true" Visible="false" PackagePath="" />
+  </ItemGroup>
+  
   <ItemGroup>
     <EmbeddedResource Include="BlazorWorker.js" />
   </ItemGroup>
