@@ -233,6 +233,21 @@ namespace BlazorWorker.BackgroundServiceFactory
             return handle;
         }
 
+        public async Task UnRegisterEventListenerAsync(EventHandle handle)
+        {
+            if (handle is null)
+            {
+                throw new ArgumentNullException(nameof(handle));
+            }
+
+            var message = new UnRegisterEvent
+            {
+                EventHandleId = handle.Id
+            };
+            var serializedMessage = this.options.MessageSerializer.Serialize(message);
+            await this.worker.PostMessageAsync(serializedMessage);
+        }
+
         private async Task<TResult> InvokeAsyncInternal<TResult>(Expression action)
         {
             // If Blazor ever gets multithreaded this would need to be locked for race conditions
