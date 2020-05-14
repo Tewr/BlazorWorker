@@ -36,5 +36,10 @@ namespace BlazorWorker.WorkerBackgroundService
         /// </summary>
         /// <returns></returns>
         IWorkerMessageService GetWorkerMessageService();
+
+        /// <summary>
+        /// Unregisters the event corresponding to the specified <paramref name="handle"/>
+        /// </summary>
+        Task UnRegisterEventListenerAsync(EventHandle handle);
     }
 }
