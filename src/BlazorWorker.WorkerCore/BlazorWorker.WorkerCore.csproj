@@ -3,6 +3,10 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <Configurations>Debug;Release;Nuget</Configurations>
+    <Version>1.2.0</Version>
+    <Authors>Tor Knutsson (Tewr)</Authors>
+    <Company>Tor Knutsson (Tewr)</Company>
+    <Product>BlazorWorker</Product>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
