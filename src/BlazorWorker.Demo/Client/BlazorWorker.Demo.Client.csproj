@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <PackageReference Include="Tewr.BlazorWorker.BackgroundService" Version="1.2.0" />
+    <PackageReference Include="Tewr.BlazorWorker.BackgroundService" Version="1.2.1" />
   </ItemGroup>
   
   <ItemGroup Condition="'$(Configuration)|$(Platform)'!='Release|AnyCPU'">
