@@ -7,9 +7,10 @@ namespace BlazorWorker.WorkerCore.WebAssemblyBindingsProxy
         private delegate object GetGlobalObjectDelegate(string globalObjectName);
 
         private static GetGlobalObjectDelegate _getGlobalObjectMethod = 
-                AssemblyProvider.ResourceAssembly
+                WebAssemblyBindingsLoader
+                .LoadAssembly()
                 .GetType($"WebAssembly.{nameof(Runtime)}")
-                .GetMethod(nameof(GetGlobalObject), BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(string) }, null)
+                .GetMethod(nameof(GetGlobalObject))
                 .CreateDelegate(typeof(GetGlobalObjectDelegate)) as GetGlobalObjectDelegate;
 
         public static object GetGlobalObject(string globalObjectName) => _getGlobalObjectMethod(globalObjectName);

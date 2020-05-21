@@ -4,16 +4,13 @@ using System.Reflection;
 
 namespace BlazorWorker.WorkerCore.WebAssemblyBindingsProxy
 {
-    internal class AssemblyProvider
+    internal class WebAssemblyBindingsLoader
     {
         const string ResourceName = "BlazorWorker.WorkerCore.WebAssemblyBindingsProxy.WebAssembly.Bindings.dll";
-        public static Assembly ResourceAssembly { get; } = LoadAssembly();
-
-        private static Assembly LoadAssembly()
+        public static Assembly LoadAssembly()
         {
-            var thisAssembly = typeof(AssemblyProvider).Assembly;
-            var rsStream = thisAssembly
-                .GetManifestResourceStream(ResourceName);
+            var thisAssembly = typeof(WebAssemblyBindingsLoader).Assembly;
+            var rsStream = thisAssembly.GetManifestResourceStream(ResourceName);
 
             if (rsStream == null)
             {

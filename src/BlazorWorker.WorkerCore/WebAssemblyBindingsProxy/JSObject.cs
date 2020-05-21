@@ -4,14 +4,10 @@ using System.Reflection;
 
 namespace BlazorWorker.WorkerCore.WebAssemblyBindingsProxy
 {
-    public class JSObject : IDisposable
+    internal class JSObject : IDisposable
     {
         public delegate object InvokeDelegate(string method, params object[] parameters);
         public delegate void DisposeDelegate();
-
-        private static readonly MethodInfo _invokeMethod;
-        private static readonly MethodInfo _disposeMethod;
-
         private readonly InvokeDelegate _invokeMethodDelegate;
         private readonly DisposeDelegate _disposeMethodDelegate;
 
