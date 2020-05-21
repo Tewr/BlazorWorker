@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-namespace BlazorWorker.WorkerCore.WebAssemblyBindingsProxy
+﻿namespace BlazorWorker.WorkerCore.WebAssemblyBindingsProxy
 {
     internal class Runtime
     {
