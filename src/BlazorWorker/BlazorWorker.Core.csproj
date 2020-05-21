@@ -10,7 +10,7 @@
     <PackageTags>WebWorker Worker Process Threading Multithreading Blazor Isolation</PackageTags>
     <PackageId>Tewr.BlazorWorker.Core</PackageId>
     <Configurations>Debug;Release;Nuget</Configurations>
-    <Version>1.1.1</Version>
+    <Version>1.2.0</Version>
     <AssemblyVersion>1.1.1.0</AssemblyVersion>
     <DocumentationFile>BlazorWorker.Core.xml</DocumentationFile>
     <PackageIcon>icon.png</PackageIcon>
@@ -42,7 +42,7 @@
   <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">
     <ItemGroup>
       <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths-&gt;WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))" />
-      <BuildOutputInPackage Include="..\BlazorWorker.WorkerCore\BlazorWorker.WorkerCore.xml"/>
+      <BuildOutputInPackage Include="..\BlazorWorker.WorkerCore\BlazorWorker.WorkerCore.xml" />
     </ItemGroup>
   </Target>
   

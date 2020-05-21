@@ -1,5 +1,5 @@
 ﻿using System;
-using WebAssembly;
+using BlazorWorker.WorkerCore.WebAssemblyBindingsProxy;
 
 namespace BlazorWorker.WorkerCore
 {
@@ -7,23 +7,15 @@ namespace BlazorWorker.WorkerCore
     class DOMObject : IDisposable
     {
         
-        public WebAssembly.JSObject ManagedJSObject { get; private set; }
+        public JSObject ManagedJSObject { get; private set; }
 
-        public DOMObject(object jsobject)
+        public DOMObject(JSObject jsobject)
         {
-            ManagedJSObject = jsobject as JSObject;
-            if (ManagedJSObject == null)
-                throw new NullReferenceException($"{nameof(jsobject)} must be of type JSObject and non null!");
-
+            ManagedJSObject = jsobject ?? throw new ArgumentNullException(nameof(jsobject));
         }
 
-        public DOMObject(string globalName) : this((JSObject)Runtime.GetGlobalObject(globalName))
+        public DOMObject(string globalName) : this(new JSObject(Runtime.GetGlobalObject(globalName)))
         { }
-
-        public object GetProperty(string property)
-        {
-            return ManagedJSObject.GetObjectProperty(property);
-        }
 
         public object Invoke(string method, params object[] args)
         {

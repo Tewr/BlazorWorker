@@ -34,5 +34,10 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:BlazorWorker.WorkerBackgroundService.IWorkerBackgroundService`1.UnRegisterEventListenerAsync(BlazorWorker.WorkerBackgroundService.EventHandle)">
+            <summary>
+            Unregisters the event corresponding to the specified <paramref name="handle"/>
+            </summary>
+        </member>
     </members>
 </doc>
