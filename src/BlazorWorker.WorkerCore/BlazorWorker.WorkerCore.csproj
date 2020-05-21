@@ -18,7 +18,21 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="WebAssembly.Bindings" Version="3.0.2" />
+    <None Remove="WebAssemblyBindingsProxy\WebAssembly.Bindings.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="WebAssemblyBindingsProxy\WebAssembly.Bindings.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="LinkerConfig.xml">
+      <LogicalName>$(MSBuildProjectName).xml</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <BlazorLinkerDescriptor Include="LinkerConfig.xml" />
   </ItemGroup>
 
 </Project>
