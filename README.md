@@ -80,3 +80,27 @@ public class MyCPUIntensiveService {
 }
 
 ```
+
+
+## Setup dependencies
+
+By default, `worker.CreateBackgroundServiceAsync<MyService>()` will try to guess the name of the dll that `MyService` resides in (it is usually AssemblyNameOfMyService.dll).
+
+If your dll name does not match the name of the assembly, or if your service has additional dependencies, you must provide this information in `WorkerInitOptions`. If `WorkerInitOptions` is provided, the default options are no longer created, so you also have to provide the dll `MyService` resides in (even if it is in AssemblyNameOfMyService.dll). Examples:
+
+```cs
+  // Custom service dll, additional dependency
+  var serviceInstance = await worker.CreateBackgroundServiceAsync<MyService>(
+      new WorkerInitOptions {
+        DependentAssemblyFilenames = new [] { "MyService.dll", "MyServiceDependency.dll" }
+      }):
+      
+  // Default service dll, additional dependency
+  var serviceInstance = await worker.CreateBackgroundServiceAsync<MyService>(
+      new WorkerInitOptions {
+        DependentAssemblyFilenames = new [] { 
+          $"{typeof(MyService).Assembly.GetName().Name}.dll", 
+          "MyServiceDependency.dll" 
+        }
+      });
+```
