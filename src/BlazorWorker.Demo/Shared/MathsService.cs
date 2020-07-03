@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace BlazorWorker.Demo.Shared
 {
@@ -32,9 +33,10 @@ namespace BlazorWorker.Demo.Shared
             while (true) yield return ((flip = !flip) ? -1 : 1) * (i += 2);
         }
 
-        public double EstimatePI(int sumLength)
+        public async Task<double> EstimatePI(int sumLength)
         {
             var lastReport = 0;
+            await Task.Delay(100);
             return (4 * AlternatingSequence().Take(sumLength)
                 .Select((x, i) => {
                     // Keep reporting events down a bit, serialization is expensive!

@@ -28,6 +28,21 @@
             <param name="action"></param>
             <returns></returns>
         </member>
+        <member name="M:BlazorWorker.WorkerBackgroundService.IWorkerBackgroundService`1.RunAsync``1(System.Linq.Expressions.Expression{System.Func{`0,System.Threading.Tasks.Task{``0}}})">
+            <summary>
+            Queues the specified awaitable work to run on the underlying worker, awaits the result, and returns a <see cref="T:System.Threading.Tasks.Task"/> object that represents that work.
+            </summary>
+            <typeparam name="TResult"></typeparam>
+            <param name="function"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BlazorWorker.WorkerBackgroundService.IWorkerBackgroundService`1.RunAsync``1(System.Linq.Expressions.Expression{System.Func{`0,System.Threading.Tasks.Task}})">
+            <summary>
+            Queues the specified awaitable work to run on the underlying worker, awaits the result, and returns a <see cref="T:System.Threading.Tasks.Task"/> object that represents that work.
+            </summary>
+            <param name="function"></param>
+            <returns></returns>
+        </member>
         <member name="M:BlazorWorker.WorkerBackgroundService.IWorkerBackgroundService`1.GetWorkerMessageService">
             <summary>
             Returns the message service used by the underlying worker.

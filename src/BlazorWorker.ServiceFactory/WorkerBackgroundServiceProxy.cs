@@ -201,6 +201,16 @@ namespace BlazorWorker.BackgroundServiceFactory
             return await InvokeAsyncInternal<TResult>(action);
         }
 
+        public async Task RunAsync<TResult>(Expression<Func<T, Task>> action)
+        {
+            await InvokeAsyncInternal<object>(action, new InvokeOptions() { AwaitResult=true });
+        }
+
+        public async Task<TResult> RunAsync<TResult>(Expression<Func<T, Task<TResult>>> function)
+        {
+            return await InvokeAsyncInternal<TResult>(function, new InvokeOptions() { AwaitResult = true });
+        }
+
         public async Task<EventHandle> RegisterEventListenerAsync<TResult>(string eventName, EventHandler<TResult> myHandler)
         {
             var eventSignature = typeof(T).GetEvent(eventName ?? throw new ArgumentNullException(nameof(eventName)));
@@ -248,14 +258,30 @@ namespace BlazorWorker.BackgroundServiceFactory
             await this.worker.PostMessageAsync(serializedMessage);
         }
 
-        private async Task<TResult> InvokeAsyncInternal<TResult>(Expression action)
+        private Task<TResult> InvokeAsyncInternal<TResult>(Expression action)
+        {
+            return InvokeAsyncInternal<TResult>(action, InvokeOptions.Default);
+        }
+
+        private async Task<TResult> InvokeAsyncInternal<TResult>(Expression action, InvokeOptions invokeOptions)
         {
             // If Blazor ever gets multithreaded this would need to be locked for race conditions
             // However, when/if that happens, most of this project is obsolete anyway
             var id = ++messageRegisterIdSource;
             var taskCompletionSource = new TaskCompletionSource<MethodCallResult>();
             this.messageRegister.Add(id, taskCompletionSource);
-            var methodCall = GetCall(action, id);
+
+            var expression = this.options.ExpressionSerializer.Serialize(action);
+            var methodCallParams = new MethodCallParams
+            {
+                AwaitResult = invokeOptions.AwaitResult,
+                WorkerId = this.worker.Identifier,
+                InstanceId = instanceId,
+                SerializedExpression = expression,
+                CallId = id
+            };
+
+            var methodCall = this.options.MessageSerializer.Serialize(methodCallParams);
 
             await this.worker.PostMessageAsync(methodCall);
 
@@ -270,21 +296,6 @@ namespace BlazorWorker.BackgroundServiceFactory
             }
 
             return this.options.MessageSerializer.Deserialize<TResult>(returnMessage.ResultPayload);
-        }
-
-        private string GetCall(Expression action, long id)
-        {
-
-            var expression = this.options.ExpressionSerializer.Serialize(action);
-            var methodCall = new MethodCallParams
-            {
-                WorkerId = this.worker.Identifier,
-                InstanceId = instanceId,
-                SerializedExpression = expression,
-                CallId = id
-            };
-
-            return this.options.MessageSerializer.Serialize(methodCall);
         }
 
         public async ValueTask DisposeAsync()
@@ -310,6 +321,13 @@ namespace BlazorWorker.BackgroundServiceFactory
             await this.worker.PostMessageAsync(message);
 
             await disposeTask.Task;
+        }
+
+        private class InvokeOptions
+        {
+            public static readonly InvokeOptions Default = new InvokeOptions();
+
+            public bool AwaitResult { get; set; }
         }
     }
 }

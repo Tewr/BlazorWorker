@@ -64,26 +64,42 @@ namespace BlazorWorker.WorkerBackgroundService
 
         private void HandleMethodCall(MethodCallParams methodCallMessage)
         {
+
+            void handleError(Exception e)
+            {
+                PostObject(
+                new MethodCallResult()
+                {
+                    CallId = methodCallMessage.CallId,
+                    IsException = true,
+                    Exception = e
+                });
+            }
+
             try
             {
-                var result = MethodCall(methodCallMessage);
-                PostObject(
-                    new MethodCallResult()
-                    {
-                        CallId = methodCallMessage.CallId,
-                        ResultPayload = this.serializer.Serialize(result)
-                    }
-                );
+                Task.Run(async () =>
+                    await MethodCall(methodCallMessage))
+                    .ContinueWith(t => { 
+                        if (t.IsFaulted)
+                        {
+                            handleError(t.Exception);
+                        }
+                        else
+                        {
+                            PostObject(
+                                new MethodCallResult
+                                {
+                                    CallId = methodCallMessage.CallId,
+                                    ResultPayload = this.serializer.Serialize(t.Result)
+                                }
+                            );
+                        }
+                    });
             }
             catch (Exception e)
             {
-                PostObject(
-                    new MethodCallResult()
-                    {
-                        CallId = methodCallMessage.CallId,
-                        IsException = true,
-                        Exception = e
-                    });
+                handleError(e);
             }
         }
 
@@ -147,13 +163,40 @@ namespace BlazorWorker.WorkerBackgroundService
             });
         }
 
-        public object MethodCall(MethodCallParams instanceMethodCallParams)
+        public async Task<object> MethodCall(MethodCallParams instanceMethodCallParams)
         {
             var instance = SimpleInstanceService.Instance.instances[instanceMethodCallParams.InstanceId].Instance;
             var lambda = this.options.ExpressionSerializer.Deserialize(instanceMethodCallParams.SerializedExpression) 
                 as LambdaExpression;
             var dynamicDelegate = lambda.Compile();
-            return dynamicDelegate.DynamicInvoke(instance);
+            var result = dynamicDelegate.DynamicInvoke(instance);
+            
+            if (!instanceMethodCallParams.AwaitResult)
+            {
+                return result;
+
+            }
+
+            
+            var taskResult = result as Task;
+            if (taskResult != null)
+            {
+                await taskResult;
+            }
+            else
+            {
+                throw new InvalidOperationException($"Unexpected return type. Expected {nameof(Task)}, found '{result.GetType()}'");
+            }
+
+            var resultType = taskResult.GetType();
+            if (!resultType.IsGenericType)
+            {
+                // Task without result
+                return null;
+            }
+
+            // Task<T>
+            return resultType.GetProperty(nameof(Task<object>.Result)).GetValue(result);
         }
     }
 }
