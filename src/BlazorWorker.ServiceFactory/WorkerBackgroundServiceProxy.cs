@@ -8,15 +8,15 @@ using System.Threading.Tasks;
 
 namespace BlazorWorker.BackgroundServiceFactory
 {
-    public class WorkerBackgroundServiceProxy<T> : IWorkerBackgroundService<T> where T : class
+    internal class WorkerBackgroundServiceProxy<T> : IWorkerBackgroundService<T> where T : class
     {
         private readonly IWorker worker;
         private readonly WebWorkerOptions options;
         private static readonly string InitEndPoint;
         private static long idSource;
-        private long instanceId;
-        private ISerializer messageSerializer;
-        private object expressionSerializer;
+        private readonly long instanceId;
+        private readonly ISerializer messageSerializer;
+        private readonly object expressionSerializer;
         private MessageHandlerRegistry messageHandlerRegistry;
         private TaskCompletionSource<bool> initTask;
         private TaskCompletionSource<bool> disposeTask;
@@ -97,7 +97,13 @@ namespace BlazorWorker.BackgroundServiceFactory
             if (!this.worker.IsInitialized)
             {
                 initWorkerTask = new TaskCompletionSource<bool>();
-                await this.worker.InitAsync(new WorkerInitOptions() { 
+
+                if (workerInitOptions.ConventionalServiceAssembly)
+                {
+                    workerInitOptions.AddConventionalDependencyFor<T>();
+                }
+
+                await this.worker.InitAsync(new WorkerInitOptions() {
                     DependentAssemblyFilenames = new[] { 
                         $"{typeof(BaseMessage).Assembly.GetName().Name}.dll",
                         $"{typeof(WorkerInstanceManager).Assembly.GetName().Name}.dll",
@@ -203,12 +209,12 @@ namespace BlazorWorker.BackgroundServiceFactory
 
         public async Task RunAsync<TResult>(Expression<Func<T, Task>> action)
         {
-            await InvokeAsyncInternal<object>(action, new InvokeOptions() { AwaitResult=true });
+            await InvokeAsyncInternal<object>(action, new InvokeOptions { AwaitResult = true });
         }
 
         public async Task<TResult> RunAsync<TResult>(Expression<Func<T, Task<TResult>>> function)
         {
-            return await InvokeAsyncInternal<TResult>(function, new InvokeOptions() { AwaitResult = true });
+            return await InvokeAsyncInternal<TResult>(function, new InvokeOptions { AwaitResult = true });
         }
 
         public async Task<EventHandle> RegisterEventListenerAsync<TResult>(string eventName, EventHandler<TResult> myHandler)

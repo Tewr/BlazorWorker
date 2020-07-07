@@ -4,6 +4,7 @@ using BlazorWorker.WorkerCore.SimpleInstanceService;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace BlazorWorker.WorkerBackgroundService
@@ -17,11 +18,13 @@ namespace BlazorWorker.WorkerBackgroundService
         internal readonly ISerializer serializer;
         private readonly WebWorkerOptions options;
         private readonly MessageHandlerRegistry messageHandlerRegistry;
+        private readonly SimpleInstanceService simpleInstanceService;
 
         public WorkerInstanceManager()
         {
             this.serializer = new DefaultMessageSerializer();
             this.options = new WebWorkerOptions();
+            this.simpleInstanceService = SimpleInstanceService.Instance;
 
             this.messageHandlerRegistry = new MessageHandlerRegistry(this.serializer);
             this.messageHandlerRegistry.Add<InitInstance>(InitInstance);
@@ -116,7 +119,7 @@ namespace BlazorWorker.WorkerBackgroundService
 
         private void RegisterEvent(RegisterEvent registerEventMessage)
         {
-            var instance = SimpleInstanceService.Instance.instances[registerEventMessage.InstanceId].Instance;
+            var instance = simpleInstanceService.instances[registerEventMessage.InstanceId].Instance;
             var eventSignature = instance.GetType().GetEvent(registerEventMessage.EventName);
 
             // TODO: This can be cached.
@@ -132,7 +135,7 @@ namespace BlazorWorker.WorkerBackgroundService
 
         public void InitInstance(InitInstance createInstanceInfo)
         {
-            var initResult = SimpleInstanceService.Instance.InitInstance(
+            var initResult = simpleInstanceService.InitInstance(
                 new InitInstanceRequest
                 {
                     Id = createInstanceInfo.InstanceId,
@@ -149,7 +152,7 @@ namespace BlazorWorker.WorkerBackgroundService
 
         public void DisposeInstance(DisposeInstance dispose)
         {
-            var res = SimpleInstanceService.Instance.DisposeInstance(
+            var res = simpleInstanceService.DisposeInstance(
                 new DisposeInstanceRequest { 
                     InstanceId = dispose.InstanceId,
                     CallId = dispose.CallId
@@ -165,7 +168,7 @@ namespace BlazorWorker.WorkerBackgroundService
 
         public async Task<object> MethodCall(MethodCallParams instanceMethodCallParams)
         {
-            var instance = SimpleInstanceService.Instance.instances[instanceMethodCallParams.InstanceId].Instance;
+            var instance = simpleInstanceService.instances[instanceMethodCallParams.InstanceId].Instance;
             var lambda = this.options.ExpressionSerializer.Deserialize(instanceMethodCallParams.SerializedExpression) 
                 as LambdaExpression;
             var dynamicDelegate = lambda.Compile();
@@ -174,9 +177,7 @@ namespace BlazorWorker.WorkerBackgroundService
             if (!instanceMethodCallParams.AwaitResult)
             {
                 return result;
-
             }
-
             
             var taskResult = result as Task;
             if (taskResult != null)

@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 
 namespace BlazorWorker.WorkerCore.SimpleInstanceService
 {
     public class SimpleInstanceService
     {
+        
         public static readonly SimpleInstanceService Instance = new SimpleInstanceService();
         public readonly Dictionary<long, InstanceWrapper> instances = new Dictionary<long, InstanceWrapper>();
 
@@ -18,6 +19,11 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
         public static readonly string InitInstanceResultMessagePrefix = $"{nameof(InitInstanceResult)}::";
         public static readonly string DiposeMessagePrefix = $"{nameof(DisposeInstance)}::";
         public static readonly string DiposeResultMessagePrefix = $"{nameof(DisposeResult)}::";
+
+        static SimpleInstanceService()
+        {
+            AppDomain.CurrentDomain.AssemblyResolve += LogFailedAssemblyResolve;
+        }
 
         public static void Init()
         {
@@ -124,51 +130,53 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
                     ExceptionMessage = e.Message,
                     FullExceptionString = e.ToString()
                 };
+            }   
+        }
+
+        private class ServiceCollection: Dictionary<Type, Func<object>>
+        {
+            public void Add<T>(Func<T> factory)
+            {
+                this.Add(typeof(T), () => factory());
             }
         }
 
         private static InitInstanceResult InitInstance(long callId, string typeName, string assemblyName, Func<IWorkerMessageService> workerMessageServiceFactory)
         {
+            var services = new ServiceCollection
+            {
+                () => new HttpClient(),
+                workerMessageServiceFactory
+            };
+
             try
             {
                 var type = Type.GetType($"{typeName}, {assemblyName}", true);
                 var constructors = type.GetConstructors();
-                ConstructorInfo constructorInfo;
+                ConstructorInfo constructorInfo = null;
                 var lastMatchArgCount = -1;
                 foreach (var constructor in constructors)
                 {
                     var parameters = constructor.GetParameters();
-                    if (parameters.Length == 0 && lastMatchArgCount < 0)
+                    if (lastMatchArgCount < parameters.Length)
                     {
-                        lastMatchArgCount = 0;
-                        constructorInfo = constructor;
-                        continue;
-                    }
-
-                    if (parameters.Length == 1 && lastMatchArgCount < 1)
-                    {
-                        if (parameters[0].ParameterType == typeof(IWorkerMessageService))
+                        if (parameters.All(parameter => services.ContainsKey(parameter.ParameterType)))
                         {
-                            lastMatchArgCount = 1;
+                            lastMatchArgCount = parameters.Length;
                             constructorInfo = constructor;
-                            continue;
                         }
                     }
                 }
 
-                object instance;
-
-                if (lastMatchArgCount == 0)
+                if (constructorInfo == null)
                 {
-                    instance = Activator.CreateInstance(type);
-                }
-                else if (lastMatchArgCount == 1)
-                {
-                    instance = Activator.CreateInstance(type, workerMessageServiceFactory());
-                }
-                else {
                     throw new InvalidOperationException($"Unable to find compatible constructor for activating type '{type}'.");
                 }
+
+                // Create instances for each constructor argument matching a supported service.
+                var serviceInstances = constructorInfo.GetParameters().Select(parameter => services[parameter.ParameterType].Invoke()).ToArray();
+                
+                var instance = constructorInfo.Invoke(serviceInstances);
 
                 return new InitInstanceResult()
                 {
@@ -188,6 +196,14 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
                     IsSuccess = false
                 };
             }
+        }
+
+        private static Assembly LogFailedAssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            Console.Error.WriteLine($"{typeof(SimpleInstanceService).FullName}: '{args.RequestingAssembly}' is requesting missing assembly '{args.Name}')");
+
+            // Nobody really cares about this exception for now, it can't be caught.
+            throw new InvalidOperationException($"{typeof(SimpleInstanceService).FullName}: '{args.RequestingAssembly}' is requesting missing assembly '{args.Name}')");
         }
     }
 }
