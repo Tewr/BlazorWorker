@@ -15,7 +15,7 @@ namespace BlazorWorker.BackgroundServiceFactory
         private static readonly string InitEndPoint;
         private static long idSource;
         private readonly long instanceId;
-        readonly private ISerializer messageSerializer;
+        private readonly ISerializer messageSerializer;
         private readonly object expressionSerializer;
         private MessageHandlerRegistry messageHandlerRegistry;
         private TaskCompletionSource<bool> initTask;
@@ -209,12 +209,12 @@ namespace BlazorWorker.BackgroundServiceFactory
 
         public async Task RunAsync<TResult>(Expression<Func<T, Task>> action)
         {
-            await InvokeAsyncInternal<object>(action, new InvokeOptions() { AwaitResult=true });
+            await InvokeAsyncInternal<object>(action, new InvokeOptions { AwaitResult = true });
         }
 
         public async Task<TResult> RunAsync<TResult>(Expression<Func<T, Task<TResult>>> function)
         {
-            return await InvokeAsyncInternal<TResult>(function, new InvokeOptions() { AwaitResult = true });
+            return await InvokeAsyncInternal<TResult>(function, new InvokeOptions { AwaitResult = true });
         }
 
         public async Task<EventHandle> RegisterEventListenerAsync<TResult>(string eventName, EventHandler<TResult> myHandler)
