@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BlazorWorker.WorkerCore.SimpleInstanceService
 {
@@ -203,10 +200,10 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
 
         private static Assembly LogFailedAssemblyResolve(object sender, ResolveEventArgs args)
         {
-            Console.Error.WriteLine($"'{args.RequestingAssembly}' is requesting missing assembly '{args.Name}')");
+            Console.Error.WriteLine($"{typeof(SimpleInstanceService).FullName}: '{args.RequestingAssembly}' is requesting missing assembly '{args.Name}')");
 
             // Nobody really cares about this exception for now, it can't be caught.
-            throw new InvalidOperationException($"'{args.RequestingAssembly}' is requesting missing assembly '{args.Name}')");
+            throw new InvalidOperationException($"{typeof(SimpleInstanceService).FullName}: '{args.RequestingAssembly}' is requesting missing assembly '{args.Name}')");
         }
     }
 }
