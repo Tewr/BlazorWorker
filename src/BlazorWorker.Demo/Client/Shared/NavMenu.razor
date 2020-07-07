@@ -23,10 +23,16 @@
             </NavLink>
         </li>
         <li class="nav-item px-3">
+            <NavLink class="nav-link" href="Http">
+                <span class="oi oi-globe" aria-hidden="true"></span> HttpClient Example
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
             <NavLink class="nav-link" href="https://github.com/tewr/BlazorWorker">
                 <span class="oi oi-fork" aria-hidden="true"></span> To the source!
             </NavLink>
         </li>
+
 
         <li class="nav-item px-3">
             <NavLink class="nav-link" href="https://www.nuget.org/packages/Tewr.BlazorWorker.BackgroundService">
@@ -53,7 +59,7 @@
     }
 
     static string BlazorWorkerVersion { get; } =
-    $"v{typeof(BlazorWorker.BackgroundServiceFactory.WorkerBackgroundServiceProxy<object>).Assembly.GetName().Version}";
+    $"v{typeof(BlazorWorker.BackgroundServiceFactory.WorkerBackgroundServiceExtensions).Assembly.GetName().Version}";
 
     static string BlazorCoreWorkerVersion { get; } =
       $"v{typeof(BlazorWorker.WorkerCore.IWorkerMessageService).Assembly.GetName().Version}";
