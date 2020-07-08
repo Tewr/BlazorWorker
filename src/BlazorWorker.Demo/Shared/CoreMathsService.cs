@@ -31,8 +31,8 @@ namespace BlazorWorker.Demo.Shared
                 var rx = new Regex(@"\((?<arg>[^\)]+)\)");
                 var arg0 = rx.Match(messageParams).Groups["arg"].Value.Trim();
                 var iterations = int.Parse(arg0);
-                var result = mathsService.EstimatePI(iterations);
-                messageService.PostMessageAsync($"{ResultMessage}:{result}");
+                mathsService.EstimatePI(iterations).ContinueWith(t =>
+                    messageService.PostMessageAsync($"{ResultMessage}:{t.Result}"));
                 return;
             }
         }
