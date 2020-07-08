@@ -39,7 +39,7 @@
             Unique blazor identifier for handling callbacks. As referenced by JSInvokableAttribute. Experts only.
             </summary>
         </member>
-        <member name="P:BlazorWorker.Core.WorkerInitOptions.ConventionalServiceAssembly">
+        <member name="P:BlazorWorker.Core.WorkerInitOptions.UseConventionalServiceAssembly">
             <summary>
             If set to true, deducts the name of the assembly containing the service using the service type assembly name + dll extension as file name, and adds it as a dependency.
             </summary>
@@ -49,26 +49,35 @@
             Contains convenience extensions for <see cref="T:BlazorWorker.Core.WorkerInitOptions"/>
             </summary>
         </member>
-        <member name="M:BlazorWorker.Core.WorkerInitOptionsExtensions.UseConventionalServiceAssembly(BlazorWorker.Core.WorkerInitOptions)">
+        <member name="M:BlazorWorker.Core.WorkerInitOptionsExtensions.AddAssemblies(BlazorWorker.Core.WorkerInitOptions,System.String[])">
             <summary>
-            Deducts the name of the assembly containing the service using the  the service type assembly name + dll extension as file name, and adds it as a dependency.
+            Adds the specified assembly filesnames as dependencies
+            </summary>
+            <param name="source"></param>
+            <param name="dependentAssemblyFilenames"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BlazorWorker.Core.WorkerInitOptionsExtensions.AddConventionalAssemblyOfService(BlazorWorker.Core.WorkerInitOptions)">
+            <summary>
+            Deducts the name of the assembly containing the service using the the service type assembly name with dll extension as file name, and adds it as a dependency.
             </summary>
             <param name="source"></param>
             <returns></returns>
         </member>
-        <member name="M:BlazorWorker.Core.WorkerInitOptionsExtensions.AddConventionalDependencyFor``1(BlazorWorker.Core.WorkerInitOptions)">
+        <member name="M:BlazorWorker.Core.WorkerInitOptionsExtensions.AddAssemblyOf``1(BlazorWorker.Core.WorkerInitOptions)">
             <summary>
-            Deducts the name of the assembly containing the specified type using the assembly name with dll extension as file name, and adds it as a dependency.
+            Deducts the name of the assembly containing the specified <typeparamref name="T"/> using the assembly name with dll extension as file name, and adds it as a dependency.
             </summary>
             <param name="source"></param>
             <returns></returns>
         </member>
         <member name="M:BlazorWorker.Core.WorkerInitOptionsExtensions.AddHttpClient(BlazorWorker.Core.WorkerInitOptions)">
             <summary>
-            Registers the neccessary dependencies for instanciating <see cref="T:System.Net.Http.HttpClient"/> in the background service.
+            Registers the neccessary dependencies for injecting or instanciating <see cref="T:System.Net.Http.HttpClient"/> in the background service.
             </summary>
             <param name="source"></param>
             <returns></returns>
+            <remarks>When this method has been called, <see cref="T:System.Net.Http.HttpClient"/> can be used inside the service either by instanciating it or by injection into the constructor.</remarks>
         </member>
     </members>
 </doc>

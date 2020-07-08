@@ -40,7 +40,7 @@ namespace BlazorWorker.Core
         /// <summary>
         /// If set to true, deducts the name of the assembly containing the service using the service type assembly name + dll extension as file name, and adds it as a dependency.
         /// </summary>
-        public bool ConventionalServiceAssembly { get; set; }
+        public bool UseConventionalServiceAssembly { get; set; }
 
         public WorkerInitOptions MergeWith(WorkerInitOptions initOptions)
         {
@@ -52,7 +52,7 @@ namespace BlazorWorker.Core
                     .Concat(initOptions.DependentAssemblyFilenames)
                     .Distinct()
                     .ToArray(),
-                ConventionalServiceAssembly = initOptions.ConventionalServiceAssembly,
+                UseConventionalServiceAssembly = initOptions.UseConventionalServiceAssembly,
                 MessageEndPoint = initOptions.MessageEndPoint ?? this.MessageEndPoint,
                 InitEndPoint = initOptions.InitEndPoint ?? this.InitEndPoint,
             };
@@ -64,40 +64,51 @@ namespace BlazorWorker.Core
     /// </summary>
     public static class WorkerInitOptionsExtensions
     {
-        /// <summary>
-        /// Deducts the name of the assembly containing the service using the  the service type assembly name + dll extension as file name, and adds it as a dependency.
-        /// </summary>
-        /// <param name="source"></param>
-        /// <returns></returns>
-        public static WorkerInitOptions UseConventionalServiceAssembly(this WorkerInitOptions source)
-        {
-            source.ConventionalServiceAssembly = true;
-            return source;
-        }
 
         /// <summary>
-        /// Deducts the name of the assembly containing the specified type using the assembly name with dll extension as file name, and adds it as a dependency.
+        /// Adds the specified assembly filesnames as dependencies
         /// </summary>
         /// <param name="source"></param>
+        /// <param name="dependentAssemblyFilenames"></param>
         /// <returns></returns>
-        public static WorkerInitOptions AddConventionalDependencyFor<T>(this WorkerInitOptions source)
+        public static WorkerInitOptions AddAssemblies(this WorkerInitOptions source, params string[] dependentAssemblyFilenames)
         {
             source.DependentAssemblyFilenames =
-                source.DependentAssemblyFilenames.Concat(new[] {$"{typeof(T).Assembly.GetName().Name}.dll" }).ToArray();
+                source.DependentAssemblyFilenames.Concat(dependentAssemblyFilenames).ToArray();
             return source;
         }
 
         /// <summary>
-        /// Registers the neccessary dependencies for instanciating <see cref="System.Net.Http.HttpClient"/> in the background service.
+        /// Deducts the name of the assembly containing the service using the the service type assembly name with dll extension as file name, and adds it as a dependency.
         /// </summary>
         /// <param name="source"></param>
         /// <returns></returns>
+        public static WorkerInitOptions AddConventionalAssemblyOfService(this WorkerInitOptions source)
+        {
+            source.UseConventionalServiceAssembly = true;
+            return source;
+        }
+
+        /// <summary>
+        /// Deducts the name of the assembly containing the specified <typeparamref name="T"/> using the assembly name with dll extension as file name, and adds it as a dependency.
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        public static WorkerInitOptions AddAssemblyOf<T>(this WorkerInitOptions source)
+        {
+            source.AddAssemblies($"{typeof(T).Assembly.GetName().Name}.dll");
+            return source;
+        }
+
+        /// <summary>
+        /// Registers the neccessary dependencies for injecting or instanciating <see cref="System.Net.Http.HttpClient"/> in the background service.
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        /// <remarks>When this method has been called, <see cref="System.Net.Http.HttpClient"/> can be used inside the service either by instanciating it or by injection into the constructor.</remarks>
         public static WorkerInitOptions AddHttpClient(this WorkerInitOptions source)
         {
-            source.DependentAssemblyFilenames = 
-                source.DependentAssemblyFilenames.Concat(new[] {  
-                    "System.Net.Http.dll",
-                    "System.Net.Http.WebAssemblyHttpHandler.dll" }).ToArray();
+            source.AddAssemblies("System.Net.Http.dll", "System.Net.Http.WebAssemblyHttpHandler.dll");
             return source;
         }
     }

@@ -22,7 +22,7 @@ namespace BlazorWorker.BackgroundServiceFactory
             var proxy = new WorkerBackgroundServiceProxy<T>(webWorkerProxy, new WebWorkerOptions());
             if (workerInitOptions == null)
             {
-                workerInitOptions = new WorkerInitOptions().AddConventionalDependencyFor<T>();
+                workerInitOptions = new WorkerInitOptions().AddAssemblyOf<T>();
             }
 
             await proxy.InitAsync(workerInitOptions);

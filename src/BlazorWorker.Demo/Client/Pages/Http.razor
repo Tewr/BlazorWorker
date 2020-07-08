@@ -53,7 +53,7 @@
                 sw.Start();
                 backgroundService = await worker.CreateBackgroundServiceAsync<WebCallerService>(
                     options => options
-                        .UseConventionalServiceAssembly()
+                        .AddConventionalAssemblyOfService()
                         .AddHttpClient()
                 );
 

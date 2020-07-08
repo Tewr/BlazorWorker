@@ -98,9 +98,9 @@ namespace BlazorWorker.BackgroundServiceFactory
             {
                 initWorkerTask = new TaskCompletionSource<bool>();
 
-                if (workerInitOptions.ConventionalServiceAssembly)
+                if (workerInitOptions.UseConventionalServiceAssembly)
                 {
-                    workerInitOptions.AddConventionalDependencyFor<T>();
+                    workerInitOptions.AddAssemblyOf<T>();
                 }
 
                 await this.worker.InitAsync(new WorkerInitOptions() {

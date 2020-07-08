@@ -12,13 +12,23 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
         
         public static readonly SimpleInstanceService Instance = new SimpleInstanceService();
         public readonly Dictionary<long, InstanceWrapper> instances = new Dictionary<long, InstanceWrapper>();
-
+        
         public static readonly string MessagePrefix = $"{typeof(SimpleInstanceService).FullName}::";
         public static readonly string InitServiceResultMessagePrefix = $"{nameof(InitServiceResult)}::";
         public static readonly string InitInstanceMessagePrefix = $"{nameof(InitInstance)}::";
         public static readonly string InitInstanceResultMessagePrefix = $"{nameof(InitInstanceResult)}::";
         public static readonly string DiposeMessagePrefix = $"{nameof(DisposeInstance)}::";
         public static readonly string DiposeResultMessagePrefix = $"{nameof(DisposeResult)}::";
+
+        private static Type _typeOfHttpClient;
+        private const string HttpClientFullName = "System.Net.Http.HttpClient, System.Net.Http";
+
+        // The type of HttpClient is lazy loaded as the image might not exist
+        private static Type TypeOfHttpClient() =>
+            _typeOfHttpClient ??= Type.GetType(HttpClientFullName, true);
+
+        private static object HttpClientFactory() =>
+            Activator.CreateInstance(TypeOfHttpClient());
 
         static SimpleInstanceService()
         {
@@ -133,11 +143,29 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
             }   
         }
 
-        private class ServiceCollection: Dictionary<Type, Func<object>>
+        private class ServiceCollection : Dictionary<string, Func<object>>
         {
+
             public void Add<T>(Func<T> factory)
             {
-                this.Add(typeof(T), () => factory());
+                this.Add(GetQualifiedNameWithoutVersion(typeof(T)), () => factory());
+            }
+
+            internal bool ContainsKey(Type parameterType)
+            {
+                Console.WriteLine($"ContainsKey {GetQualifiedNameWithoutVersion(parameterType)}?");
+                Console.WriteLine($"Keys: {string.Join(';', this.Keys)}");
+                return this.ContainsKey(GetQualifiedNameWithoutVersion(parameterType));
+            }
+
+            internal Func<object> GetFactory(Type parameterType)
+            {
+                return this[GetQualifiedNameWithoutVersion(parameterType)];
+            }
+
+            private string GetQualifiedNameWithoutVersion(Type forType)
+            {
+                return $"{forType.FullName}, {forType.Assembly.GetName().Name}";
             }
         }
 
@@ -145,7 +173,7 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
         {
             var services = new ServiceCollection
             {
-                () => new HttpClient(),
+                { HttpClientFullName, HttpClientFactory },
                 workerMessageServiceFactory
             };
 
@@ -158,6 +186,7 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
                 foreach (var constructor in constructors)
                 {
                     var parameters = constructor.GetParameters();
+                    // Will favour the contructor with the highest count of supported arguments
                     if (lastMatchArgCount < parameters.Length)
                     {
                         if (parameters.All(parameter => services.ContainsKey(parameter.ParameterType)))
@@ -174,7 +203,7 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
                 }
 
                 // Create instances for each constructor argument matching a supported service.
-                var serviceInstances = constructorInfo.GetParameters().Select(parameter => services[parameter.ParameterType].Invoke()).ToArray();
+                var serviceInstances = constructorInfo.GetParameters().Select(parameter => services.GetFactory(parameter.ParameterType).Invoke()).ToArray();
                 
                 var instance = constructorInfo.Invoke(serviceInstances);
 
@@ -198,10 +227,12 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
             }
         }
 
+
         private static Assembly LogFailedAssemblyResolve(object sender, ResolveEventArgs args)
         {
             Console.Error.WriteLine($"{typeof(SimpleInstanceService).FullName}: '{args.RequestingAssembly}' is requesting missing assembly '{args.Name}')");
 
+            //return null;
             // Nobody really cares about this exception for now, it can't be caught.
             throw new InvalidOperationException($"{typeof(SimpleInstanceService).FullName}: '{args.RequestingAssembly}' is requesting missing assembly '{args.Name}')");
         }

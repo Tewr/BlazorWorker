@@ -94,7 +94,6 @@
                     var result = double.Parse(message.Substring($"{CoreMathsService.ResultMessage}:".Length).Trim());
                     output += $"{rn}{LogDate()} EstimatePI({piIterations}) = {result}";
                     StateHasChanged();
-                    StateHasChanged();
                 }
             }
 
