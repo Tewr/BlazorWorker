@@ -10,7 +10,7 @@
     <PackageTags>WebWorker Worker Process Threading Multithreading Blazor Isolation</PackageTags>
     <PackageId>Tewr.BlazorWorker.Core</PackageId>
     <Configurations>Debug;Release;Nuget</Configurations>
-    <Version>1.2.1</Version>
+    <Version>1.3.0</Version>
     <AssemblyVersion>1.2.1.0</AssemblyVersion>
     <DocumentationFile>BlazorWorker.Core.xml</DocumentationFile>
     <PackageIcon>icon.png</PackageIcon>
