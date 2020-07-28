@@ -92,17 +92,17 @@ If your dll name does not match the name of the assembly, or if your service has
   // Custom service dll, additional dependency, using dll names
   var serviceInstance = await worker.CreateBackgroundServiceAsync<MyService>(
       options => options.AddAssemblies("MyService.dll", "MyServiceDependency.dll")
-  ):
+  );
       
   // Default service dll, additional dependency with dll deduced from assembly name of provided type
-  var serviceInstance = await worker.CreateBackgroundServiceAsync<MyService>(
+  var serviceInstance2 = await worker.CreateBackgroundServiceAsync<MyService>(
       options => options
           .AddConventionalAssemblyOfService()
           .AddAssemblyOf<TypeOfMyServiceDependency>()
   );
   
   // In addition to default service dll, add HttpClient as Dependency (built-in dependency definition / helper)
-  var serviceInstance = await worker.CreateBackgroundServiceAsync<MyService>(
+  var serviceInstance3 = await worker.CreateBackgroundServiceAsync<MyService>(
       options => options
           .AddConventionalAssemblyOfService()
           .AddHttpClient()
