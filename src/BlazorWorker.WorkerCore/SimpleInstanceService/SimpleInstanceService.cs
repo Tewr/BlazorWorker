@@ -201,11 +201,14 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
                 }
 
                 // Create instances for each constructor argument matching a supported service.
-                var serviceInstances = constructorInfo.GetParameters().Select(parameter => services.GetFactory(parameter.ParameterType).Invoke()).ToArray();
+                var serviceInstances = constructorInfo
+                                        .GetParameters()
+                                        .Select(parameter => services.GetFactory(parameter.ParameterType).Invoke())
+                                        .ToArray();
                 
                 var instance = constructorInfo.Invoke(serviceInstances);
 
-                return new InitInstanceResult()
+                return new InitInstanceResult
                 {
                     CallId = callId,
                     Instance = instance,
