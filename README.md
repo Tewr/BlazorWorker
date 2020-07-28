@@ -89,18 +89,30 @@ By default, `worker.CreateBackgroundServiceAsync<MyService>()` will try to guess
 If your dll name does not match the name of the assembly, or if your service has additional dependencies, you must provide this information in `WorkerInitOptions`. If `WorkerInitOptions` is provided, the default options are no longer created, so you also have to provide the dll `MyService` resides in (even if it is in AssemblyNameOfMyService.dll). Examples:
 
 ```cs
-  // Custom service dll, additional dependency
+  // Custom service dll, additional dependency, using dll names
   var serviceInstance = await worker.CreateBackgroundServiceAsync<MyService>(
-      new WorkerInitOptions {
-        DependentAssemblyFilenames = new [] { "MyService.dll", "MyServiceDependency.dll" }
-      }):
+      options => options.AddAssemblies("MyService.dll", "MyServiceDependency.dll")
+  ):
       
-  // Default service dll, additional dependency
+  // Default service dll, additional dependency with dll deduced from assembly name of provided type
   var serviceInstance = await worker.CreateBackgroundServiceAsync<MyService>(
-      new WorkerInitOptions {
-        DependentAssemblyFilenames = new [] { 
-          $"{typeof(MyService).Assembly.GetName().Name}.dll", 
-          "MyServiceDependency.dll" 
-        }
-      });
+      options => options
+          .AddConventionalAssemblyOfService()
+          .AddAssemblyOf<TypeOfMyServiceDependency>()
+  );
+  
+  // In addition to default service dll, add HttpClient as Dependency (built-in dependency definition / helper)
+  var serviceInstance = await worker.CreateBackgroundServiceAsync<MyService>(
+      options => options
+          .AddConventionalAssemblyOfService()
+          .AddHttpClient()
+  );
 ```
+
+## Injectable services
+The nominal use case is that the Service class specifies a parameterless constructor.
+
+If provided as constructor parameters, any of the two following services will be created and injected into the service: 
+
+* <code>HttpClient</code> - use to make outgoing http calls, like in blazor. <a href="https://docs.microsoft.com/en-us/dotnet/api/system.net.http.httpclient">Reference</a>.
+* <code>IWorkerMessageService</code> - to communicate with the worker from blazor using messages, the lower-most level of communication. Accepts messages from <code>IWorker.PostMessageAsync</code>, and provides messages using <code>IWorker.IncomingMessage</code>. See the <a href="src/BlazorWorker.Demo/Client/Pages/CoreExample.razor">Core example</a> for a use case.
