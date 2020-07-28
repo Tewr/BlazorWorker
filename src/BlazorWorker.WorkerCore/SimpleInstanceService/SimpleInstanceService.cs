@@ -153,8 +153,6 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
 
             internal bool ContainsKey(Type parameterType)
             {
-                Console.WriteLine($"ContainsKey {GetQualifiedNameWithoutVersion(parameterType)}?");
-                Console.WriteLine($"Keys: {string.Join(';', this.Keys)}");
                 return this.ContainsKey(GetQualifiedNameWithoutVersion(parameterType));
             }
 
