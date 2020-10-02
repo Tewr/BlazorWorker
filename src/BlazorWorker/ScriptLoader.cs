@@ -53,7 +53,7 @@ namespace BlazorWorker.Core
         }
         private async Task<bool> IsLoaded()
         {
-            return await jsRuntime.InvokeAsync<bool>("eval", "(function() { return !!window.BlazorWorker })()");
+            return await jsRuntime.InvokeAsync<bool>("window.hasOwnProperty", "BlazorWorker");
         }
         private async Task ExecuteRawScriptAsync(string scriptContent)
         {
