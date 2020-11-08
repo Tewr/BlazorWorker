@@ -96,7 +96,18 @@ namespace BlazorWorker.Core
         /// <returns></returns>
         public static WorkerInitOptions AddAssemblyOf<T>(this WorkerInitOptions source)
         {
-            source.AddAssemblies($"{typeof(T).Assembly.GetName().Name}.dll");
+            return source.AddAssemblyOfType(typeof(T));
+        }
+
+        /// <summary>
+        /// Deducts the name of the assembly containing the specified <paramref name="type"/> using the assembly name with dll extension as file name, and adds it as a dependency.
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static WorkerInitOptions AddAssemblyOfType(this WorkerInitOptions source, Type type)
+        {
+            source.AddAssemblies($"{type.Assembly.GetName().Name}.dll");
             return source;
         }
 

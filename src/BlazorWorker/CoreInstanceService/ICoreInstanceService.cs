@@ -7,6 +7,10 @@ namespace BlazorWorker.Core.CoreInstanceService
     {
         Task<IInstanceHandle> CreateInstance(Type type);
         Task<IInstanceHandle> CreateInstance<T>();
+
+        Task<IInstanceHandle> CreateInstance<T>(Action<WorkerInitOptions> options);
+
+        Task<IInstanceHandle> CreateInstance<T>(WorkerInitOptions options);
     }
 
     public interface IInstanceHandle : IAsyncDisposable {

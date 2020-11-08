@@ -1,4 +1,6 @@
 ﻿using BlazorWorker.Core.SimpleInstanceService;
+using System;
+
 namespace BlazorWorker.Core.CoreInstanceService
 {
     public static class SimpleInstanceServiceExtension

@@ -20,19 +20,47 @@ namespace BlazorWorker.Core.CoreInstanceService
         {
             return CreateInstance(typeof(T));
         }
+
+        public Task<IInstanceHandle> CreateInstance<T>(Action<WorkerInitOptions> workerInitOptionsModifier)
+        {
+            return CreateInstance(typeof(T), workerInitOptionsModifier);
+        }
+
+        public Task<IInstanceHandle> CreateInstance<T>(WorkerInitOptions workerInitOptions)
+        {
+            return CreateInstance(typeof(T), workerInitOptions);
+        }
+
         public async Task<IInstanceHandle> CreateInstance(Type t)
+        {
+            return await CreateInstance(t, (WorkerInitOptions)null);
+        }
+
+        public async Task<IInstanceHandle> CreateInstance(Type t, Action<WorkerInitOptions> workerInitOptionsModifier)
+        {
+            var options = new WorkerInitOptions();
+            workerInitOptionsModifier(options);
+            return await CreateInstance(t, options);
+        }
+
+        public async Task<IInstanceHandle> CreateInstance(Type t, WorkerInitOptions options)
         {
             var id = ++sourceId;
             if (!this.simpleInstanceServiceProxy.IsInitialized)
             {
+                if (options == null)
+                {
+                    options = new WorkerInitOptions();
+                    options.AddAssemblyOfType(t);
+                }
+                
                 await this.simpleInstanceServiceProxy.InitializeAsync(new WorkerInitOptions()
                 {
-                    DependentAssemblyFilenames = new[] { $"{t.Assembly.GetName().Name}.dll" },
                     InitEndPoint = $"[{typeof(TargetType).Assembly.GetName().Name}]{typeof(TargetType).FullName}:{nameof(TargetType.Init)}"
-            });
+                }.MergeWith(options));
             }
             var initResult = await this.simpleInstanceServiceProxy.InitInstance(
-                new InitInstanceRequest()
+                new InitInstanceRequest
                 {
                     Id = id,
                     TypeName = t.FullName,

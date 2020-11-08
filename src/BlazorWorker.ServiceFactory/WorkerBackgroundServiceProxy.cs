@@ -109,6 +109,7 @@ namespace BlazorWorker.BackgroundServiceFactory
                         $"{typeof(WorkerInstanceManager).Assembly.GetName().Name}.dll",
                         $"{typeof(Newtonsoft.Json.JsonConvert).Assembly.GetName().Name}.dll",
                         $"{typeof(IWorkerMessageService).Assembly.GetName().Name}.dll",
+                        $"{typeof(System.Reflection.Assembly).Assembly.GetName().Name}.dll",
                         "System.Xml.dll",
                         "Serialize.Linq.dll",
                         "System.dll",
@@ -120,11 +121,9 @@ namespace BlazorWorker.BackgroundServiceFactory
                         "System.Numerics.Vectors.dll",
                         "System.Runtime.CompilerServices.Unsafe.dll",
                         "System.Runtime.Serialization.dll",
-                        $"{typeof(System.Reflection.Assembly).Assembly.GetName().Name}.dll",
                         "Microsoft.Bcl.AsyncInterfaces.dll",
                         "System.Threading.Tasks.Extensions.dll",
-                        "Mono.Security.dll",
-                        "System.ServiceModel.Internals.dll"
+                        "System.Xml.ReaderWriter.dll",
                     },
                     InitEndPoint = InitEndPoint
                 }.MergeWith(workerInitOptions));
