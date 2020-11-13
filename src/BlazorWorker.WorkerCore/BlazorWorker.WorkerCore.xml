@@ -71,6 +71,14 @@
             <param name="source"></param>
             <returns></returns>
         </member>
+        <member name="M:BlazorWorker.Core.WorkerInitOptionsExtensions.AddAssemblyOfType(BlazorWorker.Core.WorkerInitOptions,System.Type)">
+            <summary>
+            Deducts the name of the assembly containing the specified <paramref name="type"/> using the assembly name with dll extension as file name, and adds it as a dependency.
+            </summary>
+            <param name="source"></param>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
         <member name="M:BlazorWorker.Core.WorkerInitOptionsExtensions.AddHttpClient(BlazorWorker.Core.WorkerInitOptions)">
             <summary>
             Registers the neccessary dependencies for injecting or instanciating <see cref="T:System.Net.Http.HttpClient"/> in the background service.

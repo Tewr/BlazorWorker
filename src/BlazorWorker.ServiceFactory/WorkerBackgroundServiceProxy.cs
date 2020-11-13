@@ -103,7 +103,7 @@ namespace BlazorWorker.BackgroundServiceFactory
                     workerInitOptions.AddAssemblyOf<T>();
                 }
 
-                await this.worker.InitAsync(new WorkerInitOptions() {
+                await this.worker.InitAsync(new WorkerInitOptions {
                     DependentAssemblyFilenames = new[] { 
                         $"{typeof(BaseMessage).Assembly.GetName().Name}.dll",
                         $"{typeof(WorkerInstanceManager).Assembly.GetName().Name}.dll",
@@ -121,9 +121,10 @@ namespace BlazorWorker.BackgroundServiceFactory
                         "System.Numerics.Vectors.dll",
                         "System.Runtime.CompilerServices.Unsafe.dll",
                         "System.Runtime.Serialization.dll",
-                        "Microsoft.Bcl.AsyncInterfaces.dll",
+                        //"Microsoft.Bcl.AsyncInterfaces.dll",
                         "System.Threading.Tasks.Extensions.dll",
                         "System.Xml.ReaderWriter.dll",
+                        "System.Text.RegularExpressions.dll"
                     },
                     InitEndPoint = InitEndPoint
                 }.MergeWith(workerInitOptions));

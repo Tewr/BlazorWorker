@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 namespace BlazorWorker.Core
 {
     [DependencyHint(typeof(MessageService))]
-    
     public class WorkerProxy : IWorker
     {
         private readonly IJSRuntime jsRuntime;
@@ -164,27 +163,9 @@ namespace BlazorWorker.Core
                             "System.Runtime.Serialization.Xml.dll",
                             "System.Runtime.Serialization.dll",
                             "System.Runtime.dll",
-                            //"System.Security.AccessControl.dll",
-                            //"System.Security.Claims.dll",
-                            //"System.Security.Cryptography.Algorithms.dll",
-                            //"System.Security.Cryptography.Cng.dll",
-                            //"System.Security.Cryptography.Csp.dll",
-                            //"System.Security.Cryptography.Encoding.dll",
-                            //"System.Security.Cryptography.OpenSsl.dll",
-                            //"System.Security.Cryptography.Primitives.dll",
-                            //"System.Security.Cryptography.X509Certificates.dll",
-                            //"System.Security.Principal.Windows.dll",
-                            //"System.Security.Principal.dll",
-                            //"System.Security.SecureString.dll",
-                            "System.Security.dll",
-                            //"System.ServiceModel.Web.dll",
-                            "System.ServiceProcess.dll",
                             "System.Text.Encoding.CodePages.dll",
                             "System.Text.Encoding.Extensions.dll",
                             "System.Text.Encoding.dll",
-                            //"System.Text.Encodings.Web.dll",
-                            //"System.Text.Json.dll",
-                            //"System.Text.RegularExpressions.dll",
                             "System.Threading.Channels.dll",
                             "System.Threading.Overlapped.dll",
                             "System.Threading.Tasks.Dataflow.dll",
@@ -194,8 +175,7 @@ namespace BlazorWorker.Core
                             "System.Threading.Thread.dll",
                             "System.Threading.ThreadPool.dll",
                             "System.Threading.Timer.dll",
-                            "System.Threading.dll",
-                            //"System.Transactions.Local.dll",
+                            "System.Threading.dll"
                         },
                     CallbackMethod = nameof(OnMessage),
                     MessageEndPoint = messageMethod

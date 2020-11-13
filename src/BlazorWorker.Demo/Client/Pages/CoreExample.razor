@@ -65,7 +65,9 @@
 
                         backgroundService = worker.CreateCoreInstanceService();
 
-                        handle = await backgroundService.CreateInstance<CoreMathsService>(o);
+                        handle = await backgroundService.CreateInstance<CoreMathsService>(options => 
+                            options.AddConventionalAssemblyOfService()
+                            .AddAssemblies("System.Text.RegularExpressions.dll"));
 
                         output += $"{rn}{LogDate()} Background service created.";
                         StateHasChanged();
