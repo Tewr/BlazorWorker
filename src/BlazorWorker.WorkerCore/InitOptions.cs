@@ -119,7 +119,7 @@ namespace BlazorWorker.Core
         /// <remarks>When this method has been called, <see cref="System.Net.Http.HttpClient"/> can be used inside the service either by instanciating it or by injection into the constructor.</remarks>
         public static WorkerInitOptions AddHttpClient(this WorkerInitOptions source)
         {
-            source.AddAssemblies("System.Net.Http.dll", "System.Net.Http.WebAssemblyHttpHandler.dll");
+            source.AddAssemblies("System.Net.Http.dll", "System.Security.Cryptography.X509Certificates.dll");
             return source;
         }
     }
