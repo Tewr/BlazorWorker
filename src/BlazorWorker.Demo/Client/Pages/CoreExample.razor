@@ -15,6 +15,9 @@
             This is useful for scenarios with simple API's (smaller download size), or for building a custom high-level API.
             <br /><br />
             Pi estimation demo. Specify number of iterations.<br />
+
+            <textarea @bind="@CoreDeps" rows="100" cols="45" />
+
             <input type="text" @bind="piIterations" placeholder="estimation iterations" />
             <br />
             <progress max="@piIterations" value="@piProgress" /><br /><br />
@@ -45,6 +48,26 @@
             string disabled = "disabled";
             string rn = Environment.NewLine;
 
+            string deps;
+            string CoreDeps
+            {
+                get
+                {
+                    return deps ?? string.Join(Environment.NewLine,
+                        WorkerProxyDependencies.DependentAssemblyFilenames.Select(dep => $"\"{dep}\","));
+
+                }
+
+                set
+                {
+                    WorkerProxyDependencies.DependentAssemblyFilenames =
+                        value.Split(Environment.NewLine)
+                        .Where(dep => !dep.StartsWith("//"))
+                        .Select(dep => dep.Replace("\"", "").Replace(",", "")).ToArray();
+                    deps = value;
+                }
+            }
+
             public async Task OnClick(EventArgs _)
             {
                 output = "";
@@ -65,7 +88,7 @@
 
                         backgroundService = worker.CreateCoreInstanceService();
 
-                        handle = await backgroundService.CreateInstance<CoreMathsService>(options => 
+                        handle = await backgroundService.CreateInstance<CoreMathsService>(options =>
                             options.AddConventionalAssemblyOfService()
                             .AddAssemblies("System.Text.RegularExpressions.dll"));
 
