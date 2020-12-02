@@ -1,4 +1,4 @@
-using BlazorPrettyCode;
+//using BlazorPrettyCode;
 using BlazorWorker.Core;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
