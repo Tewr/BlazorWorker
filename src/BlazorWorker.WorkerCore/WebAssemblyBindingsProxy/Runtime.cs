@@ -1,16 +1,31 @@
-﻿namespace BlazorWorker.WorkerCore.WebAssemblyBindingsProxy
+﻿using System;
+using System.Reflection;
+
+namespace BlazorWorker.WorkerCore.WebAssemblyBindingsProxy
 {
     internal class Runtime
     {
+#if NETSTANDARD21
+        private const string assembly = "WebAssembly.Bindings";
+        private static readonly string type = $"WebAssembly.{nameof(Runtime)}";
+#endif
+
+#if NET5
+        private const string assembly = "System.Private.Runtime.InteropServices.JavaScript";
+        private static readonly string type = $"System.Runtime.InteropServices.JavaScript.{nameof(Runtime)}";
+#endif
         private delegate object GetGlobalObjectDelegate(string globalObjectName);
 
-        private static GetGlobalObjectDelegate _getGlobalObjectMethod = 
-                WebAssemblyBindingsLoader
-                .LoadAssembly()
-                .GetType($"WebAssembly.{nameof(Runtime)}")
-                .GetMethod(nameof(GetGlobalObject))
+        private static Assembly SourceAssembly => Assembly.Load(assembly) 
+            ?? throw new InvalidOperationException($"Unable to load assembly {assembly}");
+
+        private static GetGlobalObjectDelegate _getGlobalObjectMethod =
+                SourceAssembly
+                .GetType(type)?
+                .GetMethod(nameof(GetGlobalObject))?
                 .CreateDelegate(typeof(GetGlobalObjectDelegate)) as GetGlobalObjectDelegate;
 
-        public static object GetGlobalObject(string globalObjectName) => _getGlobalObjectMethod(globalObjectName);
+        public static object GetGlobalObject(string globalObjectName) => _getGlobalObjectMethod?.Invoke(globalObjectName) 
+            ?? throw new InvalidOperationException($"Unable to load method {type}.{nameof(GetGlobalObject)} from assembly {assembly}");
     }
 }

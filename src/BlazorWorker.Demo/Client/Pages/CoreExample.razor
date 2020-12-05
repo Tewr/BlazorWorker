@@ -15,6 +15,7 @@
             This is useful for scenarios with simple API's (smaller download size), or for building a custom high-level API.
             <br /><br />
             Pi estimation demo. Specify number of iterations.<br />
+
             <input type="text" @bind="piIterations" placeholder="estimation iterations" />
             <br />
             <progress max="@piIterations" value="@piProgress" /><br /><br />
@@ -34,43 +35,48 @@
         </div>
     </div>
         @code {
-            string RunDisabled => Running ? "disabled" : null;
-            bool Running = false;
-            int piIterations = 5_000_000;
-            int piProgress = 0;
-            string output;
-            IWorker worker;
-            ICoreInstanceService backgroundService;
-            IInstanceHandle handle;
-            string disabled = "disabled";
-            string rn = Environment.NewLine;
+                string RunDisabled => Running ? "disabled" : null;
+                bool Running = false;
+                int piIterations = 5_000_000;
+                int piProgress = 0;
+                string output;
+                IWorker worker;
+                ICoreInstanceService backgroundService;
+                IInstanceHandle handle;
+                string disabled = "disabled";
+                string rn = Environment.NewLine;
 
-            public async Task OnClick(EventArgs _)
-            {
-                output = "";
-
-                try
+                public async Task OnClick(EventArgs _)
                 {
-                    if (worker == null)
+                    output = "";
+
+                    try
                     {
-                        worker = await workerFactory.CreateAsync();
-                        worker.IncomingMessage += this.OnWorkerMessage;
-                    }
+                        if (worker == null)
+                        {
+                            worker = await workerFactory.CreateAsync();
+                            worker.IncomingMessage += this.OnWorkerMessage;
+                        }
 
-                    if (backgroundService == null)
-                    {
-                        disabled = null;
-                        output = $"{rn}{LogDate()} Creating background service...";
-                        StateHasChanged();
+                        if (backgroundService == null)
+                        {
+                            disabled = null;
+                            output = $"{rn}{LogDate()} Creating background service...";
+                            StateHasChanged();
 
-                        backgroundService = worker.CreateCoreInstanceService();
+                            backgroundService = worker.CreateCoreInstanceService();
 
-                        handle = await backgroundService.CreateInstance<CoreMathsService>();
+                            handle = await backgroundService.CreateInstance<CoreMathsService>(options =>
+                                options.AddConventionalAssemblyOfService()
+#if NET5
+                            .AddAssemblies("System.Text.RegularExpressions.dll")
+#endif
+                            );
 
                         output += $"{rn}{LogDate()} Background service created.";
                         StateHasChanged();
                     }
-                    
+
                     output += $"{rn}{LogDate()} Calling EstimatePI({piIterations})...";
                     await worker.PostMessageAsync($"{nameof(MathsService.EstimatePI)}({piIterations})");
                     // Result is obtained in message listener "OnWorkerMessage"

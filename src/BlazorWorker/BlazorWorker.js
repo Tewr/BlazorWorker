@@ -62,7 +62,7 @@
         var config = {};
         var Module = {};
         
-        const wasmBinaryFile = `${initConf.appRoot}/_framework/wasm/dotnet.wasm`;
+        const wasmBinaryFile = `${initConf.appRoot}/${initConf.wasmRoot}/dotnet.wasm`;
         const suppressMessages = ['DEBUGGING ENABLED'];
         const appBinDirName = 'appBinDir';
 
@@ -165,10 +165,10 @@
         const initConf = {
             appRoot: appRoot,
             DependentAssemblyFilenames: initOptions.dependentAssemblyFilenames,
-            deploy_prefix: "_framework/_bin",
+            deploy_prefix: initOptions.deployPrefix,
             MessageEndPoint: initOptions.messageEndPoint,
             InitEndPoint: initOptions.initEndPoint,
-            wasmRoot: "_framework/wasm",
+            wasmRoot: initOptions.wasmRoot,
             blazorBoot: "_framework/blazor.boot.json",
             debug: initOptions.debug
         };

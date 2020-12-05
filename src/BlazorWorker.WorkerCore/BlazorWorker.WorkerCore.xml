@@ -19,6 +19,21 @@
             Creates a new instance of WorkerInitOptions
             </summary>
         </member>
+        <member name="P:BlazorWorker.Core.WorkerInitOptions.DeployPrefix">
+            <summary>
+            Specifies the location of binaries
+            </summary>
+        </member>
+        <member name="P:BlazorWorker.Core.WorkerInitOptions.WasmRoot">
+            <summary>
+            Specifieds the location of the wasm binary
+            </summary>
+        </member>
+        <member name="P:BlazorWorker.Core.WorkerInitOptions.Debug">
+            <summary>
+            Outputs additional debug information to the console
+            </summary>
+        </member>
         <member name="P:BlazorWorker.Core.WorkerInitOptions.DependentAssemblyFilenames">
             <summary>
             Specifies a list of assembly files names (dlls) that should be loaded when initializing the worker.
@@ -69,6 +84,14 @@
             Deducts the name of the assembly containing the specified <typeparamref name="T"/> using the assembly name with dll extension as file name, and adds it as a dependency.
             </summary>
             <param name="source"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BlazorWorker.Core.WorkerInitOptionsExtensions.AddAssemblyOfType(BlazorWorker.Core.WorkerInitOptions,System.Type)">
+            <summary>
+            Deducts the name of the assembly containing the specified <paramref name="type"/> using the assembly name with dll extension as file name, and adds it as a dependency.
+            </summary>
+            <param name="source"></param>
+            <param name="type"></param>
             <returns></returns>
         </member>
         <member name="M:BlazorWorker.Core.WorkerInitOptionsExtensions.AddHttpClient(BlazorWorker.Core.WorkerInitOptions)">

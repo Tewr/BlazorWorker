@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 namespace BlazorWorker.Core
 {
     [DependencyHint(typeof(MessageService))]
-    
     public class WorkerProxy : IWorker
     {
         private readonly IJSRuntime jsRuntime;
@@ -48,14 +47,7 @@ namespace BlazorWorker.Core
                 DotNetObjectReference.Create(this), 
                 new WorkerInitOptions {
                     DependentAssemblyFilenames = 
-                        new[] { 
-                            "BlazorWorker.WorkerCore.dll", 
-                            "netstandard.dll",
-                            "mscorlib.dll",
-                            "WebAssembly.Bindings.dll",
-                            "System.dll",
-                            "System.Core.dll"
-                        },
+                       WorkerProxyDependencies.DependentAssemblyFilenames,
                     CallbackMethod = nameof(OnMessage),
                     MessageEndPoint = messageMethod
                }.MergeWith(initOptions));
