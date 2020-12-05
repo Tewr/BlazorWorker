@@ -19,6 +19,16 @@
             Creates a new instance of WorkerInitOptions
             </summary>
         </member>
+        <member name="P:BlazorWorker.Core.WorkerInitOptions.DeployPrefix">
+            <summary>
+            Specifies the location of binaries
+            </summary>
+        </member>
+        <member name="P:BlazorWorker.Core.WorkerInitOptions.WasmRoot">
+            <summary>
+            Specifieds the location of the wasm binary
+            </summary>
+        </member>
         <member name="P:BlazorWorker.Core.WorkerInitOptions.DependentAssemblyFilenames">
             <summary>
             Specifies a list of assembly files names (dlls) that should be loaded when initializing the worker.

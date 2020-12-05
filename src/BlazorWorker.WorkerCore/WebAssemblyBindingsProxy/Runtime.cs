@@ -6,8 +6,8 @@ namespace BlazorWorker.WorkerCore.WebAssemblyBindingsProxy
     internal class Runtime
     {
 #if NETSTANDARD21
-        private const string assembly = "Webassembly.Bindings";
-        private static readonly string type = $"Webassembly.{nameof(Runtime)}";
+        private const string assembly = "WebAssembly.Bindings";
+        private static readonly string type = $"WebAssembly.{nameof(Runtime)}";
 #endif
 
 #if NET5
@@ -16,14 +16,16 @@ namespace BlazorWorker.WorkerCore.WebAssemblyBindingsProxy
 #endif
         private delegate object GetGlobalObjectDelegate(string globalObjectName);
 
+        private static Assembly SourceAssembly => Assembly.Load(assembly) 
+            ?? throw new InvalidOperationException($"Unable to load assembly {assembly}");
+
         private static GetGlobalObjectDelegate _getGlobalObjectMethod =
-                Assembly
-                .Load(assembly)?
+                SourceAssembly
                 .GetType(type)?
                 .GetMethod(nameof(GetGlobalObject))?
                 .CreateDelegate(typeof(GetGlobalObjectDelegate)) as GetGlobalObjectDelegate;
 
         public static object GetGlobalObject(string globalObjectName) => _getGlobalObjectMethod?.Invoke(globalObjectName) 
-            ?? throw new InvalidOperationException($"Unable to laod type {type} from assembly {assembly}");
+            ?? throw new InvalidOperationException($"Unable to load method {type}.{nameof(GetGlobalObject)} from assembly {assembly}");
     }
 }

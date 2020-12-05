@@ -1,10 +1,8 @@
-﻿using BlazorWorker.WorkerBackgroundService;
-using BlazorWorker.WorkerCore;
+﻿using BlazorWorker.WorkerCore;
 using BlazorWorker.WorkerCore.SimpleInstanceService;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace BlazorWorker.WorkerBackgroundService

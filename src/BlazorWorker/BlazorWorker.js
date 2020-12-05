@@ -165,10 +165,10 @@
         const initConf = {
             appRoot: appRoot,
             DependentAssemblyFilenames: initOptions.dependentAssemblyFilenames,
-            deploy_prefix: "_framework",
+            deploy_prefix: initOptions.deployPrefix,
             MessageEndPoint: initOptions.messageEndPoint,
             InitEndPoint: initOptions.initEndPoint,
-            wasmRoot: "_framework",
+            wasmRoot: initOptions.wasmRoot,
             blazorBoot: "_framework/blazor.boot.json",
             debug: initOptions.debug
         };

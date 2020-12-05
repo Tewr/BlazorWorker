@@ -15,7 +15,34 @@ namespace BlazorWorker.Core
         public WorkerInitOptions()
         {
             DependentAssemblyFilenames = new string[] { };
+
+#if NETSTANDARD21
+            DeployPrefix = "_framework/_bin";
+            WasmRoot = "_framework/wasm";
+#endif
+#if NET5
+            DeployPrefix = "_framework";
+            WasmRoot = "_framework";
+#endif
+#if DEBUG
+            Debug = true;
+#endif
         }
+
+        /// <summary>
+        /// Specifies the location of binaries
+        /// </summary>
+        public string DeployPrefix { get; }
+
+        /// <summary>
+        /// Specifieds the location of the wasm binary
+        /// </summary>
+        public string WasmRoot { get; }
+
+        /// <summary>
+        /// Outputs additional debug information to the console
+        /// </summary>
+        public bool Debug { get; set; }
 
         /// <summary>
         /// Specifies a list of assembly files names (dlls) that should be loaded when initializing the worker.
@@ -130,7 +157,8 @@ namespace BlazorWorker.Core
                 "System.Net.Primitives.dll",
                 "System.Net.Requests.dll",
                 "System.Net.Security.dll",
-                "System.Net.dll");
+                "System.Net.dll",
+                "System.Diagnostics.Tracing.dll");
 #endif
 
             return source;

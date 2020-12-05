@@ -1,0 +1,15 @@
+﻿Source for this page<br/>
+<a href=@FullUrl>@RelativePath</a>
+<br />
+<!-- <PrettyCode CodeFile="@FullRawUrl" /> -->
+@code {
+    private const string Fragment = "Tewr/BlazorWorker/master/src/BlazorWorker.Demo/Client/";
+    private const string RawRoot = "https://rawcdn.githack.com/" + Fragment;
+    private const string Root = "https://github.com/" + Fragment;
+
+    [Parameter]
+    public string RelativePath { get; set; }
+
+    public string FullRawUrl => RawRoot + RelativePath;
+    public string FullUrl => Root + RelativePath;
+}
