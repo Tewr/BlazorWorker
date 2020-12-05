@@ -29,6 +29,11 @@
             Specifieds the location of the wasm binary
             </summary>
         </member>
+        <member name="P:BlazorWorker.Core.WorkerInitOptions.Debug">
+            <summary>
+            Outputs additional debug information to the console
+            </summary>
+        </member>
         <member name="P:BlazorWorker.Core.WorkerInitOptions.DependentAssemblyFilenames">
             <summary>
             Specifies a list of assembly files names (dlls) that should be loaded when initializing the worker.

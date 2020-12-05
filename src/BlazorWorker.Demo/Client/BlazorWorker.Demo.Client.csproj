@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
@@ -32,5 +32,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Shared\BlazorWorker.Demo.Shared.csproj" />
   </ItemGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)'=='net5.0'">
+    <DefineConstants>$(DefineConstants);NET5</DefineConstants>
+  </PropertyGroup>
+
 
 </Project>

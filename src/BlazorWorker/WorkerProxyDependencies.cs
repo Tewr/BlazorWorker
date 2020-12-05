@@ -3,7 +3,7 @@
     public class WorkerProxyDependencies
     {
 #if NETSTANDARD21
-        public static string[] DependentAssemblyFilenames = new[]
+        public static readonly string[] DependentAssemblyFilenames = new[]
         {
             "BlazorWorker.WorkerCore.dll", 
             "netstandard.dll",
@@ -15,7 +15,7 @@
 #endif
 
 #if NET5
-        public static string[] DependentAssemblyFilenames = new[]
+        public static readonly string[] DependentAssemblyFilenames = new[]
         {
             "BlazorWorker.WorkerCore.dll",
             "netstandard.dll",
