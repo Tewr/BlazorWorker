@@ -2,9 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <Configurations>Debug;Release;Nuget</Configurations>
   </PropertyGroup>
 
@@ -30,6 +27,7 @@
   </ItemGroup>
   
   <ItemGroup>
+    <ProjectReference Include="..\SharedPages\BlazorWorker.Demo.SharedPages.csproj" />
     <ProjectReference Include="..\Shared\BlazorWorker.Demo.Shared.csproj" />
   </ItemGroup>
 

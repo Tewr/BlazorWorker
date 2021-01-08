@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <RazorLangVersion>3.0</RazorLangVersion>
     <Configurations>Debug;Release;Nuget</Configurations>
+    <RazorLangVersion>3.0</RazorLangVersion>
   </PropertyGroup>
   
   <ItemGroup>
@@ -27,6 +27,7 @@
   </ItemGroup>
   
   <ItemGroup>
+    <ProjectReference Include="..\SharedPages\BlazorWorker.Demo.SharedPages.csproj" />
     <ProjectReference Include="..\Shared\BlazorWorker.Demo.Shared.csproj" />
   </ItemGroup>
 
