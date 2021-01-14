@@ -4,11 +4,12 @@ using BlazorWorker.WorkerCore;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace BlazorWorker.BackgroundServiceFactory
 {
-    internal class WorkerBackgroundServiceProxy<T> : IWorkerBackgroundService<T> where T : class
+    internal class WorkerBackgroundServiceProxy<T> : IWorkerBackgroundService<T>, IWorkerBackgroundServiceFactory<T> where T : class
     {
         private readonly IWorker worker;
         private readonly WebWorkerOptions options;
@@ -25,6 +26,9 @@ namespace BlazorWorker.BackgroundServiceFactory
         private static long messageRegisterIdSource;
         private readonly Dictionary<long, TaskCompletionSource<MethodCallResult>> messageRegister
             = new Dictionary<long, TaskCompletionSource<MethodCallResult>>();
+        private static long initFromFactoryIdSource;
+        private readonly Dictionary<long, TaskCompletionSource<InitInstanceFromFactoryComplete>> initFromFactoryRegister
+            = new Dictionary<long, TaskCompletionSource<InitInstanceFromFactoryComplete>>();
 
         private Dictionary<long, EventHandle> eventRegister
             = new Dictionary<long, EventHandle>();
@@ -50,6 +54,7 @@ namespace BlazorWorker.BackgroundServiceFactory
 
             this.messageHandlerRegistry = new MessageHandlerRegistry(this.options.MessageSerializer);
             this.messageHandlerRegistry.Add<InitInstanceComplete>(OnInitInstanceComplete);
+            this.messageHandlerRegistry.Add<InitInstanceFromFactoryComplete>(OnInitInstanceFromFactoryComplete);
             this.messageHandlerRegistry.Add<InitWorkerComplete>(OnInitWorkerComplete);
             this.messageHandlerRegistry.Add<DisposeInstanceComplete>(OnDisposeInstanceComplete);
             this.messageHandlerRegistry.Add<EventRaised>(OnEventRaised);
@@ -81,7 +86,7 @@ namespace BlazorWorker.BackgroundServiceFactory
 
         public async Task InitAsync(WorkerInitOptions workerInitOptions = null)
         {
-            workerInitOptions = workerInitOptions ?? new WorkerInitOptions();
+            workerInitOptions ??= new WorkerInitOptions();
             if (this.initTask != null)
             {
                 await initTask.Task;
@@ -114,14 +119,20 @@ namespace BlazorWorker.BackgroundServiceFactory
             }
 
             var message = this.options.MessageSerializer.Serialize(
-                    new InitInstance()
+                    new InitInstance
                     {
                         WorkerId = this.worker.Identifier, // TODO: This should not really be necessary?
                         InstanceId = instanceId,
                         AssemblyName = typeof(T).Assembly.FullName,
                         TypeName = typeof(T).FullName
                     });
-            Console.WriteLine($"{nameof(WorkerBackgroundServiceProxy<T>)}.InitAsync(): {this.worker.Identifier} {message}");
+
+            if (workerInitOptions.Debug)
+            {
+                Console.WriteLine($"{nameof(WorkerBackgroundServiceProxy<T>)}." +
+                    $"{nameof(WorkerBackgroundServiceProxy<T>.InitAsync)}()" +
+                    $": {this.worker.Identifier} {message}");
+            }
 
             await this.worker.PostMessageAsync(message);
             await initTask.Task;
@@ -172,6 +183,17 @@ namespace BlazorWorker.BackgroundServiceFactory
             }
         }
 
+        private void OnInitInstanceFromFactoryComplete(InitInstanceFromFactoryComplete message)
+        {
+            if (!this.initFromFactoryRegister.TryGetValue(message.CallId, out var taskCompletionSource))
+            {
+                return;
+            }
+
+            taskCompletionSource.SetResult(message);
+            this.initFromFactoryRegister.Remove(message.CallId);
+        }
+
         private void OnEventRaised(EventHandle eventHandle, string eventPayload)
         {
             eventHandle.EventHandler.Invoke(eventPayload);
@@ -197,37 +219,9 @@ namespace BlazorWorker.BackgroundServiceFactory
             return await InvokeAsyncInternal<TResult>(function, new InvokeOptions { AwaitResult = true });
         }
 
-        public async Task<EventHandle> RegisterEventListenerAsync<TResult>(string eventName, EventHandler<TResult> myHandler)
-        {
-            var eventSignature = typeof(T).GetEvent(eventName ?? throw new ArgumentNullException(nameof(eventName)));
-            if (eventSignature == null)
-            {
-                throw new ArgumentException($"Type '{typeof(T).FullName}' does not expose any event named '{eventName}'");
-            }
-
-            if (!eventSignature.EventHandlerType.IsAssignableFrom(typeof(EventHandler<TResult>))){
-                throw new ArgumentException($"Event '{typeof(T).FullName}.{eventName}' can only be assigned an event listener of type {typeof(EventHandler<TResult>).FullName}");
-            }
-
-            var handle = new EventHandle() { 
-                EventHandler = 
-                payload => {
-                    var typedPayload = this.messageSerializer.Deserialize<TResult>(payload);
-                    myHandler.Invoke(null, typedPayload); 
-                } 
-            };
-
-            this.eventRegister.Add(handle.Id, handle);
-            var message = new RegisterEvent() {
-                EventName = eventName,
-                EventHandlerTypeArg = typeof(TResult).FullName,
-                EventHandleId = handle.Id,
-                InstanceId = this.instanceId
-            };
-            var serializedMessage = this.options.MessageSerializer.Serialize(message);
-            await this.worker.PostMessageAsync(serializedMessage);
-            return handle;
-        }
+        public async Task<EventHandle> RegisterEventListenerAsync<TResult>(string eventName, EventHandler<TResult> myHandler) =>
+            await RegisterEventListenerAsync(eventName, myHandler, null);
+        
 
         public async Task UnRegisterEventListenerAsync(EventHandle handle)
         {
@@ -243,6 +237,63 @@ namespace BlazorWorker.BackgroundServiceFactory
             var serializedMessage = this.options.MessageSerializer.Serialize(message);
             await this.worker.PostMessageAsync(serializedMessage);
         }
+
+        public async Task<EventHandle> RegisterEventListenerAsync<TResult>(string eventName, EventHandler<TResult> myHandler, Expression instanceExpression)
+        {
+            Type typeExposingEvent;
+            if (instanceExpression is null)
+            {
+                typeExposingEvent = typeof(T);
+            }
+            else
+            {
+                typeExposingEvent = (instanceExpression as LambdaExpression)?.ReturnType;
+            }
+            
+            var eventSignature = typeExposingEvent.GetEvent(eventName ?? throw new ArgumentNullException(nameof(eventName)));
+            if (eventSignature == null)
+            {
+                throw new ArgumentException($"Type '{typeExposingEvent.FullName}' does not expose any event named '{eventName}'");
+            }
+
+            if (!eventSignature.EventHandlerType.IsAssignableFrom(typeof(EventHandler<TResult>)))
+            {
+                throw new ArgumentException($"Event '{typeExposingEvent.FullName}.{eventName}' can only be assigned an event listener of type '{eventSignature.EventHandlerType}'");
+            }
+
+            var handle = new EventHandle
+            {
+                EventHandler =
+                payload => {
+                    var typedPayload = this.messageSerializer.Deserialize<TResult>(payload);
+                    myHandler.Invoke(null, typedPayload);
+                }
+            };
+
+            string serializedInstanceExpression = null;
+            if (instanceExpression != null)
+            {
+                serializedInstanceExpression = 
+                    this.options.ExpressionSerializer.Serialize(instanceExpression);
+            }
+
+            this.eventRegister.Add(handle.Id, handle);
+            var message = new RegisterEvent()
+            {
+                EventName = eventName,
+                InstanceExpression = serializedInstanceExpression,
+                EventHandlerTypeArg = typeof(TResult).FullName,
+                EventHandleId = handle.Id,
+                InstanceId = this.instanceId
+            };
+
+            var serializedMessage = this.options.MessageSerializer.Serialize(message);
+
+            await this.worker.PostMessageAsync(serializedMessage);
+
+            return handle;
+        }
+
 
         private Task<TResult> InvokeAsyncInternal<TResult>(Expression action)
         {
@@ -275,6 +326,40 @@ namespace BlazorWorker.BackgroundServiceFactory
             if (returnMessage.IsException)
             {
                 throw new AggregateException($"Worker exception: {returnMessage.Exception.Message}",  returnMessage.Exception);
+            }
+            if (string.IsNullOrEmpty(returnMessage.ResultPayload))
+            {
+                return default;
+            }
+
+            return this.options.MessageSerializer.Deserialize<TResult>(returnMessage.ResultPayload);
+        }
+
+        public async Task<TResult> InitFromFactory<TResult>(Expression factoryExpression)
+        {
+            // If Blazor ever gets multithreaded this would need to be locked for race conditions
+            // However, when/if that happens, most of this project is obsolete anyway
+            var id = ++initFromFactoryIdSource;
+            var taskCompletionSource = new TaskCompletionSource<InitInstanceFromFactoryComplete>();
+            this.initFromFactoryRegister.Add(id, taskCompletionSource);
+
+            var expression = this.options.ExpressionSerializer.Serialize(factoryExpression);
+            var methodCallParams = new InitInstanceFromFactory
+            {
+                WorkerId = this.worker.Identifier,
+                FactoryInstanceId = instanceId,
+                InstanceId = ++idSource,
+                CallId = id
+            };
+
+            var methodCall = this.options.MessageSerializer.Serialize(methodCallParams);
+
+            await this.worker.PostMessageAsync(methodCall);
+
+            var returnMessage = await taskCompletionSource.Task;
+            if (returnMessage.IsException)
+            {
+                throw new AggregateException($"Worker exception: {returnMessage.Exception.Message}", returnMessage.Exception);
             }
             if (string.IsNullOrEmpty(returnMessage.ResultPayload))
             {

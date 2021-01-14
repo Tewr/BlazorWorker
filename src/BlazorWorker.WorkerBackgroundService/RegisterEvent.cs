@@ -14,5 +14,6 @@ namespace BlazorWorker.WorkerBackgroundService
         public long InstanceId { get; set; }
         public string EventName { get; set; }
         public string EventHandlerTypeArg { get; set; }
+        public string InstanceExpression { get; set; }
     }
 }

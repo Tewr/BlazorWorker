@@ -1,9 +1,7 @@
 ﻿using BlazorWorker.Core;
 using BlazorWorker.WorkerBackgroundService;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace BlazorWorker.BackgroundServiceFactory
@@ -12,6 +10,11 @@ namespace BlazorWorker.BackgroundServiceFactory
     {
         public static async Task<IWorkerBackgroundService<T>> CreateBackgroundServiceAsync<T>(this IWorker webWorkerProxy, Action<WorkerInitOptions> workerInitOptionsModifier) where T : class
         {
+            if (webWorkerProxy is null)
+            {
+                throw new ArgumentNullException(nameof(webWorkerProxy));
+            }
+
             var options = new WorkerInitOptions();
             workerInitOptionsModifier(options);
             return await webWorkerProxy.CreateBackgroundServiceAsync<T>(options);
@@ -19,6 +22,11 @@ namespace BlazorWorker.BackgroundServiceFactory
 
         public static async Task<IWorkerBackgroundService<T>> CreateBackgroundServiceAsync<T>(this IWorker webWorkerProxy, WorkerInitOptions workerInitOptions = null) where T : class
         {
+            if (webWorkerProxy is null)
+            {
+                throw new ArgumentNullException(nameof(webWorkerProxy));
+            }
+
             var proxy = new WorkerBackgroundServiceProxy<T>(webWorkerProxy, new WebWorkerOptions());
             if (workerInitOptions == null)
             {
@@ -27,6 +35,78 @@ namespace BlazorWorker.BackgroundServiceFactory
 
             await proxy.InitAsync(workerInitOptions);
             return proxy;
+        }
+
+        /// <summary>
+        /// Creates a background service using the specified <paramref name="factoryExpression"/>.
+        /// </summary>
+        /// <typeparam name="TFactory"></typeparam>
+        /// <typeparam name="TService"></typeparam>
+        /// <param name="webWorkerProxy"></param>
+        /// <param name="factoryExpression"></param>
+        /// <param name="workerInitOptionsModifier"></param>
+        /// <returns></returns>
+        public static async Task<IWorkerBackgroundService<TService>> CreateBackgroundServiceUsingFactoryAsync<TFactory, TService>(
+            this IWorker webWorkerProxy,
+            Expression<Func<TFactory, TService>> factoryExpression,
+            Action<WorkerInitOptions> workerInitOptionsModifier = null) 
+            where TFactory : class 
+            where TService : class
+        {
+            if (webWorkerProxy is null)
+            {
+                throw new ArgumentNullException(nameof(webWorkerProxy));
+            }
+
+            if (factoryExpression is null)
+            {
+                throw new ArgumentNullException(nameof(factoryExpression));
+            }
+
+            var workerInitOptions = new WorkerInitOptions();
+            if (workerInitOptionsModifier == null)
+            {
+                workerInitOptions.AddAssemblyOf<TService>();
+            }
+            else
+            {
+                workerInitOptionsModifier(workerInitOptions);
+            }
+
+            var factoryProxy = new WorkerBackgroundServiceProxy<TFactory>(webWorkerProxy, new WebWorkerOptions());
+            await factoryProxy.InitAsync(workerInitOptions);
+
+            var serviceProxy = new FactoryBackgroundServiceBridge<TFactory, TService>(factoryProxy, factoryExpression);
+            serviceProxy.Disposables.Add(factoryProxy);
+            return serviceProxy;
+        }
+
+        /// <summary>
+        /// Creates a new background service using the specified <paramref name="factoryExpression"/>
+        /// </summary>
+        /// <typeparam name="TFactory"></typeparam>
+        /// <typeparam name="TService"></typeparam>
+        /// <param name="webWorkerProxy"></param>
+        /// <param name="factoryExpression"></param>
+        /// <returns></returns>
+        public static async Task<IWorkerBackgroundService<TService>> CreateBackgroundServiceAsync<TFactory, TService>(
+            this IWorkerBackgroundService<TFactory> webWorkerProxy,
+            Expression<Func<TFactory, TService>> factoryExpression)
+            where TFactory : class
+            where TService : class
+        {
+            if (webWorkerProxy is null)
+            {
+                throw new ArgumentNullException(nameof(webWorkerProxy));
+            }
+
+            if (factoryExpression is null)
+            {
+                throw new ArgumentNullException(nameof(factoryExpression));
+            }
+
+            var serviceProxy = new FactoryBackgroundServiceBridge<TFactory, TService>(webWorkerProxy, factoryExpression);
+            return serviceProxy;
         }
     }
 }

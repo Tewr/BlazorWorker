@@ -1,0 +1,101 @@
+﻿@using BlazorWorker.Demo.IoCExample
+@inject IWorkerFactory workerFactory
+
+<div class="row">
+    <div class="col-5 col-xs-12">
+        <h1>.NET Worker Thread with IoC</h1>
+
+        This page demonstrates IoC / dependency injection.
+
+        <br /><br />
+        <button disabled=@RunDisabled @onclick=OnClick class="btn btn-primary">Run test</button><br /><br />
+        <button disabled="@canDisposeWorker" @onclick="OnDisposeWorker" class="btn btn-secondary">Dispose Worker</button><br />
+        <br />
+        <br />
+        <strong>Output:</strong>
+        <hr />
+<pre>
+@output
+</pre>
+    </div>
+    <div class="col-7 col-xs-12">
+        <GithubSource RelativePath="Pages/IoXExamplePage.razor" />
+    </div>
+</div>
+@code {
+
+    string output;
+    IWorker worker;
+    IWorkerBackgroundService<MyServiceStartup> startupService;
+    string canDisposeWorker => worker == null ? null : "disabled";
+    string RunDisabled => Running ? "disabled" : null;
+    bool Running = false;
+
+    public async Task OnClick(EventArgs _)
+    {
+        Running = true;
+        output = "";
+        var rn = Environment.NewLine;
+        try
+        {
+
+            if (worker == null)
+            {
+                worker = await workerFactory.CreateAsync();
+                worker.IncomingMessage += (s, message) =>
+                {
+                    output += $"{rn}{LogDate()} IncomingMessage: {message}";
+                    StateHasChanged();
+                };
+            }
+
+            var sw = new System.Diagnostics.Stopwatch();
+            if (startupService == null)
+            {
+                output = $"{rn}{LogDate()} Creating background service...";
+                StateHasChanged();
+
+                sw.Start();
+                startupService = await worker.CreateBackgroundServiceAsync<MyServiceStartup>(wo =>
+                    wo.AddConventionalAssemblyOfService()
+                      .AddAssemblyOf<Microsoft.Extensions.DependencyInjection.ServiceCollection>()
+                      .AddAssemblies("Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+                                     "System.Diagnostics.Tracing.dll")
+                    );
+
+                output += $"{rn}{LogDate()} Background service created in {sw.ElapsedMilliseconds}ms";
+                StateHasChanged();
+            }
+
+            output += $"{rn}{LogDate()} Resolving instance...";
+            var myIocService = await startupService.CreateBackgroundServiceAsync(startup => startup.Resolve<MyIocService>());
+            await myIocService.RegisterEventListenerAsync(nameof(MyIocService.FiveCalled),
+                (object s, int five) => {
+                    output += $"{rn}{LogDate()} OnFiveCalled: {five}";
+                    StateHasChanged(); });
+            output += $"{rn}{LogDate()} Five() = {await myIocService.RunAsync(s => s.Five())}";
+            StateHasChanged();
+
+        }
+        catch (Exception e)
+        {
+            output = $"{rn}Error = {e}";
+        }
+        finally
+        {
+            Running = false;
+        }
+    }
+
+    public async Task OnDisposeWorker()
+    {
+        await worker.DisposeAsync();
+        worker = null;
+        startupService = null;
+    }
+
+    private string LogDate()
+    {
+        return DateTime.Now.ToString("HH:mm:ss:fff");
+    }
+}

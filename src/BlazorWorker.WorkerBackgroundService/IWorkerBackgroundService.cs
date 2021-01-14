@@ -1,11 +1,12 @@
 ﻿using BlazorWorker.WorkerCore;
 using System;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace BlazorWorker.WorkerBackgroundService
 {
-    public interface IWorkerBackgroundService<T>: IAsyncDisposable where T : class
+    public interface IWorkerBackgroundService<T> : IAsyncDisposable where T : class
     {
         /// <summary>
         /// Registers an event listener to the specified event.
@@ -15,7 +16,7 @@ namespace BlazorWorker.WorkerBackgroundService
         /// <param name="myHandler"></param>
         /// <returns></returns>
         Task<EventHandle> RegisterEventListenerAsync<TResult>(string eventName, EventHandler<TResult> myHandler);
-
+ 
         /// <summary>
         /// Queues the specified work to run on the underlying worker and returns a <see cref="Task"/> object that represents that work.
         /// </summary>
@@ -56,5 +57,21 @@ namespace BlazorWorker.WorkerBackgroundService
         /// Unregisters the event corresponding to the specified <paramref name="handle"/>
         /// </summary>
         Task UnRegisterEventListenerAsync(EventHandle handle);
+    }
+
+    
+    public interface IWorkerBackgroundServiceFactory<T> : IAsyncDisposable where T : class
+    {
+        /// <summary>
+        /// Registers an event listener to the specified event on an instance specified by the given <paramref name="expression"/>
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="eventName"></param>
+        /// <param name="myHandler"></param>
+        /// <param name="expression"></param>
+        /// <returns></returns>
+        Task<EventHandle> RegisterEventListenerAsync<TResult>(string eventName, 
+            EventHandler<TResult> myHandler, Expression expression);
+
     }
 }

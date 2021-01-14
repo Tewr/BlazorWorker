@@ -12,11 +12,12 @@
   <ItemGroup Condition="'$(TargetFramework)'=='netstandard2.1'">
 	  <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="3.2.0" />
   </ItemGroup>
-  <PropertyGroup  Condition="'$(TargetFramework)'=='netstandard2.1'">
+  <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.1'">
     <RazorLangVersion>3.0</RazorLangVersion>
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\BlazorWorker.Demo.IoCExample\BlazorWorker.Demo.IoCExample.csproj" />
     <ProjectReference Include="..\Shared\BlazorWorker.Demo.Shared.csproj" />
   </ItemGroup>
   

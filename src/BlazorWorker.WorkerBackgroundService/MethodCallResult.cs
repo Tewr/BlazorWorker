@@ -15,12 +15,4 @@
 
         public long CallId { get; set; }
     }
-
-    public class InitInstanceParamsResult : MethodCallResult
-    {
-        public InitInstanceParamsResult()
-        {
-            MessageType = nameof(InitInstanceParamsResult);
-        }
-    }
 }
