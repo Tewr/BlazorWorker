@@ -8,12 +8,18 @@ using System.Threading.Tasks;
 
 namespace BlazorWorker.Demo.Shared
 {
+    public class PiProgress
+    {
+        public int Progress { get; set; }
+    }
+
+
     /// <summary>
     /// This service runs insinde the worker.
     /// </summary>
     public class MathsService
     {
-        public event EventHandler<int> Pi;
+        public event EventHandler<PiProgress> Pi;
 
         private IEnumerable<int> AlternatingSequence(int start = 0)
         {
@@ -45,7 +51,7 @@ namespace BlazorWorker.Demo.Shared
                     if (progressDelta > 3 || i >= sumLength - 1)
                     {
                         lastReport = i;
-                        Pi?.Invoke(this, i);
+                        Pi?.Invoke(this, new PiProgress() { Progress = i });
                     }
                     return x; })
                 .Sum(x => 1.0 / x));
@@ -64,7 +70,7 @@ namespace BlazorWorker.Demo.Shared
                     if (progressDelta > 3 || i >= sumLength - 1)
                     {
                         lastReport = i;
-                        Pi?.Invoke(this, i);
+                        Pi?.Invoke(this, new PiProgress() { Progress = i });
                     }
                     return x;
                 })

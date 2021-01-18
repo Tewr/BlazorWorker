@@ -220,7 +220,7 @@ namespace BlazorWorker.BackgroundServiceFactory
             this.eventRegister.Add(handle.Id, handle);
             var message = new RegisterEvent() {
                 EventName = eventName,
-                EventHandlerTypeArg = typeof(TResult).FullName,
+                EventHandlerTypeArg = typeof(TResult).AssemblyQualifiedName,
                 EventHandleId = handle.Id,
                 InstanceId = this.instanceId
             };

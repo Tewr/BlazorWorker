@@ -59,9 +59,9 @@
                 backgroundService = await worker.CreateBackgroundServiceAsync<MathsService>();
 
                 await backgroundService.RegisterEventListenerAsync(nameof(MathsService.Pi),
-                        (object s, int pinum) =>
+                        (object s, PiProgress eventInfo) =>
                         {
-                            piProgress = pinum;
+                            piProgress = eventInfo.Progress;
                             StateHasChanged();
                         });
                 sw.Stop();
