@@ -219,38 +219,9 @@ namespace BlazorWorker.BackgroundServiceFactory
             return await InvokeAsyncInternal<TResult>(function, new InvokeOptions { AwaitResult = true });
         }
 
-        public async Task<EventHandle> RegisterEventListenerAsync<TResult>(string eventName, EventHandler<TResult> myHandler) =>
-            await RegisterEventListenerAsync(eventName, myHandler, null);
-        
-
-        public async Task UnRegisterEventListenerAsync(EventHandle handle)
+        public async Task<EventHandle> RegisterEventListenerAsync<TResult>(string eventName, EventHandler<TResult> myHandler)
         {
-            if (handle is null)
-            {
-                throw new ArgumentNullException(nameof(handle));
-            }
-
-            var message = new UnRegisterEvent
-            {
-                EventHandleId = handle.Id
-            };
-            var serializedMessage = this.options.MessageSerializer.Serialize(message);
-            await this.worker.PostMessageAsync(serializedMessage);
-        }
-
-        public async Task<EventHandle> RegisterEventListenerAsync<TResult>(string eventName, EventHandler<TResult> myHandler, Expression instanceExpression)
-        {
-            Type typeExposingEvent;
-            if (instanceExpression is null)
-            {
-                typeExposingEvent = typeof(T);
-            }
-            else
-            {
-                typeExposingEvent = (instanceExpression as LambdaExpression)?.ReturnType;
-            }
-            
-            var eventSignature = typeExposingEvent.GetEvent(eventName ?? throw new ArgumentNullException(nameof(eventName)));
+            var eventSignature = typeof(T).GetEvent(eventName ?? throw new ArgumentNullException(nameof(eventName)));
             if (eventSignature == null)
             {
                 throw new ArgumentException($"Type '{typeExposingEvent.FullName}' does not expose any event named '{eventName}'");
@@ -270,19 +241,11 @@ namespace BlazorWorker.BackgroundServiceFactory
                 }
             };
 
-            string serializedInstanceExpression = null;
-            if (instanceExpression != null)
-            {
-                serializedInstanceExpression = 
-                    this.options.ExpressionSerializer.Serialize(instanceExpression);
-            }
-
             this.eventRegister.Add(handle.Id, handle);
             var message = new RegisterEvent()
             {
                 EventName = eventName,
-                InstanceExpression = serializedInstanceExpression,
-                EventHandlerTypeArg = typeof(TResult).FullName,
+                EventHandlerTypeArg = typeof(TResult).AssemblyQualifiedName,
                 EventHandleId = handle.Id,
                 InstanceId = this.instanceId
             };

@@ -120,35 +120,21 @@ namespace BlazorWorker.WorkerBackgroundService
 
         private void RegisterEvent(RegisterEvent registerEventMessage)
         {
-            object instance;
-            var topLevelInstance = simpleInstanceService.instances[registerEventMessage.InstanceId].Instance;
-            if (!string.IsNullOrEmpty(registerEventMessage.InstanceExpression))
+            var instance = simpleInstanceService.instances[registerEventMessage.InstanceId].Instance;
+            var instanceType = instance.GetType();
+            var eventSignature = instanceType.GetEvent(registerEventMessage.EventName);
+            if (eventSignature == null)
             {
-                var instanceExpressionMethod = this.options.ExpressionSerializer.Deserialize(registerEventMessage.InstanceExpression);
-                instance = (instanceExpressionMethod as LambdaExpression).Compile().DynamicInvoke(topLevelInstance, null);
-            }
-            else
-            {
-                instance = topLevelInstance;
+                throw new ArgumentException($"{nameof(RegisterEvent)}: Unable to load event '{registerEventMessage.EventName}' for type '{instanceType.Name}'");
             }
 
-            var eventSignature = instance.GetType().GetEvent(registerEventMessage.EventName);
-            var eventHandlerType = Type.GetType(registerEventMessage.EventHandlerTypeArg);
-
-            if (eventHandlerType is null)
+            var eventType = Type.GetType(registerEventMessage.EventHandlerTypeArg);
+            if (eventType == null)
             {
-                var errorMessage = $"Error in '{nameof(RegisterEvent)}': " +
-                    $"Unable to load type '{registerEventMessage.EventHandlerTypeArg}'. " +
-                    $"This error may be due to that the dll containing the type has not been " +
-                    $"provided in '{nameof(WorkerInitOptions)}'.'{nameof(WorkerInitOptions.DependentAssemblyFilenames)}'";
-
-                Console.Error.WriteLine(errorMessage);
-                throw new InvalidOperationException(errorMessage);
+                throw new ArgumentException($"{nameof(RegisterEvent)}: Unable to load type '{registerEventMessage.EventHandlerTypeArg}' for event '{registerEventMessage.EventName}'");
             }
-
-            // TODO: This can be cached.
-            var wrapperType = typeof(EventHandlerWrapper<>)
-                .MakeGenericType(eventHandlerType);
+            
+            var wrapperType = typeof(EventHandlerWrapper<>).MakeGenericType(eventType);
             
             var wrapper = (IEventWrapper)Activator.CreateInstance(wrapperType, this, registerEventMessage.InstanceId, registerEventMessage.EventHandleId);
 
