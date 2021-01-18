@@ -118,11 +118,20 @@ namespace BlazorWorker.WorkerBackgroundService
         private void RegisterEvent(RegisterEvent registerEventMessage)
         {
             var instance = simpleInstanceService.instances[registerEventMessage.InstanceId].Instance;
-            var eventSignature = instance.GetType().GetEvent(registerEventMessage.EventName);
+            var instanceType = instance.GetType();
+            var eventSignature = instanceType.GetEvent(registerEventMessage.EventName);
+            if (eventSignature == null)
+            {
+                throw new ArgumentException($"{nameof(RegisterEvent)}: Unable to load event '{registerEventMessage.EventName}' for type '{registerEventMessage.EventName}'");
+            }
 
-            // TODO: This can be cached.
-            var wrapperType = typeof(EventHandlerWrapper<>)
-                .MakeGenericType(Type.GetType(registerEventMessage.EventHandlerTypeArg));
+            var eventType = Type.GetType(registerEventMessage.EventHandlerTypeArg);
+            if (eventType == null)
+            {
+                throw new ArgumentException($"{nameof(RegisterEvent)}: Unable to load type '{registerEventMessage.EventHandlerTypeArg}' for event '{registerEventMessage.EventName}'");
+            }
+            
+            var wrapperType = typeof(EventHandlerWrapper<>).MakeGenericType(eventType);
             
             var wrapper = (IEventWrapper)Activator.CreateInstance(wrapperType, this, registerEventMessage.InstanceId, registerEventMessage.EventHandleId);
             var delegateMethod = Delegate.CreateDelegate(eventSignature.EventHandlerType, wrapper, nameof(EventHandlerWrapper<object>.OnEvent)); 
