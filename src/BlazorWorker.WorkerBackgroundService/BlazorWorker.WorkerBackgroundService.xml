@@ -54,15 +54,5 @@
             Unregisters the event corresponding to the specified <paramref name="handle"/>
             </summary>
         </member>
-        <member name="M:BlazorWorker.WorkerBackgroundService.IWorkerBackgroundServiceFactory`1.RegisterEventListenerAsync``1(System.String,System.EventHandler{``0},System.Linq.Expressions.Expression)">
-            <summary>
-            Registers an event listener to the specified event on an instance specified by the given <paramref name="expression"/>
-            </summary>
-            <typeparam name="TResult"></typeparam>
-            <param name="eventName"></param>
-            <param name="myHandler"></param>
-            <param name="expression"></param>
-            <returns></returns>
-        </member>
     </members>
 </doc>

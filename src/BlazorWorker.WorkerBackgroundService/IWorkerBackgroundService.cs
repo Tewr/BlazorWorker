@@ -58,20 +58,4 @@ namespace BlazorWorker.WorkerBackgroundService
         /// </summary>
         Task UnRegisterEventListenerAsync(EventHandle handle);
     }
-
-    
-    public interface IWorkerBackgroundServiceFactory<T> : IAsyncDisposable where T : class
-    {
-        /// <summary>
-        /// Registers an event listener to the specified event on an instance specified by the given <paramref name="expression"/>
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="eventName"></param>
-        /// <param name="myHandler"></param>
-        /// <param name="expression"></param>
-        /// <returns></returns>
-        Task<EventHandle> RegisterEventListenerAsync<TResult>(string eventName, 
-            EventHandler<TResult> myHandler, Expression expression);
-
-    }
 }

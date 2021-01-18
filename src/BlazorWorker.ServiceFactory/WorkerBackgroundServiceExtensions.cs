@@ -76,9 +76,10 @@ namespace BlazorWorker.BackgroundServiceFactory
             var factoryProxy = new WorkerBackgroundServiceProxy<TFactory>(webWorkerProxy, new WebWorkerOptions());
             await factoryProxy.InitAsync(workerInitOptions);
 
-            var serviceProxy = new FactoryBackgroundServiceBridge<TFactory, TService>(factoryProxy, factoryExpression);
-            serviceProxy.Disposables.Add(factoryProxy);
-            return serviceProxy;
+            var newProxy = await factoryProxy.InitFromFactoryAsync(factoryExpression);
+            newProxy.Disposables.Add(factoryProxy);
+
+            return newProxy;
         }
 
         /// <summary>
@@ -86,18 +87,18 @@ namespace BlazorWorker.BackgroundServiceFactory
         /// </summary>
         /// <typeparam name="TFactory"></typeparam>
         /// <typeparam name="TService"></typeparam>
-        /// <param name="webWorkerProxy"></param>
+        /// <param name="webWorkerService"></param>
         /// <param name="factoryExpression"></param>
         /// <returns></returns>
         public static async Task<IWorkerBackgroundService<TService>> CreateBackgroundServiceAsync<TFactory, TService>(
-            this IWorkerBackgroundService<TFactory> webWorkerProxy,
+            this IWorkerBackgroundService<TFactory> webWorkerService,
             Expression<Func<TFactory, TService>> factoryExpression)
             where TFactory : class
             where TService : class
         {
-            if (webWorkerProxy is null)
+            if (webWorkerService is null)
             {
-                throw new ArgumentNullException(nameof(webWorkerProxy));
+                throw new ArgumentNullException(nameof(webWorkerService));
             }
 
             if (factoryExpression is null)
@@ -105,8 +106,13 @@ namespace BlazorWorker.BackgroundServiceFactory
                 throw new ArgumentNullException(nameof(factoryExpression));
             }
 
-            var serviceProxy = new FactoryBackgroundServiceBridge<TFactory, TService>(webWorkerProxy, factoryExpression);
-            return serviceProxy;
+            var webWorkerProxy = webWorkerService as WorkerBackgroundServiceProxy<TFactory>;
+            if (webWorkerProxy is null)
+            {
+                throw new ArgumentException($"{nameof(webWorkerService)} must be of type {nameof(WorkerBackgroundServiceProxy<TFactory>)}", nameof(webWorkerProxy));
+            }
+
+            return await webWorkerProxy.InitFromFactoryAsync(factoryExpression);
         }
     }
 }

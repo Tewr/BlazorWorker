@@ -21,7 +21,7 @@
             </summary>
             <typeparam name="TFactory"></typeparam>
             <typeparam name="TService"></typeparam>
-            <param name="webWorkerProxy"></param>
+            <param name="webWorkerService"></param>
             <param name="factoryExpression"></param>
             <returns></returns>
         </member>

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace BlazorWorker.BackgroundServiceFactory
 {
-    internal class WorkerBackgroundServiceProxy<T> : IWorkerBackgroundService<T>, IWorkerBackgroundServiceFactory<T> where T : class
+    internal class WorkerBackgroundServiceProxy<T> : IWorkerBackgroundService<T> where T : class
     {
         private readonly IWorker worker;
         private readonly WebWorkerOptions options;
@@ -35,6 +35,8 @@ namespace BlazorWorker.BackgroundServiceFactory
 
         public bool IsInitialized { get; private set; }
         public bool IsDisposed { get; private set; }
+
+        public List<IAsyncDisposable> Disposables { get; } = new List<IAsyncDisposable>();
 
         static WorkerBackgroundServiceProxy()
         {
@@ -138,6 +140,43 @@ namespace BlazorWorker.BackgroundServiceFactory
             await initTask.Task;
         }
 
+        public async Task<WorkerBackgroundServiceProxy<TService>> InitFromFactoryAsync<TService>(Expression<Func<T,TService>> expression) where TService:class
+        {
+            if (!this.IsInitialized)
+            {
+                throw new InvalidOperationException($"{nameof(InitFromFactoryAsync)}: Proxy must be initialized.");
+            }
+
+            if (!this.worker.IsInitialized)
+            {
+                throw new InvalidOperationException($"{nameof(InitFromFactoryAsync)}: Worker must be initialized.");
+            }
+
+            var callId = ++initFromFactoryIdSource;
+            var initInstanceTaskSource = new TaskCompletionSource<InitInstanceFromFactoryComplete>();
+            this.initFromFactoryRegister.Add(callId, initInstanceTaskSource);
+
+            var newProxy = new WorkerBackgroundServiceProxy<TService>(this.worker, this.options);
+            
+            var serializedExpression = this.options.ExpressionSerializer.Serialize(expression);
+
+            var message = this.options.MessageSerializer.Serialize(
+                    new InitInstanceFromFactory
+                    {
+                        WorkerId = this.worker.Identifier,
+                        InstanceId = newProxy.instanceId,
+                        CallId = callId,
+                        FactoryInstanceId = instanceId,
+                        SerializedFactoryExpression = serializedExpression
+                    });
+
+            await this.worker.PostMessageAsync(message);
+            await initInstanceTaskSource.Task;
+            newProxy.IsInitialized = true;
+
+            return newProxy;
+        }
+
         private void OnMessage(object sender, string rawMessage)
         {
             this.messageHandlerRegistry.HandleMessage(rawMessage);
@@ -221,7 +260,8 @@ namespace BlazorWorker.BackgroundServiceFactory
 
         public async Task<EventHandle> RegisterEventListenerAsync<TResult>(string eventName, EventHandler<TResult> myHandler)
         {
-            var eventSignature = typeof(T).GetEvent(eventName ?? throw new ArgumentNullException(nameof(eventName)));
+            var typeExposingEvent = typeof(T);
+            var eventSignature = typeExposingEvent.GetEvent(eventName ?? throw new ArgumentNullException(nameof(eventName)));
             if (eventSignature == null)
             {
                 throw new ArgumentException($"Type '{typeExposingEvent.FullName}' does not expose any event named '{eventName}'");
@@ -257,6 +297,20 @@ namespace BlazorWorker.BackgroundServiceFactory
             return handle;
         }
 
+        public async Task UnRegisterEventListenerAsync(EventHandle handle)
+        {
+            if (handle is null)
+            {
+                throw new ArgumentNullException(nameof(handle));
+            }
+
+            var message = new UnRegisterEvent
+            {
+                EventHandleId = handle.Id
+            };
+            var serializedMessage = this.options.MessageSerializer.Serialize(message);
+            await this.worker.PostMessageAsync(serializedMessage);
+        }
 
         private Task<TResult> InvokeAsyncInternal<TResult>(Expression action)
         {
@@ -298,40 +352,6 @@ namespace BlazorWorker.BackgroundServiceFactory
             return this.options.MessageSerializer.Deserialize<TResult>(returnMessage.ResultPayload);
         }
 
-        public async Task<TResult> InitFromFactory<TResult>(Expression factoryExpression)
-        {
-            // If Blazor ever gets multithreaded this would need to be locked for race conditions
-            // However, when/if that happens, most of this project is obsolete anyway
-            var id = ++initFromFactoryIdSource;
-            var taskCompletionSource = new TaskCompletionSource<InitInstanceFromFactoryComplete>();
-            this.initFromFactoryRegister.Add(id, taskCompletionSource);
-
-            var expression = this.options.ExpressionSerializer.Serialize(factoryExpression);
-            var methodCallParams = new InitInstanceFromFactory
-            {
-                WorkerId = this.worker.Identifier,
-                FactoryInstanceId = instanceId,
-                InstanceId = ++idSource,
-                CallId = id
-            };
-
-            var methodCall = this.options.MessageSerializer.Serialize(methodCallParams);
-
-            await this.worker.PostMessageAsync(methodCall);
-
-            var returnMessage = await taskCompletionSource.Task;
-            if (returnMessage.IsException)
-            {
-                throw new AggregateException($"Worker exception: {returnMessage.Exception.Message}", returnMessage.Exception);
-            }
-            if (string.IsNullOrEmpty(returnMessage.ResultPayload))
-            {
-                return default;
-            }
-
-            return this.options.MessageSerializer.Deserialize<TResult>(returnMessage.ResultPayload);
-        }
-
         public async ValueTask DisposeAsync()
         {
             if (this.disposeTask != null)
@@ -355,6 +375,11 @@ namespace BlazorWorker.BackgroundServiceFactory
             await this.worker.PostMessageAsync(message);
 
             await disposeTask.Task;
+
+            foreach (var item in this.Disposables)
+            {
+                await item.DisposeAsync();
+            }
         }
 
         private class InvokeOptions
