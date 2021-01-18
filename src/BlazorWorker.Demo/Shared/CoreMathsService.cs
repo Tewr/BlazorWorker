@@ -20,7 +20,7 @@ namespace BlazorWorker.Demo.Shared
             this.messageService = messageService;
             this.messageService.IncomingMessage += OnMessage;
             mathsService = new MathsService();
-            mathsService.Pi += (s, progress) => messageService.PostMessageAsync($"{EventsPi}:{progress}");
+            mathsService.Pi += (s, progress) => messageService.PostMessageAsync($"{EventsPi}:{progress.Progress}");
         }
 
         private void OnMessage(object sender, string message)
