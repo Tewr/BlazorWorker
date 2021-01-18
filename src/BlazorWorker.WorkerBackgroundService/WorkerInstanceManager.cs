@@ -122,7 +122,7 @@ namespace BlazorWorker.WorkerBackgroundService
             var eventSignature = instanceType.GetEvent(registerEventMessage.EventName);
             if (eventSignature == null)
             {
-                throw new ArgumentException($"{nameof(RegisterEvent)}: Unable to load event '{registerEventMessage.EventName}' for type '{registerEventMessage.EventName}'");
+                throw new ArgumentException($"{nameof(RegisterEvent)}: Unable to load event '{registerEventMessage.EventName}' for type '{instanceType.Name}'");
             }
 
             var eventType = Type.GetType(registerEventMessage.EventHandlerTypeArg);
