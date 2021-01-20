@@ -25,5 +25,10 @@
             <param name="factoryExpression"></param>
             <returns></returns>
         </member>
+        <member name="P:BlazorWorker.BackgroundServiceFactory.WorkerBackgroundServiceProxy`1.Disposables">
+            <summary>
+            Attached objects, notably parent worker proxy which may have been created without user being able to dispose
+            </summary>
+        </member>
     </members>
 </doc>

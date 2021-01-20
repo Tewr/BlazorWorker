@@ -185,16 +185,13 @@ namespace BlazorWorker.WorkerBackgroundService
             }
             catch (Exception e)
             {
-                PostObject(new InitInstanceFromFactoryComplete()
+                PostObject(new InitInstanceFromFactoryComplete
                 {
                     CallId = createInstanceFromFactory.CallId,
                     IsSuccess = false,
                     Exception = e
                 });
             }
-
-
-            
         }
 
         public void DisposeInstance(DisposeInstance dispose)

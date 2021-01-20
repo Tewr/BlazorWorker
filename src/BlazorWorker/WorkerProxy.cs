@@ -13,8 +13,9 @@ namespace BlazorWorker.Core
         private bool isDisposed = false;
         private static readonly string messageMethod;
 
+
         public event EventHandler<string> IncomingMessage;
-        public bool IsInitialized { get; private set; }
+        public bool IsInitialized { get; set; }
         static WorkerProxy()
         {
             var messageServiceType = typeof(MessageService);

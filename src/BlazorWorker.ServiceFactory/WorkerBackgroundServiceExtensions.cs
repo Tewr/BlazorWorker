@@ -106,8 +106,7 @@ namespace BlazorWorker.BackgroundServiceFactory
                 throw new ArgumentNullException(nameof(factoryExpression));
             }
 
-            var webWorkerProxy = webWorkerService as WorkerBackgroundServiceProxy<TFactory>;
-            if (webWorkerProxy is null)
+            if (!(webWorkerService is WorkerBackgroundServiceProxy<TFactory> webWorkerProxy))
             {
                 throw new ArgumentException($"{nameof(webWorkerService)} must be of type {nameof(WorkerBackgroundServiceProxy<TFactory>)}", nameof(webWorkerProxy));
             }

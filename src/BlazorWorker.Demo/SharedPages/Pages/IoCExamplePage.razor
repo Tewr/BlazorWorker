@@ -19,12 +19,12 @@
 </pre>
     </div>
     <div class="col-7 col-xs-12">
-        <GithubSource RelativePath="Pages/IoXExamplePage.razor" />
+        <GithubSource RelativePath="Pages/IoCExamplePage.razor" />
     </div>
 </div>
 @code {
 
-    string output;
+    string output = "";
     IWorker worker;
     IWorkerBackgroundService<MyServiceStartup> startupService;
     string canDisposeWorker => worker == null ? null : "disabled";
@@ -34,7 +34,7 @@
     public async Task OnClick(EventArgs _)
     {
         Running = true;
-        output = "";
+        //output = "";
         var rn = Environment.NewLine;
         try
         {
@@ -69,17 +69,24 @@
 
             output += $"{rn}{LogDate()} Resolving instance...";
             var myIocService = await startupService.CreateBackgroundServiceAsync(startup => startup.Resolve<MyIocService>());
-            await myIocService.RegisterEventListenerAsync(nameof(MyIocService.FiveCalled),
-                (object s, int five) => {
-                    output += $"{rn}{LogDate()} OnFiveCalled: {five}";
-                    StateHasChanged(); });
-            output += $"{rn}{LogDate()} Five() = {await myIocService.RunAsync(s => s.Five())}";
+            await using (myIocService)
+            {
+                await myIocService.RegisterEventListenerAsync(nameof(MyIocService.FiveCalled),
+                    (object s, int five) =>
+                    {
+                        output += $"{rn}{LogDate()} OnFiveCalled: {five}";
+                        StateHasChanged();
+                    });
+                output += $"{rn}{LogDate()} Calling Five()...";
+                output += $"{rn}{LogDate()} Five() = {await myIocService.RunAsync(s => s.Five())}";
+            }
+
             StateHasChanged();
 
         }
         catch (Exception e)
         {
-            output = $"{rn}Error = {e}";
+            output += $"{rn}Error = {e}";
         }
         finally
         {
