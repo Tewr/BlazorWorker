@@ -3,7 +3,6 @@ using BlazorWorker.WorkerBackgroundService;
 using BlazorWorker.WorkerCore;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
@@ -38,7 +37,7 @@ namespace BlazorWorker.BackgroundServiceFactory
         private bool disposing;
 
         /// <summary>
-        /// Attached objects, notably parent worker proxy which may have been created without user being able to dispose
+        /// Attached objects, notably parent worker proxy which may have been created without consumer being directly able to dispose
         /// </summary>
         public List<IAsyncDisposable> Disposables { get; } = new List<IAsyncDisposable>();
 
@@ -116,12 +115,17 @@ namespace BlazorWorker.BackgroundServiceFactory
                 }.MergeWith(workerInitOptions));
 
                 this.worker.IncomingMessage += OnMessage;
-                
+
                 await initWorkerTask.Task;
                 if (this.worker is WorkerProxy proxy) { 
                     proxy.IsInitialized = true; 
                 }
             }
+            else
+            {
+                this.worker.IncomingMessage += OnMessage;
+            }
+            
 
             var (callId, initTask) = this.initTask.CreateAndAdd();
 
