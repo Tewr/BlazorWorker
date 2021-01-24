@@ -32,6 +32,10 @@ namespace BlazorWorker.Core.SimpleInstanceService
                 {
                     initWorker = new TaskCompletionSource<InitServiceResult>();
                     await this.worker.InitAsync(options);
+                    if (this.worker is WorkerProxy proxy)
+                    {
+                        proxy.IsInitialized = true;
+                    }
                     await this.initWorker.Task;
                 }
 

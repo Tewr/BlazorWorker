@@ -1,6 +1,4 @@
-﻿using Serialize.Linq.Nodes;
-
-namespace BlazorWorker.WorkerBackgroundService
+﻿namespace BlazorWorker.WorkerBackgroundService
 {
     public class MethodCallParams : BaseMessage
     {

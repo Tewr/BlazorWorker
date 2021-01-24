@@ -1,11 +1,12 @@
 ﻿using BlazorWorker.WorkerCore;
 using System;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace BlazorWorker.WorkerBackgroundService
 {
-    public interface IWorkerBackgroundService<T>: IAsyncDisposable where T : class
+    public interface IWorkerBackgroundService<T> : IAsyncDisposable where T : class
     {
         /// <summary>
         /// Registers an event listener to the specified event.
@@ -15,7 +16,7 @@ namespace BlazorWorker.WorkerBackgroundService
         /// <param name="myHandler"></param>
         /// <returns></returns>
         Task<EventHandle> RegisterEventListenerAsync<TResult>(string eventName, EventHandler<TResult> myHandler);
-
+ 
         /// <summary>
         /// Queues the specified work to run on the underlying worker and returns a <see cref="Task"/> object that represents that work.
         /// </summary>

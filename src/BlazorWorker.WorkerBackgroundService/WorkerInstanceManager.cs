@@ -1,8 +1,10 @@
-﻿using BlazorWorker.WorkerCore;
+﻿using BlazorWorker.Core;
+using BlazorWorker.WorkerCore;
 using BlazorWorker.WorkerCore.SimpleInstanceService;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace BlazorWorker.WorkerBackgroundService
@@ -26,6 +28,7 @@ namespace BlazorWorker.WorkerBackgroundService
 
             this.messageHandlerRegistry = new MessageHandlerRegistry(this.serializer);
             this.messageHandlerRegistry.Add<InitInstance>(InitInstance);
+            this.messageHandlerRegistry.Add<InitInstanceFromFactory>(InitInstanceFromFactory);
             this.messageHandlerRegistry.Add<DisposeInstance>(DisposeInstance);
             this.messageHandlerRegistry.Add<MethodCallParams>(HandleMethodCall);
             this.messageHandlerRegistry.Add<RegisterEvent>(RegisterEvent);
@@ -134,6 +137,7 @@ namespace BlazorWorker.WorkerBackgroundService
             var wrapperType = typeof(EventHandlerWrapper<>).MakeGenericType(eventType);
             
             var wrapper = (IEventWrapper)Activator.CreateInstance(wrapperType, this, registerEventMessage.InstanceId, registerEventMessage.EventHandleId);
+
             var delegateMethod = Delegate.CreateDelegate(eventSignature.EventHandlerType, wrapper, nameof(EventHandlerWrapper<object>.OnEvent)); 
             eventSignature.AddEventHandler(instance, delegateMethod);
             wrapper.Unregister = () => eventSignature.RemoveEventHandler(instance, delegateMethod);
@@ -155,6 +159,39 @@ namespace BlazorWorker.WorkerBackgroundService
                 IsSuccess = initResult.IsSuccess, 
                 Exception = initResult.Exception,
             });
+        }
+
+        public void InitInstanceFromFactory(InitInstanceFromFactory createInstanceFromFactory)
+        {
+            try
+            {
+                if (!simpleInstanceService.instances.TryGetValue(createInstanceFromFactory.FactoryInstanceId, out var factory))
+                {
+                    throw new ArgumentException($"Unknown {nameof(createInstanceFromFactory.FactoryInstanceId)} {createInstanceFromFactory.FactoryInstanceId}");
+                }
+
+                var expression = this.options.ExpressionSerializer.Deserialize(createInstanceFromFactory.SerializedFactoryExpression);
+
+                var child = (expression as LambdaExpression).Compile().DynamicInvoke(factory.Instance);
+                var instanceWrapper = new InstanceWrapper { Instance = child };
+
+                simpleInstanceService.instances[createInstanceFromFactory.InstanceId] = instanceWrapper;
+
+                PostObject(new InitInstanceFromFactoryComplete
+                {
+                    CallId = createInstanceFromFactory.CallId,
+                    IsSuccess = true
+                });
+            }
+            catch (Exception e)
+            {
+                PostObject(new InitInstanceFromFactoryComplete
+                {
+                    CallId = createInstanceFromFactory.CallId,
+                    IsSuccess = false,
+                    Exception = e
+                });
+            }
         }
 
         public void DisposeInstance(DisposeInstance dispose)

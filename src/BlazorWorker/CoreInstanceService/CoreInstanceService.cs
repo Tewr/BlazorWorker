@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using BlazorWorker.Core.SimpleInstanceService;
 using BlazorWorker.WorkerCore.SimpleInstanceService;
 
-
 namespace BlazorWorker.Core.CoreInstanceService
 {
     using TargetType = BlazorWorker.WorkerCore.SimpleInstanceService.SimpleInstanceService;
