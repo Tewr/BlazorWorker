@@ -72,14 +72,11 @@ namespace BlazorWorker.BackgroundServiceFactory
             {
                 workerInitOptionsModifier(workerInitOptions);
             }
-            Console.WriteLine("ioc: creating mother");
             var factoryProxy = new WorkerBackgroundServiceProxy<TFactory>(webWorkerProxy, new WebWorkerOptions());
             await factoryProxy.InitAsync(workerInitOptions);
-            Console.WriteLine("ioc: mother created! creating child...");
 
             var newProxy = await factoryProxy.InitFromFactoryAsync(factoryExpression);
             newProxy.Disposables.Add(factoryProxy);
-            Console.WriteLine("ioc: child created!");
             return newProxy;
         }
 

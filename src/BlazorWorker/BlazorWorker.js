@@ -12,6 +12,9 @@
 
     const workerDef = function () {
         const initConf = JSON.parse('$initConf$');
+        const nonExistingDlls = [];
+        let blazorBootManifest = {
+            resources: { assembly: { "AssemblyName.dll": "sha256-<sha256>"}}};
         const onReady = () => {
             const messageHandler =
                 Module.mono_bind_static_method(initConf.MessageEndPoint);
@@ -94,10 +97,18 @@
 
             MONO.loaded_files = [];
             var baseUrl = `${initConf.appRoot}/${initConf.deploy_prefix}`;
+            
             initConf.DependentAssemblyFilenames.forEach(url => {
-                
+
+                if (!blazorBootManifest.resources.assembly.hasOwnProperty(url)) {
+                    //Do not attempt to load a dll which is not present anyway
+                    nonExistingDlls.push(url);
+                    return;
+                }
+
                 const runDependencyId = `blazor:${url}`;
                 addRunDependency(runDependencyId);
+
                 asyncLoad(baseUrl+'/'+ url).then(
                     data => {
                         const heapAddress = Module._malloc(data.length);
@@ -126,6 +137,9 @@
             load_runtime(appBinDirName, 0);
             MONO.mono_wasm_runtime_is_ready = true;
             onReady();
+            if (initConf.debug && nonExistingDlls.length > 0) {
+                console.warn(`BlazorWorker: Module.postRun: ${nonExistingDlls.length} assemblies was specified as a dependency for the worker but was not present in the bootloader. This may be normal if trimmming is used. To remove this warning, either configure the linker not to trim the specified assemblies if they were removed in error, or conditionally remove the specified dependencies for builds that uses trimming. If trimming is not used, make sure that the assembly is included in the build.`, nonExistingDlls);
+            }
         });
 
         config.file_list = [];
@@ -137,6 +151,7 @@
         // (PWA et al) do this already if configured ?
         asyncLoad(`${initConf.appRoot}/${initConf.blazorBoot}`, 'json')
             .then(blazorboot => {
+                blazorBootManifest = blazorboot;
                 let dotnetjsfilename = '';
                 const runttimeSection = blazorboot.resources.runtime;
                 for (var p in runttimeSection) {
