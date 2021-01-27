@@ -17,9 +17,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="WorkerBackgroundServiceProxy.DependentAssemblyFilenames.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="icon.png" Pack="true" Visible="false" PackagePath="" />
   </ItemGroup>
 
