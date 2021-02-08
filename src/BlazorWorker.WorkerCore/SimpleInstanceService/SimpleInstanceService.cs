@@ -143,7 +143,7 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
             }   
         }
 
-        private class ServiceCollection : Dictionary<string, Func<object>>
+        private class SimpleServiceCollection : Dictionary<string, Func<object>>
         {
 
             public void Add<T>(Func<T> factory)
@@ -169,7 +169,7 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
 
         private static InitInstanceResult InitInstance(long callId, string typeName, string assemblyName, Func<IWorkerMessageService> workerMessageServiceFactory)
         {
-            var services = new ServiceCollection
+            var services = new SimpleServiceCollection
             {
                 { HttpClientFullName, HttpClientFactory },
                 workerMessageServiceFactory

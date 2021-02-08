@@ -59,6 +59,11 @@
             If set to true, deducts the name of the assembly containing the service using the service type assembly name + dll extension as file name, and adds it as a dependency.
             </summary>
         </member>
+        <member name="P:BlazorWorker.Core.WorkerInitOptions.SelfInvokeCallBackEndpoint">
+            <summary>
+            Mono-wasm-annotated endpoint for doing callbacks on self invocations from the worker. Experts only.
+            </summary>
+        </member>
         <member name="T:BlazorWorker.Core.WorkerInitOptionsExtensions">
             <summary>
             Contains convenience extensions for <see cref="T:BlazorWorker.Core.WorkerInitOptions"/>

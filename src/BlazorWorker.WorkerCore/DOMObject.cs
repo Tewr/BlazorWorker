@@ -6,7 +6,8 @@ namespace BlazorWorker.WorkerCore
     // Serves as a wrapper around a JSObject.
     class DOMObject : IDisposable
     {
-        
+        public static DOMObject Self { get; } = new DOMObject("self");
+
         public JSObject ManagedJSObject { get; private set; }
 
         public DOMObject(JSObject jsobject)

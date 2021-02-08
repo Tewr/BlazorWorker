@@ -167,6 +167,51 @@
                 self.importScripts(`${initConf.appRoot}/${initConf.wasmRoot}/${dotnetjsfilename}`);
             
             }, errorInfo => onError(errorInfo));
+
+
+        const selfInvokeAsyncCallBack =
+            Module.mono_bind_static_method(initConf.selfInvokeCallBackEndpoint);
+        // Invoke without serialization
+        self.selfInvokeAsync = async function (argsArray) {
+
+            const [invokeId, method, ...methodArgs] = argsArray;
+
+            if (!Object.hasOwnProperty.call(self, method)) {
+                const error = `selfInvokeAsync: Method ${method} not defined`
+                console.error(error);
+                throw error;
+            }
+
+            let result;
+            let isError = false;
+            try {
+                result = await self[method](methodArgs);
+            }
+            catch (e) {
+                result = JSON.stringify({ error: e, trace: console.trace() });
+                isError = true;
+            }
+            
+            try {
+                selfInvokeAsyncCallBack(invokeId, isError, result);
+            } catch (e) {
+                console.error(`BlazorWorker: Callback to ${initConf.selfInvokeAsyncCallBackEndpoint} failed`, e);
+                throw e;
+            }
+        };
+
+        // Invoke with json serialization
+        self.selfInvokeJsonAsync = async function (argsArray) {
+            const [method, ...methodArgs] = argsArray;
+            if (!Object.hasOwnProperty.call(self, method)) {
+                const error = `BlazorWorker: selfInvokeJsonAsync: Method ${method} not defined`
+                console.error(error);
+                throw error;
+            }
+
+            const result = await self[method](methodArgs.map(arg => JSON.parse(arg)));
+            return JSON.stringify(result);
+        };
     };
 
     const inlineWorker = `self.onmessage = ${workerDef}()`; 
@@ -183,13 +228,14 @@
             deploy_prefix: initOptions.deployPrefix,
             MessageEndPoint: initOptions.messageEndPoint,
             InitEndPoint: initOptions.initEndPoint,
+            selfInvokeCallBackEndpoint: initOptions.selfInvokeCallBackEndpoint,
             wasmRoot: initOptions.wasmRoot,
             blazorBoot: "_framework/blazor.boot.json",
             debug: initOptions.debug
         };
 
         // Initialize worker
-        const renderedConfig = JSON.stringify(initConf).replace('$appRoot$', appRoot);
+        const renderedConfig = JSON.stringify(initConf);
         const renderedInlineWorker = inlineWorker.replace('$initConf$', renderedConfig);
         window.URL = window.URL || window.webkitURL;
         const blob = new Blob([renderedInlineWorker], { type: 'application/javascript' });
@@ -207,6 +253,8 @@
     const postMessage = function (workerId, message) {
         workers[workerId].postMessage(message);
     };
+
+
 
     return {
         disposeWorker,

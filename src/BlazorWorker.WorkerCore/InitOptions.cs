@@ -69,6 +69,11 @@ namespace BlazorWorker.Core
         /// </summary>
         public bool UseConventionalServiceAssembly { get; set; }
 
+        /// <summary>
+        /// Mono-wasm-annotated endpoint for doing callbacks on self invocations from the worker. Experts only.
+        /// </summary>
+        public string SelfInvokeCallBackEndpoint { get; set; }
+
         public WorkerInitOptions MergeWith(WorkerInitOptions initOptions)
         {
 

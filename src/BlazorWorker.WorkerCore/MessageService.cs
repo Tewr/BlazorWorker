@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace BlazorWorker.WorkerCore
 {
@@ -7,7 +9,7 @@ namespace BlazorWorker.WorkerCore
     /// </summary>
     public class MessageService
     {
-        private static readonly DOMObject self = new DOMObject("self");
+        private static readonly DOMObject self = DOMObject.Self;
 
         public static event EventHandler<string> Message;
 
@@ -28,9 +30,5 @@ namespace BlazorWorker.WorkerCore
             self.Invoke("postMessage", message);
         }
 
-        public static void Dispose()
-        {
-            self.Dispose();
-        }
     }
 }
