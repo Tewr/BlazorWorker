@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BlazorWorker.Extensions.JSRuntime
+﻿namespace BlazorWorker.Extensions.JSRuntime
 {
     internal class DefaultBlazorWorkerJSRuntimeSerializer : IBlazorWorkerJSRuntimeSerializer
     {

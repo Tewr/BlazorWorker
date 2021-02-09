@@ -15,16 +15,19 @@ namespace BlazorWorker.WorkerBackgroundService
         private readonly ConcurrentDictionary<long, IEventWrapper> events =
              new ConcurrentDictionary<long, IEventWrapper>();
 
+        private static readonly MessageHandlerRegistry<WorkerInstanceManager> messageHandlerRegistry
+            = new MessageHandlerRegistry<WorkerInstanceManager>(wim => wim.serializer);
+
         public static readonly WorkerInstanceManager Instance = new WorkerInstanceManager();
+
         internal readonly ISerializer serializer;
         private readonly WebWorkerOptions options;
-        private static readonly MessageHandlerRegistry<WorkerInstanceManager> messageHandlerRegistry;
+        
         private readonly MessageHandler<WorkerInstanceManager> messageHandler;
         private readonly SimpleInstanceService simpleInstanceService;
 
         static WorkerInstanceManager()
         {
-            messageHandlerRegistry = new MessageHandlerRegistry<WorkerInstanceManager>(wim => wim.serializer);
             messageHandlerRegistry.Add<InitInstance>(wim => wim.InitInstance);
             messageHandlerRegistry.Add<InitInstanceFromFactory>(wim => wim.InitInstanceFromFactory);
             messageHandlerRegistry.Add<DisposeInstance>(wim => wim.DisposeInstance);

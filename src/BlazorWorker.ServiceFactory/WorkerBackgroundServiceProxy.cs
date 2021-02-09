@@ -50,7 +50,7 @@ namespace BlazorWorker.BackgroundServiceFactory
             var wim = typeof(WorkerInstanceManager);
             InitEndPoint = $"[{wim.Assembly.GetName().Name}]{wim.FullName}:{nameof(WorkerInstanceManager.Init)}";
             messageHandlerRegistry = new MessageHandlerRegistry<WorkerBackgroundServiceProxy<T>>(p => p.options.MessageSerializer);
-            messageHandlerRegistry.Add(p => (Action<InitInstanceComplete>)p.OnInitInstanceComplete);
+            messageHandlerRegistry.Add<InitInstanceComplete>(p => p.OnInitInstanceComplete);
             messageHandlerRegistry.Add<InitInstanceFromFactoryComplete>(p => p.OnInitInstanceFromFactoryComplete);
             messageHandlerRegistry.Add<InitWorkerComplete>(p => p.OnInitWorkerComplete);
             messageHandlerRegistry.Add<DisposeInstanceComplete>(p => p.OnDisposeInstanceComplete);
@@ -214,7 +214,7 @@ namespace BlazorWorker.BackgroundServiceFactory
                 return;
             }
 
-            if (!this.eventRegister.TryRemove(message.EventHandleId, out var eventHandle))
+            if (!this.eventRegister.TryGetValue(message.EventHandleId, out var eventHandle))
             {
 #if DEBUG
                 Console.WriteLine($"{nameof(WorkerBackgroundServiceProxy<T>)}: {nameof(EventRaised)}: Unknown event id {message.EventHandleId}");

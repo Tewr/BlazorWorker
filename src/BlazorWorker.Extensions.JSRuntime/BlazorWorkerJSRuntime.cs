@@ -15,7 +15,8 @@ namespace BlazorWorker.Extensions.JSRuntime
             this.serializer = serializer;
         }
 
-        public BlazorWorkerJSRuntime(): this(new DefaultBlazorWorkerJSRuntimeSerializer())
+        public BlazorWorkerJSRuntime(): 
+            this(new DefaultBlazorWorkerJSRuntimeSerializer())
         {
         }
 
@@ -27,11 +28,6 @@ namespace BlazorWorker.Extensions.JSRuntime
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object[] args)
         {
             return InvokeAsync<TValue>(identifier, CancellationToken.None, args);
-        }
-
-        private string[] SerializeArgs(object[] args)
-        {
-            return args.Select(Serialize).ToArray();
         }
 
         private string Serialize(object obj)
@@ -46,9 +42,8 @@ namespace BlazorWorker.Extensions.JSRuntime
 
         public async ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object[] args)
         {
-            var serializedArgs = SerializeArgs(args);
-            // Two arguments are sent: Method 
-            var allArgs = new object[] { identifier }.Concat(serializedArgs);
+            var serializedArgs = args.Select(Serialize);
+            var allArgs = new object[] { identifier }.Concat(serializedArgs).ToArray();
             var resultObj = await JSInvokeService.SelfInvokeAsync("selfInvokeJsonAsync", cancellationToken, allArgs) as string;
             var result = Deserialize<TValue>(resultObj);
             return result;
