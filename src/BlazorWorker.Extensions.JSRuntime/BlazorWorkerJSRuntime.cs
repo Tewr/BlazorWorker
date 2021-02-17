@@ -40,11 +40,13 @@ namespace BlazorWorker.Extensions.JSRuntime
             return serializer.Deserialize<T>(serializedObject);
         }
 
-        public async ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object[] args)
+        public async ValueTask<TValue> InvokeAsync<TValue>(string identifier, 
+            CancellationToken cancellationToken, object[] args)
         {
             var serializedArgs = args.Select(Serialize);
             var allArgs = new object[] { identifier }.Concat(serializedArgs).ToArray();
-            var resultObj = await JSInvokeService.SelfInvokeAsync("selfInvokeJsonAsync", cancellationToken, allArgs) as string;
+            var resultObj = await JSInvokeService.SelfInvokeAsync("selfInvokeJsonAsync", 
+                cancellationToken, allArgs) as string;
             var result = Deserialize<TValue>(resultObj);
             return result;
         }
