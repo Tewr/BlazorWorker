@@ -19,6 +19,7 @@ namespace BlazorWorker.BackgroundServiceFactory
         private readonly IWorker worker;
         private readonly WebWorkerOptions options;
         private static readonly string InitEndPoint;
+        private static readonly string EndInvokeCallBackEndpoint;
         private readonly long instanceId;
 
         private static readonly MessageHandlerRegistry<WorkerBackgroundServiceProxy<T>> messageHandlerRegistry;
@@ -48,7 +49,11 @@ namespace BlazorWorker.BackgroundServiceFactory
         static WorkerBackgroundServiceProxy()
         {
             var wim = typeof(WorkerInstanceManager);
-            InitEndPoint = $"[{wim.Assembly.GetName().Name}]{wim.FullName}:{nameof(WorkerInstanceManager.Init)}";
+            InitEndPoint = 
+                MonoTypeHelper.GetStaticMethodId<WorkerInstanceManager>(nameof(WorkerInstanceManager.Init));
+            EndInvokeCallBackEndpoint =
+                MonoTypeHelper.GetStaticMethodId<JSInvokeService>(nameof(JSInvokeService.EndInvokeCallBack));
+
             messageHandlerRegistry = new MessageHandlerRegistry<WorkerBackgroundServiceProxy<T>>(p => p.options.MessageSerializer);
             messageHandlerRegistry.Add<InitInstanceComplete>(p => p.OnInitInstanceComplete);
             messageHandlerRegistry.Add<InitInstanceFromFactoryComplete>(p => p.OnInitInstanceFromFactoryComplete);
@@ -116,7 +121,8 @@ namespace BlazorWorker.BackgroundServiceFactory
                 await this.worker.InitAsync(new WorkerInitOptions {
                     DependentAssemblyFilenames = 
                         WorkerBackgroundServiceDependencies.DependentAssemblyFilenames,
-                    InitEndPoint = InitEndPoint
+                    InitEndPoint = InitEndPoint,
+                    EndInvokeCallBackEndpoint = EndInvokeCallBackEndpoint
                 }.MergeWith(workerInitOptions));
 
                 this.worker.IncomingMessage += OnMessage;

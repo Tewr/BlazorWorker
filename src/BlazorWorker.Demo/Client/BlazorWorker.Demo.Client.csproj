@@ -16,6 +16,7 @@
   </ItemGroup>
   
   <ItemGroup>
+    <ProjectReference Include="..\..\BlazorWorker.Extensions.JSRuntime\BlazorWorker.Extensions.JSRuntime.csproj" />
     <ProjectReference Include="..\SharedPages\BlazorWorker.Demo.SharedPages.csproj" />
   </ItemGroup>
 

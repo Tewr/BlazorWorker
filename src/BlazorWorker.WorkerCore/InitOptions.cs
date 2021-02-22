@@ -72,7 +72,7 @@ namespace BlazorWorker.Core
         /// <summary>
         /// Mono-wasm-annotated endpoint for doing callbacks on self invocations from the worker. Experts only.
         /// </summary>
-        public string SelfInvokeCallBackEndpoint { get; set; }
+        public string EndInvokeCallBackEndpoint { get; set; }
 
         public WorkerInitOptions MergeWith(WorkerInitOptions initOptions)
         {
@@ -87,6 +87,7 @@ namespace BlazorWorker.Core
                 UseConventionalServiceAssembly = initOptions.UseConventionalServiceAssembly,
                 MessageEndPoint = initOptions.MessageEndPoint ?? this.MessageEndPoint,
                 InitEndPoint = initOptions.InitEndPoint ?? this.InitEndPoint,
+                EndInvokeCallBackEndpoint = initOptions.EndInvokeCallBackEndpoint ?? this.EndInvokeCallBackEndpoint
             };
         }
     }

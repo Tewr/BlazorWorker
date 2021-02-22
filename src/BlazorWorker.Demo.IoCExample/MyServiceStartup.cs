@@ -1,5 +1,7 @@
-﻿using BlazorWorker.WorkerCore;
+﻿using BlazorWorker.Extensions.JSRuntime;
+using BlazorWorker.WorkerCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.JSInterop;
 using System;
 
 namespace BlazorWorker.Demo.IoCExample
@@ -25,6 +27,7 @@ namespace BlazorWorker.Demo.IoCExample
             if (sc is null) {
                 sc = new ServiceCollection()
                     .AddTransient<IMyServiceDependency, MyServiceDependency>()
+                    .AddSingleton<IJSRuntime, BlazorWorkerJSRuntime>()
                     .AddTransient<MyIocService>()
                     .AddSingleton(WorkerMessageService)
                     .BuildServiceProvider();

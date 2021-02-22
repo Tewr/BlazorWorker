@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,42 +10,48 @@ namespace BlazorWorker.WorkerCore
 
         private static readonly TaskRegister selfInvokeRegister = new TaskRegister();
 
-        public static T SelfInvoke<T>(string method, params object[] args)
+        public static T Invoke<T>(string method, params object[] args)
         {
             return (T)self.Invoke(method, args);
         }
 
-        public static Task SelfInvokeVoidAsync(string method, params object[] args)
+        public static Task InvokeVoidAsync(string method, string serializedArgs)
         {
-            return SelfInvokeAsync(method, args);
+            return InvokeAsync(method, serializedArgs);
         }
 
-        public static async Task<object> SelfInvokeAsync(string method, CancellationToken cancellationToken, params object[] args)
+        public static async Task<object> InvokeAsync(
+            string method, 
+            CancellationToken cancellationToken, 
+            string serializedArgs, 
+            string serializer = "nativejson")
         {
-            var (id, task) = selfInvokeRegister.CreateAndAdd();
+            var (invokeId, task) = selfInvokeRegister.CreateAndAdd();
             if (cancellationToken.CanBeCanceled)
             {
                 cancellationToken.Register(()=> {
                     task.SetCanceled();
-                    selfInvokeRegister.TryRemove(id, out var _);
+                    selfInvokeRegister.TryRemove(invokeId, out var _);
                 });
             }
-            self.Invoke("selfInvokeAsync", new object[] { id, method }.Concat(args));
+
+            self.Invoke("beginInvokeAsync", serializer, invokeId.ToString(), method, serializedArgs);
             return await task.Task;
         }
 
-        public static async Task<object> SelfInvokeAsync(string method, params object[] args)
+        public static Task<object> InvokeAsync(string method, string serializedArgs,
+            string serializer = "nativejson")
         {
-            return SelfInvokeAsync(method, CancellationToken.None, args);
+            return InvokeAsync(method, CancellationToken.None, serializedArgs, serializer);
         }
 
-        public static void SelfInvokeCallBack(long id, bool isError, object result)
+        public static void EndInvokeCallBack(long id, bool isError, object result)
         {
             
             if (!selfInvokeRegister.TryRemove(id, out var taskCompletionSource))
             {
 #if DEBUG
-                Console.WriteLine($"{nameof(JSInvokeService)}.{nameof(SelfInvokeCallBack)}: unknown task id {id}");
+                Console.WriteLine($"{nameof(JSInvokeService)}.{nameof(EndInvokeCallBack)}: unknown task id {id}");
 #endif
                 return;
             }
@@ -58,7 +63,7 @@ namespace BlazorWorker.WorkerCore
             }
             else
             {
-                taskCompletionSource.SetException(new Exception(result.ToString()));
+                taskCompletionSource.SetException(new JSInvokeException(result.ToString()));
             }
         }
     }

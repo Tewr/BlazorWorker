@@ -78,6 +78,10 @@
                     startupService = await worker.CreateBackgroundServiceAsync<MyServiceStartup>(wo =>
                         wo.AddConventionalAssemblyOfService()
                           .AddAssemblyOf<Microsoft.Extensions.DependencyInjection.ServiceCollection>()
+                          .AddAssemblyOf<Microsoft.JSInterop.IJSRuntime>()
+                          .AddAssemblyOf<BlazorWorker.Extensions.JSRuntime.BlazorWorkerJSRuntime>()
+                          .AddAssemblyOf<System.Text.Json.JsonElement>()
+                          .AddAssemblyOf<System.Text.Encodings.Web.TextEncoderSettings>()
                           .AddAssemblies(serviceCollectionDependencies)
                         );
 

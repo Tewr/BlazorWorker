@@ -1,6 +1,5 @@
 ﻿using BlazorWorker.WorkerCore;
 using Microsoft.JSInterop;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,12 +21,12 @@ namespace BlazorWorker.Extensions.JSRuntime
 
         public T Invoke<T>(string identifier, params object[] args)
         {
-            return JSInvokeService.SelfInvoke<T>(identifier, args);
+            return JSInvokeService.Invoke<T>(identifier, args);
         }
 
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object[] args)
         {
-            return InvokeAsync<TValue>(identifier, CancellationToken.None, args);
+            return InvokeAsync<TValue>(identifier, CancellationToken.None, args ?? new object[] { });
         }
 
         private string Serialize(object obj)
@@ -37,16 +36,31 @@ namespace BlazorWorker.Extensions.JSRuntime
 
         private T Deserialize<T>(string serializedObject)
         {
+            if (serializedObject is null)
+            {
+                return default;
+            }
+
             return serializer.Deserialize<T>(serializedObject);
         }
 
-        public async ValueTask<TValue> InvokeAsync<TValue>(string identifier, 
-            CancellationToken cancellationToken, object[] args)
+        public async ValueTask<TValue> InvokeAsync<TValue>(
+            string identifier, 
+            CancellationToken cancellationToken, 
+            object[] args)
         {
-            var serializedArgs = args.Select(Serialize);
-            var allArgs = new object[] { identifier }.Concat(serializedArgs).ToArray();
-            var resultObj = await JSInvokeService.SelfInvokeAsync("selfInvokeJsonAsync", 
-                cancellationToken, allArgs) as string;
+            var serializedArgs = Serialize(args);
+            string resultObj;
+            try
+            {
+                resultObj = await JSInvokeService.InvokeAsync(identifier,
+                    cancellationToken, serializedArgs) as string;
+            }
+            catch (JSInvokeException e)
+            {
+                throw new JSException(e.Message);
+            }
+
             var result = Deserialize<TValue>(resultObj);
             return result;
         }

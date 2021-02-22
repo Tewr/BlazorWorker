@@ -14,8 +14,14 @@
         const initConf = JSON.parse('$initConf$');
         const nonExistingDlls = [];
         let blazorBootManifest = {
-            resources: { assembly: { "AssemblyName.dll": "sha256-<sha256>"}}};
+            resources: { assembly: { "AssemblyName.dll": "sha256-<sha256>" } }
+        };
+
+        let endInvokeCallBack;
         const onReady = () => {
+
+            endInvokeCallBack =
+                Module.mono_bind_static_method(initConf.endInvokeCallBackEndpoint);
             const messageHandler =
                 Module.mono_bind_static_method(initConf.MessageEndPoint);
             // Future messages goes directly to the message handler
@@ -168,49 +174,47 @@
             
             }, errorInfo => onError(errorInfo));
 
-
-        const selfInvokeAsyncCallBack =
-            Module.mono_bind_static_method(initConf.selfInvokeCallBackEndpoint);
-        // Invoke without serialization
-        self.selfInvokeAsync = async function (argsArray) {
-
-            const [invokeId, method, ...methodArgs] = argsArray;
+        self.jsRuntimeSerializers = new Map();
+        self.jsRuntimeSerializers.set('nativejson', {
+            serialize: o => JSON.stringify(o),
+            deserialize: s => JSON.parse(s)
+        });
+            
+        // Async invocation with callback.
+        self.beginInvokeAsync = async function (serializerId, invokeId, method, argsString) {
+            console.debug('beginInvokeAsync', serializerId, invokeId, method, argsString); 
+            
+            var serializer = self.jsRuntimeSerializers.get(serializerId);
+            if (!serializer) {
+                throw 'Unknown serializer with id ' + serializerId;
+            }
 
             if (!Object.hasOwnProperty.call(self, method)) {
-                const error = `selfInvokeAsync: Method ${method} not defined`
+                const error = `beginInvokeAsync: Method ${method} not defined`;
                 console.error(error);
                 throw error;
             }
+
+            const methodHandle = self[method];
 
             let result;
             let isError = false;
             try {
-                result = await self[method](methodArgs);
+                const argsArray = serializer.deserialize(argsString);
+                result = await methodHandle(...argsArray);
             }
             catch (e) {
-                result = JSON.stringify({ error: e, trace: console.trace() });
+                result = `${e}\nJS Trace:${console.trace()}`;
                 isError = true;
             }
             
             try {
-                selfInvokeAsyncCallBack(invokeId, isError, result);
+                const resultString = serializer.serialize(result);
+                endInvokeCallBack(invokeId, isError, resultString);
             } catch (e) {
-                console.error(`BlazorWorker: Callback to ${initConf.selfInvokeAsyncCallBackEndpoint} failed`, e);
+                console.error(`BlazorWorker: Callback to ${initConf.endInvokeAsyncCallBackEndpoint} failed`, e);
                 throw e;
             }
-        };
-
-        // Invoke with json serialization
-        self.selfInvokeJsonAsync = async function (argsArray) {
-            const [method, ...methodArgs] = argsArray;
-            if (!Object.hasOwnProperty.call(self, method)) {
-                const error = `BlazorWorker: selfInvokeJsonAsync: Method ${method} not defined`
-                console.error(error);
-                throw error;
-            }
-
-            const result = await self[method](methodArgs.map(arg => JSON.parse(arg)));
-            return JSON.stringify(result);
         };
     };
 
@@ -228,7 +232,7 @@
             deploy_prefix: initOptions.deployPrefix,
             MessageEndPoint: initOptions.messageEndPoint,
             InitEndPoint: initOptions.initEndPoint,
-            selfInvokeCallBackEndpoint: initOptions.selfInvokeCallBackEndpoint,
+            endInvokeCallBackEndpoint: initOptions.endInvokeCallBackEndpoint,
             wasmRoot: initOptions.wasmRoot,
             blazorBoot: "_framework/blazor.boot.json",
             debug: initOptions.debug
