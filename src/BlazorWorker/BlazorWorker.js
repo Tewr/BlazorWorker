@@ -182,37 +182,39 @@
             
         // Async invocation with callback.
         self.beginInvokeAsync = async function (serializerId, invokeId, method, argsString) {
-            console.debug('beginInvokeAsync', serializerId, invokeId, method, argsString); 
-            
-            var serializer = self.jsRuntimeSerializers.get(serializerId);
-            if (!serializer) {
-                throw 'Unknown serializer with id ' + serializerId;
-            }
-
-            if (!Object.hasOwnProperty.call(self, method)) {
-                const error = `beginInvokeAsync: Method ${method} not defined`;
-                console.error(error);
-                throw error;
-            }
-
-            const methodHandle = self[method];
 
             let result;
             let isError = false;
-            try {
-                const argsArray = serializer.deserialize(argsString);
-                result = await methodHandle(...argsArray);
-            }
-            catch (e) {
-                result = `${e}\nJS Trace:${console.trace()}`;
+            var serializer = self.jsRuntimeSerializers.get(serializerId);
+            if (!serializer) {
+                result = `beginInvokeAsync: Unknown serializer with id '${serializerId}'`;
                 isError = true;
+            }
+
+            if (!isError && !Object.hasOwnProperty.call(self, method)) {
+                const error = `beginInvokeAsync: Method '${method}' not defined`;
+                isError = true;
+            }
+
+            if (!isError) {
+
+                const methodHandle = self[method];
+
+                try {
+                    const argsArray = serializer.deserialize(argsString);
+                    result = await methodHandle(...argsArray);
+                }
+                catch (e) {
+                    result = `${e}\nJS Trace:${console.trace()}`;
+                    isError = true;
+                }
             }
             
             try {
                 const resultString = serializer.serialize(result);
                 endInvokeCallBack(invokeId, isError, resultString);
             } catch (e) {
-                console.error(`BlazorWorker: Callback to ${initConf.endInvokeAsyncCallBackEndpoint} failed`, e);
+                console.error(`BlazorWorker: beginInvokeAsync: Callback to ${initConf.endInvokeAsyncCallBackEndpoint} failed`, e);
                 throw e;
             }
         };
