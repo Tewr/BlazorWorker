@@ -51,14 +51,15 @@ namespace BlazorWorker.Extensions.JSRuntime
         {
             var serializedArgs = Serialize(args);
             string resultObj;
+            
             try
             {
                 resultObj = await JSInvokeService.InvokeAsync(identifier,
                     cancellationToken, serializedArgs) as string;
             }
-            catch (JSInvokeException e)
+            catch (System.AggregateException e) when (e.InnerException is JSInvokeException)
             {
-                throw new JSException(e.Message);
+                throw e.InnerException;
             }
 
             var result = Deserialize<TValue>(resultObj);

@@ -205,7 +205,7 @@
                     result = await methodHandle(...argsArray);
                 }
                 catch (e) {
-                    result = `${e}\nJS Trace:${console.trace()}`;
+                    result = `${e}\nJS Stacktrace:${new Error().stack}`;
                     isError = true;
                 }
             }
