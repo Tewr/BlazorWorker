@@ -1,4 +1,4 @@
-﻿using BlazorWorker.Core;
+using BlazorWorker.Core;
 using BlazorWorker.WorkerBackgroundService;
 using BlazorWorker.WorkerCore;
 using System;
@@ -10,14 +10,20 @@ namespace BlazorWorker.BackgroundServiceFactory
 {
     internal class WorkerBackgroundServiceProxy {
         private static long idSource;
+        internal static readonly string InitEndPoint;
         public static long GetNextId() => ++idSource;
+        static WorkerBackgroundServiceProxy()
+        {
+            var wim = typeof(WorkerInstanceManager);
+            InitEndPoint = $"[{wim.Assembly.GetName().Name}]{wim.FullName}:{nameof(WorkerInstanceManager.Init)}";
+        }
+
     }
 
     internal class WorkerBackgroundServiceProxy<T> : IWorkerBackgroundService<T> where T : class
     {
         private readonly IWorker worker;
         private readonly WebWorkerOptions options;
-        private static readonly string InitEndPoint;
         private readonly long instanceId;
 
         private readonly MessageHandlerRegistry messageHandlerRegistry;
@@ -40,12 +46,6 @@ namespace BlazorWorker.BackgroundServiceFactory
         /// Attached objects, notably parent worker proxy which may have been created without consumer being directly able to dispose
         /// </summary>
         public List<IAsyncDisposable> Disposables { get; } = new List<IAsyncDisposable>();
-
-        static WorkerBackgroundServiceProxy()
-        {
-            var wim = typeof(WorkerInstanceManager);
-            InitEndPoint = $"[{wim.Assembly.GetName().Name}]{wim.FullName}:{nameof(WorkerInstanceManager.Init)}";
-        }
 
         internal WorkerBackgroundServiceProxy(
             IWorker worker,
@@ -111,7 +111,7 @@ namespace BlazorWorker.BackgroundServiceFactory
                 await this.worker.InitAsync(new WorkerInitOptions {
                     DependentAssemblyFilenames = 
                         WorkerBackgroundServiceDependencies.DependentAssemblyFilenames,
-                    InitEndPoint = InitEndPoint
+                    InitEndPoint = WorkerBackgroundServiceProxy.InitEndPoint
                 }.MergeWith(workerInitOptions));
 
                 this.worker.IncomingMessage += OnMessage;
