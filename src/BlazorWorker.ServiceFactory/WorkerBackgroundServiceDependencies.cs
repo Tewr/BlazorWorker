@@ -1,16 +1,14 @@
-﻿using BlazorWorker.WorkerBackgroundService;
-using BlazorWorker.WorkerCore;
-using System.Linq;
+﻿using System.Linq;
 
 namespace BlazorWorker.BackgroundServiceFactory
 {
     internal class WorkerBackgroundServiceDependencies
     {
         public static string[] BlazorWorkerDependentAssemblyFilenames = new[] {
-            $"{typeof(BaseMessage).Assembly.GetName().Name}.dll",
-            $"{typeof(WorkerInstanceManager).Assembly.GetName().Name}.dll",
+            $"{typeof(Core.IWorker).Assembly.GetName().Name}.dll",
+            $"{typeof(WorkerCore.IWorkerMessageService).Assembly.GetName().Name}.dll",
+            $"{typeof(WorkerBackgroundService.WorkerInstanceManager).Assembly.GetName().Name}.dll",
             $"{typeof(Newtonsoft.Json.JsonConvert).Assembly.GetName().Name}.dll",
-            $"{typeof(IWorkerMessageService).Assembly.GetName().Name}.dll",
             $"{typeof(System.Reflection.Assembly).Assembly.GetName().Name}.dll",
         };
 

@@ -1,4 +1,4 @@
-﻿using BlazorWorker.WorkerCore;
+using BlazorWorker.WorkerCore;
 using Microsoft.JSInterop;
 using System;
 using System.Threading.Tasks;
@@ -12,6 +12,7 @@ namespace BlazorWorker.Core
         private static long idSource;
         private bool isDisposed = false;
         private static readonly string messageMethod;
+        private readonly DotNetObjectReference<WorkerProxy> thisReference;
 
 
         public event EventHandler<string> IncomingMessage;
@@ -27,6 +28,7 @@ namespace BlazorWorker.Core
             this.jsRuntime = jsRuntime;
             this.scriptLoader = new ScriptLoader(this.jsRuntime);
             this.Identifier = ++idSource;
+            thisReference = DotNetObjectReference.Create(this);
         }
 
         public async ValueTask DisposeAsync()
@@ -34,6 +36,7 @@ namespace BlazorWorker.Core
             if (!isDisposed)
             {
                 await this.jsRuntime.InvokeVoidAsync("BlazorWorker.disposeWorker", this.Identifier);
+                thisReference.Dispose();
                 isDisposed = true;
             }
         }
@@ -45,7 +48,7 @@ namespace BlazorWorker.Core
             await this.jsRuntime.InvokeVoidAsync(
                 "BlazorWorker.initWorker", 
                 this.Identifier, 
-                DotNetObjectReference.Create(this), 
+                thisReference,
                 new WorkerInitOptions {
                     DependentAssemblyFilenames = 
                        WorkerProxyDependencies.DependentAssemblyFilenames,

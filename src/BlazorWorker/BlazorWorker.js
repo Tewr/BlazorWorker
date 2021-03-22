@@ -1,11 +1,14 @@
-﻿window.BlazorWorker = function () {
+window.BlazorWorker = function () {
     
     const workers = {};
     const disposeWorker = function (workerId) {
 
         const worker = workers[workerId];
-        if (worker && worker.terminate) {
-            worker.terminate();
+        if (worker) {
+            if (worker.worker.terminate) {
+                worker.worker.terminate();
+            }
+            URL.revokeObjectURL(worker.url);
             delete workers[workerId];
         }
     };
@@ -193,8 +196,12 @@
         const renderedInlineWorker = inlineWorker.replace('$initConf$', renderedConfig);
         window.URL = window.URL || window.webkitURL;
         const blob = new Blob([renderedInlineWorker], { type: 'application/javascript' });
-        const worker = new Worker(URL.createObjectURL(blob));
-        workers[id] = worker;
+        const workerUrl = URL.createObjectURL(blob);
+        const worker = new Worker(workerUrl);
+        workers[id] = {
+            worker: worker,
+            url: workerUrl
+        };
 
         worker.onmessage = function (ev) {
             if (initOptions.debug) {
@@ -205,7 +212,7 @@
     };
 
     const postMessage = function (workerId, message) {
-        workers[workerId].postMessage(message);
+        workers[workerId].worker.postMessage(message);
     };
 
     return {
