@@ -5,8 +5,9 @@ window.BlazorWorker = function () {
 
         const worker = workers[workerId];
         if (worker) {
-            if (worker.worker.terminate)
+            if (worker.worker.terminate) {
                 worker.worker.terminate();
+            }
             URL.revokeObjectURL(worker.url);
             delete workers[workerId];
         }
