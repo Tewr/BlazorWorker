@@ -9,10 +9,10 @@ namespace BlazorWorker.Extensions.JSRuntime
     {
         public DotNetObjectReferenceJsonConverter(BlazorWorkerJSRuntime jsRuntime)
         {
-            JSRuntime = jsRuntime;
+            CallbackJSRuntime = jsRuntime;
         }
 
-        public BlazorWorkerJSRuntime JSRuntime { get; }
+        public BlazorWorkerJSRuntime CallbackJSRuntime { get; }
 
         public override DotNetObjectReference<TValue> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
@@ -49,10 +49,12 @@ namespace BlazorWorker.Extensions.JSRuntime
 
         public override void Write(Utf8JsonWriter writer, DotNetObjectReference<TValue> value, JsonSerializerOptions options)
         {
+            value.SetCallbackJSRuntime(CallbackJSRuntime);
             var objectId = DotNetObjectReferenceTracker.TrackObjectReference(value);
 
             writer.WriteStartObject();
             writer.WriteNumber(DotNetObjectReferenceTracker.DotNetObjectRefKey, objectId);
+            
             writer.WriteEndObject();
         }
     }

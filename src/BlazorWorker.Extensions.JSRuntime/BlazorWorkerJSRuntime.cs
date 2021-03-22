@@ -1,5 +1,6 @@
 ﻿using BlazorWorker.WorkerCore;
 using Microsoft.JSInterop;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,11 +8,12 @@ namespace BlazorWorker.Extensions.JSRuntime
 {
     public class BlazorWorkerJSRuntime : IJSRuntime, IJSInProcessRuntime
     {
-        private readonly IBlazorWorkerJSRuntimeSerializer serializer;
+
+        public IBlazorWorkerJSRuntimeSerializer Serializer { get; set; }
 
         public BlazorWorkerJSRuntime(IBlazorWorkerJSRuntimeSerializer serializer)
         {
-            this.serializer = serializer;
+            this.Serializer = serializer;
         }
 
         public BlazorWorkerJSRuntime(): 
@@ -31,7 +33,7 @@ namespace BlazorWorker.Extensions.JSRuntime
 
         private string Serialize(object obj)
         {
-            return serializer.Serialize(obj);
+            return Serializer.Serialize(obj);
         }
 
         private T Deserialize<T>(string serializedObject)
@@ -41,7 +43,7 @@ namespace BlazorWorker.Extensions.JSRuntime
                 return default;
             }
 
-            return serializer.Deserialize<T>(serializedObject);
+            return Serializer.Deserialize<T>(serializedObject);
         }
 
         public async ValueTask<TValue> InvokeAsync<TValue>(
@@ -54,8 +56,14 @@ namespace BlazorWorker.Extensions.JSRuntime
             
             try
             {
+                if (JSInvokeService.Invoke<string>("hasOwnProperty", "BlazorWorkerJSRuntimeSerializer") != "true")
+                {
+                    JSInvokeService.Invoke<object>("importScripts", 
+                        "_content/BlazorWorker.Extensions.JSRuntime/BlazorWorkerJSRuntime.js");
+                }
+
                 resultObj = await JSInvokeService.InvokeAsync(identifier,
-                    cancellationToken, serializedArgs) as string;
+                    cancellationToken, serializedArgs, "BlazorWorkerJSRuntimeSerializer") as string;
             }
             catch (System.AggregateException e) when (e.InnerException is JSInvokeException)
             {
@@ -64,6 +72,29 @@ namespace BlazorWorker.Extensions.JSRuntime
 
             var result = Deserialize<TValue>(resultObj);
             return result;
+        }
+
+        public static string InvokeMethod(string objectInstanceId, string argsString)
+        {
+            var obj = DotNetObjectReferenceTracker.GetObjectReferenceObject(long.Parse(objectInstanceId));
+            var serializer = DotNetObjectReferenceTracker.GetCallbackJSRuntime(obj).Serializer;
+            var callBackArgs = serializer.Deserialize<CallBackArgs>(argsString);
+            var method = obj.GetType().GetMethod(
+                callBackArgs.Method, 
+                callBackArgs.MethodArgs.Select(arg => arg.GetType()).ToArray());
+
+            var resultObj = method.Invoke(obj, callBackArgs.MethodArgs);
+            if (resultObj is null)
+            {
+                return null;
+            }
+
+            return serializer.Serialize(resultObj);
+        }
+
+        public class CallBackArgs { 
+            public string Method { get; set; }
+            public object[] MethodArgs { get; set; }
         }
     }
 }

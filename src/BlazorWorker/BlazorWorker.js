@@ -192,7 +192,7 @@
             }
 
             if (!isError && !Object.hasOwnProperty.call(self, method)) {
-                const error = `beginInvokeAsync: Method '${method}' not defined`;
+                result = `beginInvokeAsync: Method '${method}' not defined`;
                 isError = true;
             }
 
@@ -205,7 +205,7 @@
                     result = await methodHandle(...argsArray);
                 }
                 catch (e) {
-                    result = `${e}\nJS Stacktrace:${new Error().stack}`;
+                    result = `${e}\nJS Stacktrace:${(e.stack || new Error().stack)}`;
                     isError = true;
                 }
             }
