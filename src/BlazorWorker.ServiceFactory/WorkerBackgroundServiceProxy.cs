@@ -1,4 +1,4 @@
-﻿using BlazorWorker.Core;
+using BlazorWorker.Core;
 using BlazorWorker.WorkerBackgroundService;
 using BlazorWorker.WorkerCore;
 using System;
@@ -11,15 +11,24 @@ namespace BlazorWorker.BackgroundServiceFactory
 {
     internal class WorkerBackgroundServiceProxy {
         private static long idSource;
+        internal static readonly string InitEndPoint;
+        internal static readonly string EndInvokeCallBackEndpoint;
         public static long GetNextId() => ++idSource;
+        static WorkerBackgroundServiceProxy()
+        {
+            var wim = typeof(WorkerInstanceManager);
+            InitEndPoint =
+                MonoTypeHelper.GetStaticMethodId<WorkerInstanceManager>(nameof(WorkerInstanceManager.Init));
+            EndInvokeCallBackEndpoint =
+                MonoTypeHelper.GetStaticMethodId<JSInvokeService>(nameof(JSInvokeService.EndInvokeCallBack));
+        }
+
     }
 
     internal class WorkerBackgroundServiceProxy<T> : IWorkerBackgroundService<T> where T : class
     {
         private readonly IWorker worker;
         private readonly WebWorkerOptions options;
-        private static readonly string InitEndPoint;
-        private static readonly string EndInvokeCallBackEndpoint;
         private readonly long instanceId;
 
         private static readonly MessageHandlerRegistry<WorkerBackgroundServiceProxy<T>> messageHandlerRegistry;
@@ -39,6 +48,7 @@ namespace BlazorWorker.BackgroundServiceFactory
         public bool IsInitialized { get; private set; }
         public bool IsDisposed { get; private set; }
 
+        private bool initializing;
         private bool disposing;
 
         /// <summary>
@@ -51,8 +61,7 @@ namespace BlazorWorker.BackgroundServiceFactory
             var wim = typeof(WorkerInstanceManager);
             InitEndPoint = 
                 MonoTypeHelper.GetStaticMethodId<WorkerInstanceManager>(nameof(WorkerInstanceManager.Init));
-            EndInvokeCallBackEndpoint =
-                MonoTypeHelper.GetStaticMethodId<JSInvokeService>(nameof(JSInvokeService.EndInvokeCallBack));
+
 
             messageHandlerRegistry = new MessageHandlerRegistry<WorkerBackgroundServiceProxy<T>>(p => p.options.MessageSerializer);
             messageHandlerRegistry.Add<InitInstanceComplete>(p => p.OnInitInstanceComplete);
@@ -104,43 +113,47 @@ namespace BlazorWorker.BackgroundServiceFactory
         {
             workerInitOptions ??= new WorkerInitOptions();
 
-            if (this.IsInitialized)
+            if (this.IsInitialized || initializing)
             {
                 return;
             }
 
-            if (!this.worker.IsInitialized)
-            {
-                this.initWorkerTask = new TaskCompletionSource<bool>();
+            initializing = true;
 
-                if (workerInitOptions.UseConventionalServiceAssembly)
+            try
+            {
+                if (!this.worker.IsInitialized)
                 {
-                    workerInitOptions.AddAssemblyOf<T>();
-                }
+                    this.initWorkerTask = new TaskCompletionSource<bool>();
+
+                    if (workerInitOptions.UseConventionalServiceAssembly)
+                    {
+                        workerInitOptions.AddAssemblyOf<T>();
+                    }
 
                 await this.worker.InitAsync(new WorkerInitOptions {
                     DependentAssemblyFilenames = 
                         WorkerBackgroundServiceDependencies.DependentAssemblyFilenames,
-                    InitEndPoint = InitEndPoint,
-                    EndInvokeCallBackEndpoint = EndInvokeCallBackEndpoint
+                    InitEndPoint = WorkerBackgroundServiceProxy.InitEndPoint,
+                    EndInvokeCallBackEndpoint = WorkerBackgroundServiceProxy.EndInvokeCallBackEndpoint
                 }.MergeWith(workerInitOptions));
 
-                this.worker.IncomingMessage += OnMessage;
+                    this.worker.IncomingMessage += OnMessage;
 
-                await initWorkerTask.Task;
-                if (this.worker is WorkerProxy proxy) { 
-                    proxy.IsInitialized = true; 
+                    await initWorkerTask.Task;
+                    if (this.worker is WorkerProxy proxy) {
+                        proxy.IsInitialized = true;
+                    }
                 }
-            }
-            else
-            {
-                this.worker.IncomingMessage += OnMessage;
-            }
-            
+                else
+                {
+                    this.worker.IncomingMessage += OnMessage;
+                }
 
-            var (callId, initTask) = this.initTask.CreateAndAdd();
 
-            var message = this.options.MessageSerializer.Serialize(
+                var (callId, initTask) = this.initTask.CreateAndAdd();
+
+                var message = this.options.MessageSerializer.Serialize(
                     new InitInstance
                     {
                         CallId = callId,
@@ -150,16 +163,21 @@ namespace BlazorWorker.BackgroundServiceFactory
                         TypeName = typeof(T).FullName
                     });
 
-            if (workerInitOptions.Debug)
-            {
-                Console.WriteLine($"{nameof(WorkerBackgroundServiceProxy<T>)}." +
-                    $"{nameof(WorkerBackgroundServiceProxy<T>.InitAsync)}()" +
-                    $": {this.worker.Identifier} {message}");
-            }
+                if (workerInitOptions.Debug)
+                {
+                    Console.WriteLine($"{nameof(WorkerBackgroundServiceProxy<T>)}." +
+                                      $"{nameof(WorkerBackgroundServiceProxy<T>.InitAsync)}()" +
+                                      $": {this.worker.Identifier} {message}");
+                }
 
-            await this.worker.PostMessageAsync(message);
-            await initTask.Task;
-            this.IsInitialized = true;
+                await this.worker.PostMessageAsync(message);
+                await initTask.Task;
+                this.IsInitialized = true;
+            }
+            finally
+            {
+                initializing = false;
+            }
         }
 
         public async Task<WorkerBackgroundServiceProxy<TService>> InitFromFactoryAsync<TService>(Expression<Func<T,TService>> expression) where TService:class
@@ -191,7 +209,7 @@ namespace BlazorWorker.BackgroundServiceFactory
 
             await this.worker.PostMessageAsync(message);
             await initInstanceTaskSource.Task;
-            
+
             newProxy.worker.IncomingMessage += newProxy.OnMessage;
             newProxy.IsInitialized = true;
 
@@ -414,7 +432,7 @@ namespace BlazorWorker.BackgroundServiceFactory
 
                 // This is neccessary as the worker may continue to live
                 worker.IncomingMessage -= OnMessage;
-            
+
                 foreach (var item in this.Disposables)
                 {
                     await item.DisposeAsync();
