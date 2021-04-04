@@ -49,7 +49,7 @@ namespace BlazorWorker.Extensions.JSRuntime
 
         public override void Write(Utf8JsonWriter writer, DotNetObjectReference<TValue> value, JsonSerializerOptions options)
         {
-            value.SetCallbackJSRuntime(CallbackJSRuntime);
+            DotNetObjectReferenceTracker.SetCallbackJSRuntime(value, CallbackJSRuntime);
             var objectId = DotNetObjectReferenceTracker.TrackObjectReference(value);
 
             writer.WriteStartObject();

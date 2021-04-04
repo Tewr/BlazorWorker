@@ -58,11 +58,6 @@ namespace BlazorWorker.BackgroundServiceFactory
 
         static WorkerBackgroundServiceProxy()
         {
-            var wim = typeof(WorkerInstanceManager);
-            InitEndPoint = 
-                MonoTypeHelper.GetStaticMethodId<WorkerInstanceManager>(nameof(WorkerInstanceManager.Init));
-
-
             messageHandlerRegistry = new MessageHandlerRegistry<WorkerBackgroundServiceProxy<T>>(p => p.options.MessageSerializer);
             messageHandlerRegistry.Add<InitInstanceComplete>(p => p.OnInitInstanceComplete);
             messageHandlerRegistry.Add<InitInstanceFromFactoryComplete>(p => p.OnInitInstanceFromFactoryComplete);
