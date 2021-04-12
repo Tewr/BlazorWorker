@@ -1,6 +1,8 @@
 ﻿using Microsoft.JSInterop;
 using Microsoft.JSInterop.Infrastructure;
 using System;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 
@@ -10,18 +12,18 @@ namespace BlazorWorker.Extensions.JSRuntime
     {
         public static JsonEncodedText DotNetObjectRefKey = JsonEncodedText.Encode("__dotNetObject");
 
-        private static TrackerJsRuntime objectTracker = new TrackerJsRuntime();
-        private static ConditionalWeakTable<object, BlazorWorkerJSRuntime> jsRuntimeReferences =
+        private static readonly TrackerJsRuntime objectTracker = new TrackerJsRuntime();
+        private static readonly ConditionalWeakTable<object, BlazorWorkerJSRuntime> jsRuntimeReferences =
             new ConditionalWeakTable<object, BlazorWorkerJSRuntime>();
 
         internal static DotNetObjectReference<T> GetObjectReference<T>(long dotNetObjectId) where T : class
         {
-            return objectTracker.InternalGetObjectReference<T>(dotNetObjectId);
+            return (DotNetObjectReference<T>)GetObjectReference(dotNetObjectId);
         }
 
-        internal static object GetObjectReferenceObject(long dotNetObjectId)
+        internal static object GetObjectReference(long dotNetObjectId)
         {
-            return objectTracker.InternalGetObjectReference<T>(dotNetObjectId);
+            return objectTracker.InternalGetObjectReference(dotNetObjectId);
         }
 
         internal static long TrackObjectReference<T>(DotNetObjectReference<T> value) where T: class
@@ -43,21 +45,34 @@ namespace BlazorWorker.Extensions.JSRuntime
             private static readonly Type selfType = typeof(TrackerJsRuntime);
 
             public delegate long TrackObjectReferenceDelegate<T>(DotNetObjectReference<T> value) where T : class;
-            public delegate DotNetObjectReference<T> GetObjectReferenceDelegate<T>(long dotNetObjectId) where T : class;
+            public delegate object GetObjectReferenceDelegate(long dotNetObjectId);
 
-            private static readonly GenericNonPublicDelegateCache GetObjectReferenceDelegates = 
-                new GenericNonPublicDelegateCache(selfType);
+            private static readonly MethodInfo GetObjectReferenceMethod;
             private static readonly GenericNonPublicDelegateCache TrackObjectReferenceDelegates =
                 new GenericNonPublicDelegateCache(selfType);
 
-
-            public DotNetObjectReference<T> InternalGetObjectReference<T>(long dotNetObjectId) where T : class
+            static TrackerJsRuntime()
             {
-                var method = GetObjectReferenceDelegates
-                    .GetDelegate<GetObjectReferenceDelegate<T>, T, long>
-                        (this, nameof(DotNetObjectReferenceTracker.GetObjectReference));
+                var targetType = typeof(Microsoft.JSInterop.JSRuntime);
+                var name = nameof(DotNetObjectReferenceTracker.GetObjectReference);
+                var firstArgType = typeof(long);
+                var methodInfo = targetType.GetRuntimeMethods().FirstOrDefault(methodInfo =>
+                    !methodInfo.IsPublic &&
+                    methodInfo.Name == name &&
+                    methodInfo.GetParameters().FirstOrDefault()?.ParameterType == firstArgType);
 
-                return method.Invoke(dotNetObjectId);
+                if (methodInfo == null)
+                {
+                    throw new ArgumentException($"Unable to find non-public method {targetType}.{name}({firstArgType})");
+                }
+
+                GetObjectReferenceMethod = methodInfo;
+            }
+
+            // internal IDotNetObjectReference GetObjectReference(long dotNetObjectId)
+            public object InternalGetObjectReference(long dotNetObjectId)
+            {
+                return GetObjectReferenceMethod.Invoke(this, new object[] { dotNetObjectId });
             }
 
             public long InternalTrackObjectReference<T>(DotNetObjectReference<T> value)  where T : class
@@ -68,8 +83,6 @@ namespace BlazorWorker.Extensions.JSRuntime
 
                 return method.Invoke(value);
             }
-
-
 
             #region Unsupported methods
             

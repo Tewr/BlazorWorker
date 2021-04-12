@@ -56,7 +56,7 @@ namespace BlazorWorker.Extensions.JSRuntime
             
             try
             {
-                if (JSInvokeService.Invoke<string>("hasOwnProperty", "BlazorWorkerJSRuntimeSerializer") != "true")
+                if (!JSInvokeService.Invoke<bool>("hasOwnProperty", "BlazorWorkerJSRuntimeSerializer"))
                 {
                     JSInvokeService.Invoke<object>("importScripts", 
                         "_content/BlazorWorker.Extensions.JSRuntime/BlazorWorkerJSRuntime.js");
@@ -76,7 +76,7 @@ namespace BlazorWorker.Extensions.JSRuntime
 
         public static string InvokeMethod(string objectInstanceId, string argsString)
         {
-            var obj = DotNetObjectReferenceTracker.GetObjectReferenceObject(long.Parse(objectInstanceId));
+            var obj = DotNetObjectReferenceTracker.GetObjectReference(long.Parse(objectInstanceId));
             var serializer = DotNetObjectReferenceTracker.GetCallbackJSRuntime(obj).Serializer;
             var callBackArgs = serializer.Deserialize<CallBackArgs>(argsString);
             var method = obj.GetType().GetMethod(

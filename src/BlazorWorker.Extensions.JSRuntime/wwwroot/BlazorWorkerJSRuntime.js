@@ -8,7 +8,7 @@
         return new Promise((resolve, reject) => {
             try {
                 const argsString = this.serializer.serialize({
-                    method,
+                    methodName,
                     methodargs: methodArgs || []
                 });
                 var result = self.Module.mono_call_static_method("[BlazorWorker.Extensions.JSRuntime]BlazorWorker.Extensions.JSRuntime.BlazorWorkerJSRuntime:InvokeMethod", this.__dotNetObject, argsString);

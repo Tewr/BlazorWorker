@@ -25,7 +25,7 @@ namespace BlazorWorker.Extensions.JSRuntime
                     methodInfo.Name == name &&
                     methodInfo.ContainsGenericParameters &&
                     AreGenericTypeEquals(methodInfo.GetParameters().FirstOrDefault()?.ParameterType, firstArgGenericDef));
-                if (methodInfo == null)
+                if (methodInfo == null) 
                 {
                     throw new ArgumentException($"Unable to find non-public method {definingTypeInstance}.{name}<T>({firstArgGenericDef})");
                 }

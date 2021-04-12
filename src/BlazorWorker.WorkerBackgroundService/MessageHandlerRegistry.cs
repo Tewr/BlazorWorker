@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+using System.Runtime.Serialization;
 
 namespace BlazorWorker.WorkerBackgroundService
 {
@@ -15,10 +15,24 @@ namespace BlazorWorker.WorkerBackgroundService
 
         public void Add<T>(Func<THandler, Action<T>> messageHandler) where T : BaseMessage
         {
-            base.Add(typeof(T).Name, 
-                (handlerInstance, message) => 
-                    messageHandler(handlerInstance)(
-                        MessageSerializer(handlerInstance).Deserialize<T>(message)));
+            base.Add(typeof(T).Name,
+                (handlerInstance, message) =>
+                    DeserializeAndExecuteHandler(messageHandler, handlerInstance, message));
+        }
+
+        private void DeserializeAndExecuteHandler<TMessage>(Func<THandler, Action<TMessage>> messageHandler, THandler handlerInstance, string message) where TMessage : BaseMessage
+        {
+            TMessage typedMessage;
+            try
+            {
+                typedMessage = MessageSerializer(handlerInstance).Deserialize<TMessage>(message);
+            }
+            catch (Exception e)
+            {
+                throw new SerializationException($"Unable to deserialize string '{message}' to message type {typeof(TMessage)}", e);
+            }
+            
+            messageHandler(handlerInstance)(typedMessage);
         }
 
         public bool HandleMessage(THandler handlerInstance, string message)
