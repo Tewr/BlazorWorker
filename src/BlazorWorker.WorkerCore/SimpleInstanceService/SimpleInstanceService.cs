@@ -35,12 +35,12 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
             AppDomain.CurrentDomain.AssemblyResolve += LogFailedAssemblyResolve;
         }
 
-        public static void Init()
+        public static void Init(string initConfJson)
         {
-            Instance.InnerInit();
+            Instance.InnerInit(initConfJson);
         }
 
-        private void InnerInit()
+        private void InnerInit(string initConfJson)
         {
             MessageService.Message += OnMessage;
             MessageService.PostMessage(new InitServiceResult().Serialize());

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1;net5.0</TargetFrameworks>
@@ -17,6 +17,11 @@
     <PackageReference Condition="'$(TargetFramework)'=='net5.0'" Include="Microsoft.JSInterop" Version="5.0.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- .js/.css files will be referenced via <script>/<link> tags; other content files will just be included in the app's 'dist' directory without any tags referencing them -->
+    <EmbeddedResource Include="wwwroot\**\*.js" LogicalName="blazor:js:%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\BlazorWorker.WorkerCore\BlazorWorker.WorkerCore.csproj" />
   </ItemGroup>

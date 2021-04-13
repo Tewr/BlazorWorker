@@ -58,8 +58,9 @@ namespace BlazorWorker.Extensions.JSRuntime
             {
                 if (!JSInvokeService.Invoke<bool>("hasOwnProperty", "BlazorWorkerJSRuntimeSerializer"))
                 {
+                    var appRoot = JSInvokeService.Invoke<string>("getAppRoot");
                     JSInvokeService.Invoke<object>("importScripts", 
-                        "_content/BlazorWorker.Extensions.JSRuntime/BlazorWorkerJSRuntime.js");
+                        $"{appRoot}/_content/BlazorWorker.Extensions.JSRuntime/BlazorWorkerJSRuntime.js");
                 }
 
                 resultObj = await JSInvokeService.InvokeAsync(identifier,

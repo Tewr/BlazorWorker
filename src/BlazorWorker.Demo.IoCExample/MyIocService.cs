@@ -22,7 +22,7 @@ namespace BlazorWorker.Demo.IoCExample
             try
             {
                 var theNumberOfTheBeast = await this.JSRuntime.InvokeAsync<int>("eval",
-                    "(function(){ console.log('Hello world invoke call from MyIocService'); throw 'AIEIE'; return 666; })()");
+                    "(function(){ console.log('Hello world invoke call from MyIocService'); return 666; })()");
                 Console.WriteLine($"{theNumberOfTheBeast} : The number of the beast");
                 return this.AServiceDependency.Five();
             }

@@ -15,6 +15,8 @@ window.BlazorWorker = function () {
 
     const workerDef = function () {
         const initConf = JSON.parse('$initConf$');
+        this.getAppRoot = () => initConf.appRoot;
+
         const nonExistingDlls = [];
         let blazorBootManifest = {
             resources: { assembly: { "AssemblyName.dll": "sha256-<sha256>" } }
@@ -37,7 +39,7 @@ window.BlazorWorker = function () {
             }
 
             try {
-                Module.mono_call_static_method(initConf.InitEndPoint, []);
+                Module.mono_call_static_method(initConf.InitEndPoint, [initConf]);
             } catch (e) {
                 console.error(`Init method ${initConf.InitEndPoint} failed`, e);
                 throw e;

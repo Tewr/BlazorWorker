@@ -26,6 +26,8 @@ namespace BlazorWorker.WorkerBackgroundService
         private readonly MessageHandler<WorkerInstanceManager> messageHandler;
         private readonly SimpleInstanceService simpleInstanceService;
 
+        public string InitConfJson { get; private set; }
+
         static WorkerInstanceManager()
         {
             messageHandlerRegistry.Add<InitInstance>(wim => wim.InitInstance);
@@ -45,12 +47,13 @@ namespace BlazorWorker.WorkerBackgroundService
             this.messageHandler = messageHandlerRegistry.GetRegistryForInstance(this);
         }
 
-        public static void Init() {
+        public static void Init(string initConfJson) {
             MessageService.Message += Instance.OnMessage;
             Instance.PostObject(new InitWorkerComplete());
 #if DEBUG
             Console.WriteLine($"BlazorWorker.WorkerBackgroundService.{nameof(WorkerInstanceManager)}.Init(): Done.");
 #endif
+            Instance.InitConfJson = initConfJson;
         }
 
         public void PostMessage(string message)

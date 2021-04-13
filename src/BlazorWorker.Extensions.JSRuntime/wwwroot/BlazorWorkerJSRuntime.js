@@ -33,7 +33,7 @@ class BlazorWorkerJSRuntimeSerializer  {
 
     deserialize(s) {
         let o = this.baseSerializer.deserialize(s);
-        recurseObjectProperties(o, (obj, property) => {
+        this.recurseObjectProperties(o, (obj, property) => {
             if (property === this.dotNetObjectRefKey) {
                 obj = new DotNetObjectProxy(obj[property]);
             }
