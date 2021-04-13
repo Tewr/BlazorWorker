@@ -4,6 +4,12 @@
         <name>BlazorWorker.WorkerCore</name>
     </assembly>
     <members>
+        <member name="M:BlazorWorker.WorkerCore.JSInvokeService.ImportLocalScripts(System.String[])">
+            <summary>
+            Prepending the specified <paramref name="relativeUrls"/> with the base path of the application, invokes the importScripts() method of the WorkerGlobalScope interface, which synchronously imports one or more scripts into the worker's scope.
+            </summary>
+            <param name="relativeUrls"></param>
+        </member>
         <member name="T:BlazorWorker.WorkerCore.MessageService">
             <summary>
             Simple static message service that runs in the worker thread.

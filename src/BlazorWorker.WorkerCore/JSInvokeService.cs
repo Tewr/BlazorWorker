@@ -66,5 +66,14 @@ namespace BlazorWorker.WorkerCore
                 taskCompletionSource.SetException(new JSInvokeException(result.ToString()));
             }
         }
+
+        /// <summary>
+        /// Prepending the specified <paramref name="relativeUrls"/> with the base path of the application, invokes the importScripts() method of the WorkerGlobalScope interface, which synchronously imports one or more scripts into the worker's scope.
+        /// </summary>
+        /// <param name="relativeUrls"></param>
+        public static void ImportLocalScripts(params string[] relativeUrls)
+        {
+            Invoke<object>("importLocalScripts", relativeUrls);
+        }
     }
 }

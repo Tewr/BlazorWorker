@@ -15,7 +15,8 @@ window.BlazorWorker = function () {
 
     const workerDef = function () {
         const initConf = JSON.parse('$initConf$');
-        this.getAppRoot = () => initConf.appRoot;
+
+        //this.getAppRoot = () => ;
 
         const nonExistingDlls = [];
         let blazorBootManifest = {
@@ -222,6 +223,11 @@ window.BlazorWorker = function () {
                 console.error(`BlazorWorker: beginInvokeAsync: Callback to ${initConf.endInvokeAsyncCallBackEndpoint} failed`, e);
                 throw e;
             }
+        };
+
+        // Import script from a path relative to approot
+        self.importLocalScripts = (...urls) => {
+            self.importScripts(urls.map(url => initConf.appRoot + (url.startsWith('/') ? '' : '/') + url));
         };
     };
 
