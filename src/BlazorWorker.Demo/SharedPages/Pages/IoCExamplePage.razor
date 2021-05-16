@@ -1,4 +1,5 @@
 ﻿@using BlazorWorker.Demo.IoCExample
+@using BlazorWorker.Extensions.JSRuntime
 @inject IWorkerFactory workerFactory
 
 <div class="row">
@@ -32,35 +33,35 @@
 </div>
 @code {
 
-        string output = "";
-        IWorker worker;
-        IWorkerBackgroundService<MyServiceStartup> startupService;
-        string canDisposeWorker => worker == null ? null : "disabled";
-        string RunDisabled => Running ? "disabled" : null;
-        bool Running = false;
-        string RadioValue = "Persistant startup class";
-        void RadioSelection(ChangeEventArgs args)
+    string output = "";
+    IWorker worker;
+    IWorkerBackgroundService<MyServiceStartup> startupService;
+    string canDisposeWorker => worker == null ? null : "disabled";
+    string RunDisabled => Running ? "disabled" : null;
+    bool Running = false;
+    string RadioValue = "Persistant startup class";
+    void RadioSelection(ChangeEventArgs args)
+    {
+        RadioValue = args.Value.ToString();
+    }
+    public async Task OnClick(EventArgs _)
+    {
+        Running = true;
+        //output = "";
+        var rn = Environment.NewLine;
+        try
         {
-            RadioValue = args.Value.ToString();
-        }
-        public async Task OnClick(EventArgs _)
-        {
-            Running = true;
-            //output = "";
-            var rn = Environment.NewLine;
-            try
+
+            if (worker == null)
             {
+                worker = await workerFactory.CreateAsync();
+            }
 
-                if (worker == null)
-                {
-                    worker = await workerFactory.CreateAsync();
-                }
+            var sw = new System.Diagnostics.Stopwatch();
+            IWorkerBackgroundService<MyIocService> myIocService;
+            var persistedStartup = RadioValue == "Persistant startup class";
 
-                var sw = new System.Diagnostics.Stopwatch();
-                IWorkerBackgroundService<MyIocService> myIocService;
-                var persistedStartup = RadioValue == "Persistant startup class";
-
-                var serviceCollectionDependencies = new string[] {
+            var serviceCollectionDependencies = new string[] {
                     "Microsoft.Extensions.DependencyInjection.Abstractions.dll"
 #if NET5
                     ,"System.Diagnostics.Tracing.dll"
@@ -79,10 +80,7 @@
                         wo.AddConventionalAssemblyOfService()
                           .AddAssemblyOf<Microsoft.Extensions.DependencyInjection.ServiceCollection>()
                           .AddAssemblies(serviceCollectionDependencies)
-                          .AddAssemblyOf<Microsoft.JSInterop.IJSRuntime>()
-                          .AddAssemblyOf<BlazorWorker.Extensions.JSRuntime.BlazorWorkerJSRuntime>()
-                          .AddAssemblyOf<System.Text.Json.JsonElement>()
-                          .AddAssemblyOf<System.Text.Encodings.Web.TextEncoderSettings>()
+                          .AddBlazorWorkerJsRuntime()
                         );
 
                     output += $"{rn}{LogDate()} Background service created in {sw.ElapsedMilliseconds}ms";
@@ -98,7 +96,9 @@
                     startup => startup.Resolve<MyIocService>(), wo =>
                         wo.AddConventionalAssemblyOfService()
                             .AddAssemblyOf<Microsoft.Extensions.DependencyInjection.ServiceCollection>()
-                            .AddAssemblies(serviceCollectionDependencies));
+                            .AddAssemblies(serviceCollectionDependencies)
+                            .AddBlazorWorkerJsRuntime()
+                            );
             }
 
             await using (myIocService)

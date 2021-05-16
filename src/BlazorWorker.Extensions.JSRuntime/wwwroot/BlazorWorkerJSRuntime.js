@@ -24,33 +24,36 @@ class BlazorWorkerJSRuntimeSerializer  {
     
     constructor() {
         this.baseSerializer = self.jsRuntimeSerializers.get('nativejson');
-        this.dotNetObjectRefKey = "__dotNetObject";
     }
 
-    serialize(o) {
-        return this.baseSerializer.serialize(o);
+    serialize = (o) => this.baseSerializer.serialize(o);
+    
+
+    deserialize = (s) => {
+        let deserializedObj = this.baseSerializer.deserialize(s);
+        deserializedObj = BlazorWorkerJSRuntimeSerializer.recursivelyFindDotnetObjectProxy(deserializedObj);
+        return deserializedObj;
     }
 
-    deserialize(s) {
-        let o = this.baseSerializer.deserialize(s);
-        this.recurseObjectProperties(o, (obj, property) => {
-            if (property === this.dotNetObjectRefKey) {
-                obj = new DotNetObjectProxy(obj[property]);
+    static recursivelyFindDotnetObjectProxy(obj) {
+        
+        const recursion = BlazorWorkerJSRuntimeSerializer.recursivelyFindDotnetObjectProxy;
+        const dotnetObjectKey = "__dotNetObject";
+        const keys = Object.keys(obj);
+        if (keys.length === 1 && keys[0] === dotnetObjectKey) {
+            return new DotNetObjectProxy(obj[dotnetObjectKey]);
+        }
+
+        for (let i = 0; i < keys.length; i++) {
+            const property = keys[i];
+            let value = obj[property];
+            if (value !== null && typeof value === "object") {
+                obj[property] = recursion(value);
             }
-        });
-        return o;
-    }
+        }
 
-    recurseObjectProperties(obj, transformer) {
-        Object.keys(obj).forEach(property => {
-            if (obj[property] !== null && typeof obj[property] === "object") {
-                recurseObjectProperties(obj[property], transformer);
-            } else {
-                transformer(obj, property);
-            }
-        });
+        return obj;
     }
 };
-
 
 self.jsRuntimeSerializers.set('BlazorWorkerJSRuntimeSerializer', new BlazorWorkerJSRuntimeSerializer());

@@ -16,8 +16,6 @@ window.BlazorWorker = function () {
     const workerDef = function () {
         const initConf = JSON.parse('$initConf$');
 
-        //this.getAppRoot = () => ;
-
         const nonExistingDlls = [];
         let blazorBootManifest = {
             resources: { assembly: { "AssemblyName.dll": "sha256-<sha256>" } }
@@ -40,7 +38,7 @@ window.BlazorWorker = function () {
             }
 
             try {
-                Module.mono_call_static_method(initConf.InitEndPoint, [initConf]);
+                Module.mono_call_static_method(initConf.InitEndPoint, []);
             } catch (e) {
                 console.error(`Init method ${initConf.InitEndPoint} failed`, e);
                 throw e;
@@ -185,27 +183,38 @@ window.BlazorWorker = function () {
             serialize: o => JSON.stringify(o),
             deserialize: s => JSON.parse(s)
         });
-            
-        // Async invocation with callback.
-        self.beginInvokeAsync = async function (serializerId, invokeId, method, argsString) {
 
+        const empty = {};
+
+        // reduce dot notation to last member of chain
+        const getChildFromDotNotation = member =>
+            member.split(".").reduce((m, prop) => Object.hasOwnProperty.call(m, prop) ? m[prop] : empty, self);
+
+        // Async invocation with callback.
+        self.beginInvokeAsync = async function (serializerId, invokeId, method, isVoid, argsString) {
+
+            //console.debug("beginInvokeAsync call", { serializerId, invokeId, method, isVoid, argsString });
             let result;
             let isError = false;
-            var serializer = self.jsRuntimeSerializers.get(serializerId);
+            let serializer = self.jsRuntimeSerializers.get(serializerId);
             if (!serializer) {
                 result = `beginInvokeAsync: Unknown serializer with id '${serializerId}'`;
+                serializer = self.jsRuntimeSerializers.get('nativejson');
                 isError = true;
             }
 
-            if (!isError && !Object.hasOwnProperty.call(self, method)) {
+            // todo: remove me.
+            //console.debug('beginInvokeAsync::serializer', serializer);
+
+            const methodHandle = getChildFromDotNotation(method);
+
+            if (!isError && methodHandle === empty) {
                 result = `beginInvokeAsync: Method '${method}' not defined`;
                 isError = true;
             }
 
             if (!isError) {
-
-                const methodHandle = self[method];
-
+                
                 try {
                     const argsArray = serializer.deserialize(argsString);
                     result = await methodHandle(...argsArray);
@@ -216,11 +225,24 @@ window.BlazorWorker = function () {
                 }
             }
             
+            let resultString;
+            if (isVoid && !isError) {
+                resultString = null;
+            } else {
+                try {
+                    resultString = serializer.serialize(result);
+                } catch (e) {
+                    result = `${e}\nJS Stacktrace:${(e.stack || new Error().stack)}`;
+                    isError = true;
+                }
+            }
+            
             try {
-                const resultString = serializer.serialize(result);
+                //console.debug("endInvokeCallBack", {method, invokeId, isError, resultString})
                 endInvokeCallBack(invokeId, isError, resultString);
             } catch (e) {
-                console.error(`BlazorWorker: beginInvokeAsync: Callback to ${initConf.endInvokeAsyncCallBackEndpoint} failed`, e);
+                
+                console.error(`BlazorWorker: beginInvokeAsync: Callback to ${initConf.endInvokeCallBackEndpoint} failed. Method: ${method}, args: ${argsString}`, e);
                 throw e;
             }
         };
@@ -228,6 +250,10 @@ window.BlazorWorker = function () {
         // Import script from a path relative to approot
         self.importLocalScripts = (...urls) => {
             self.importScripts(urls.map(url => initConf.appRoot + (url.startsWith('/') ? '' : '/') + url));
+        };
+
+        self.isObjectDefined = (workerScopeObject) => {
+            return getChildFromDotNotation(workerScopeObject) !== empty;
         };
     };
 

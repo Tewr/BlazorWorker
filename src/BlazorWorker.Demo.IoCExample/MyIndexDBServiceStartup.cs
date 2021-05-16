@@ -5,7 +5,7 @@ using System;
 
 namespace BlazorWorker.Demo.IoCExample
 {
-    public class MyServiceStartup
+    public class MyIndexDBServiceStartup
     {
         private readonly IServiceProvider serviceProvider;
         private readonly IWorkerMessageService workerMessageService;
@@ -14,20 +14,23 @@ namespace BlazorWorker.Demo.IoCExample
         /// The constructor uses the built-in injection for library-native services such as the <see cref="IWorkerMessageService"/>.
         /// </summary>
         /// <param name="workerMessageService"></param>
-        public MyServiceStartup(IWorkerMessageService workerMessageService)
+        public MyIndexDBServiceStartup(IWorkerMessageService workerMessageService)
         {
             this.workerMessageService = workerMessageService;
             serviceProvider = ServiceCollectionHelper.BuildServiceProviderFromMethod(Configure);
         }
 
-        public T Resolve<T>() =>  serviceProvider.GetService<T>();
+        public T Resolve<T>()=> serviceProvider.GetService<T>();
 
         public void Configure(IServiceCollection services)
         {
             services.AddTransient<IMyServiceDependency, MyServiceDependency>()
                     .AddBlazorWorkerJsRuntime()
-                    .AddTransient<MyIocService>()
-                    .AddSingleton(workerMessageService);
+                    .AddSingleton<MyIndexDBService>()
+                    .AddSingleton(workerMessageService)
+                    .AddIndexedDbDemoPersonConfig();
         }
     }
+
+
 }

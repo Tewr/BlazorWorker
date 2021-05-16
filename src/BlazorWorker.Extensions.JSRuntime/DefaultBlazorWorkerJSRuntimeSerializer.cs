@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.JSInterop;
+using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -6,18 +7,18 @@ namespace BlazorWorker.Extensions.JSRuntime
 {
     internal class DefaultBlazorWorkerJSRuntimeSerializer : IBlazorWorkerJSRuntimeSerializer
     {
-        private JsonSerializerOptions options;
+        private readonly JsonSerializerOptions options;
 
-        public DefaultBlazorWorkerJSRuntimeSerializer()
+        public DefaultBlazorWorkerJSRuntimeSerializer(IJSRuntime jSRuntime)
         {
             options = new JsonSerializerOptions
             {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 Converters = {
-                    { new DotNetObjectReferenceJsonConverterFactory() }
+                    { new DotNetObjectReferenceJsonConverterFactory(jSRuntime) }
                 }
             };
         }
-         
 
         public T Deserialize<T>(string serializedObject)
         {

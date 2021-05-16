@@ -15,6 +15,9 @@
   <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.1'">
     <RazorLangVersion>3.0</RazorLangVersion>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="TG.Blazor.IndexedDB" Version="1.5.0-preview" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\BlazorWorker.Demo.IoCExample\BlazorWorker.Demo.IoCExample.csproj" />

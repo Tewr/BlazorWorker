@@ -10,6 +10,13 @@ namespace BlazorWorker.Extensions.JSRuntime
 {
     internal sealed class DotNetObjectReferenceJsonConverterFactory : JsonConverterFactory
     {
+        public DotNetObjectReferenceJsonConverterFactory(IJSRuntime jsRuntime)
+        {
+            JSRuntime = jsRuntime;
+        }
+
+        public IJSRuntime JSRuntime { get; private set; }
+
         public override bool CanConvert(Type typeToConvert)
         {
             return typeToConvert.IsGenericType && typeToConvert.GetGenericTypeDefinition() == typeof(DotNetObjectReference<>);
@@ -21,7 +28,7 @@ namespace BlazorWorker.Extensions.JSRuntime
             var instanceType = typeToConvert.GetGenericArguments()[0];
             var converterType = typeof(DotNetObjectReferenceJsonConverter<>).MakeGenericType(instanceType);
 
-            return (JsonConverter)Activator.CreateInstance(converterType)!;
+            return (JsonConverter)Activator.CreateInstance(converterType, JSRuntime)!;
         }
     }
 }

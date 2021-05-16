@@ -2,6 +2,7 @@
 using Microsoft.JSInterop;
 using System;
 using System.Threading.Tasks;
+using TG.Blazor.IndexedDB;
 
 namespace BlazorWorker.Demo.IoCExample
 {
@@ -13,7 +14,10 @@ namespace BlazorWorker.Demo.IoCExample
         
         private int FiveCalledCounter = 0;
 
-        public MyIocService(IWorkerMessageService workerMessageService, IMyServiceDependency aServiceDependency, IJSRuntime jSRuntime)
+        public MyIocService(
+            IWorkerMessageService workerMessageService, 
+            IMyServiceDependency aServiceDependency, 
+            IJSRuntime jSRuntime)
         {
             WorkerMessageService = workerMessageService;
             AServiceDependency = aServiceDependency;
@@ -25,8 +29,8 @@ namespace BlazorWorker.Demo.IoCExample
             this.FiveCalled?.Invoke(this, FiveCalledCounter++);
             try
             {
-                var someThing = new Something() { Value = "Five" };
-                var bubblePack = DotNetObjectReference.Create(someThing);
+                //var someThing = new Something() { Value = "Five" };
+                //var bubblePack = DotNetObjectReference.Create(someThing);
                 var theNumberOfTheBeast = await this.JSRuntime.InvokeAsync<int>("eval",
                     "(function(){ console.log('Hello world invoke call from MyIocService'); return 666; })()");
                 

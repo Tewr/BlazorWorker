@@ -17,27 +17,19 @@ namespace BlazorWorker.WorkerCore
 
         public static Task InvokeVoidAsync(string method, string serializedArgs)
         {
-            return InvokeAsync(method, serializedArgs);
+            return PrivateInvokeAsync(method, CancellationToken.None, serializedArgs, true);
         }
 
-        public static async Task<object> InvokeAsync(
-            string method, 
-            CancellationToken cancellationToken, 
-            string serializedArgs, 
+        public static Task<object> InvokeAsync(
+            string method,
+            CancellationToken cancellationToken,
+            string serializedArgs,
             string serializer = "nativejson")
         {
-            var (invokeId, task) = selfInvokeRegister.CreateAndAdd();
-            if (cancellationToken.CanBeCanceled)
-            {
-                cancellationToken.Register(()=> {
-                    task.SetCanceled();
-                    selfInvokeRegister.TryRemove(invokeId, out var _);
-                });
-            }
-
-            self.Invoke("beginInvokeAsync", serializer, invokeId.ToString(), method, serializedArgs);
-            return await task.Task;
+            return PrivateInvokeAsync(method, cancellationToken, serializedArgs, false, serializer);
         }
+
+       
 
         public static Task<object> InvokeAsync(string method, string serializedArgs,
             string serializer = "nativejson")
@@ -55,6 +47,8 @@ namespace BlazorWorker.WorkerCore
 #endif
                 return;
             }
+
+            //Console.WriteLine($"{nameof(JSInvokeService)}.{nameof(EndInvokeCallBack)}({id}): result was {(result?.ToString() ?? "(null)") }");
 
             // TODO: Error management
             if (!isError)
@@ -74,6 +68,35 @@ namespace BlazorWorker.WorkerCore
         public static void ImportLocalScripts(params string[] relativeUrls)
         {
             Invoke<object>("importLocalScripts", relativeUrls);
+        }
+
+        /// <summary>
+        /// Returns <c>true</c> if the specified <paramref name="objectPath"/> is defined on the global scope
+        /// </summary>
+        /// <param name="objectPath"></param>
+        public static bool IsObjectDefined(string objectPath)
+        {
+            return Invoke<bool>("isObjectDefined", objectPath);
+        }
+
+        private static async Task<object> PrivateInvokeAsync(
+           string method,
+           CancellationToken cancellationToken,
+           string serializedArgs,
+           bool isVoid,
+           string serializer = "nativejson")
+        {
+            var (invokeId, task) = selfInvokeRegister.CreateAndAdd();
+            if (cancellationToken.CanBeCanceled)
+            {
+                cancellationToken.Register(() => {
+                    task.SetCanceled();
+                    selfInvokeRegister.TryRemove(invokeId, out var _);
+                });
+            }
+            //Console.WriteLine($"{nameof(JSInvokeService)}.{nameof(PrivateInvokeAsync)}: {method}({serializedArgs}) isVoid: {isVoid} ");
+            self.Invoke("beginInvokeAsync", serializer, invokeId.ToString(), method, isVoid, serializedArgs);
+            return await task.Task;
         }
     }
 }
