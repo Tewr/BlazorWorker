@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Runtime.Serialization;
 
 namespace BlazorWorker.WorkerBackgroundService
 {
     public class MessageHandlerRegistry<THandler> : Dictionary<string, Action<THandler, string>>
     {
+        public const string UnknownMessageType = "__unknownMessage";
+
         public MessageHandlerRegistry(Func<THandler, ISerializer> messageSerializer)
         {
             MessageSerializer = messageSerializer;
@@ -54,7 +57,15 @@ namespace BlazorWorker.WorkerBackgroundService
 
         internal string GetMessageType(THandler handlerInstance, string message)
         {
-            return this.MessageSerializer(handlerInstance).Deserialize<BaseMessage>(message).MessageType;
+            try
+            {
+                return this.MessageSerializer(handlerInstance).Deserialize<BaseMessage>(message).MessageType;
+            }
+            catch (Exception)
+            {
+                return UnknownMessageType;
+            }
+            
         }
 
         public MessageHandler<THandler> GetRegistryForInstance(THandler instance)
@@ -82,11 +93,6 @@ namespace BlazorWorker.WorkerBackgroundService
         public bool HandlesMessage(string message)
         {
             return this.registry.HandlesMessage(instance, message);
-        }
-
-        private string GetMessageType(string message)
-        {
-            return this.registry.GetMessageType(this.instance, message);
         }
     }
 }

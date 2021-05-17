@@ -26,6 +26,7 @@ namespace BlazorWorker.Demo.IoCExample
 
         public async Task<int> Five()
         {
+            await this.WorkerMessageService.PostMessageAsync($"aaaaaaa"); // error
             this.FiveCalled?.Invoke(this, FiveCalledCounter++);
             try
             {
