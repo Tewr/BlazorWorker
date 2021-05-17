@@ -46,7 +46,9 @@ namespace BlazorWorker.Core.SimpleInstanceService
 
         private void OnIncomingMessage(object sender, string message)
         {
+#if DEBUG
             Console.WriteLine($"{nameof(SimpleInstanceServiceProxy)}:{message}");
+#endif
             if (DisposeResult.CanDeserialize(message)) {
                 var result = DisposeResult.Deserialize(message);
                 if (disposeResultRegister.TryRemove(result.CallId, out var taskCompletionSource))
