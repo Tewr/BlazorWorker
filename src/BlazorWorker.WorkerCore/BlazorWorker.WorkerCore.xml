@@ -4,6 +4,18 @@
         <name>BlazorWorker.WorkerCore</name>
     </assembly>
     <members>
+        <member name="M:BlazorWorker.WorkerCore.JSInvokeService.ImportLocalScripts(System.String[])">
+            <summary>
+            Prepending the specified <paramref name="relativeUrls"/> with the base path of the application, invokes the importScripts() method of the WorkerGlobalScope interface, which synchronously imports one or more scripts into the worker's scope.
+            </summary>
+            <param name="relativeUrls"></param>
+        </member>
+        <member name="M:BlazorWorker.WorkerCore.JSInvokeService.IsObjectDefined(System.String)">
+            <summary>
+            Returns <c>true</c> if the specified <paramref name="objectPath"/> is defined on the global scope
+            </summary>
+            <param name="objectPath"></param>
+        </member>
         <member name="T:BlazorWorker.WorkerCore.MessageService">
             <summary>
             Simple static message service that runs in the worker thread.
@@ -57,6 +69,11 @@
         <member name="P:BlazorWorker.Core.WorkerInitOptions.UseConventionalServiceAssembly">
             <summary>
             If set to true, deducts the name of the assembly containing the service using the service type assembly name + dll extension as file name, and adds it as a dependency.
+            </summary>
+        </member>
+        <member name="P:BlazorWorker.Core.WorkerInitOptions.EndInvokeCallBackEndpoint">
+            <summary>
+            Mono-wasm-annotated endpoint for doing callbacks on self invocations from the worker. Experts only.
             </summary>
         </member>
         <member name="T:BlazorWorker.Core.WorkerInitOptionsExtensions">

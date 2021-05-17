@@ -1,5 +1,5 @@
-//using BlazorPrettyCode;
 using BlazorWorker.Core;
+using BlazorWorker.Demo.IoCExample;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -16,7 +16,8 @@ namespace BlazorWorker.Demo.Client
             builder.RootComponents.Add<App>("app");
             builder.Services.AddWorkerFactory();
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-            //builder.Services.AddBlazorPrettyCode();
+            builder.Services.AddIndexedDbDemoPersonConfig();
+
             await builder.Build().RunAsync();
         }
     }

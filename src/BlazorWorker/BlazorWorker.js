@@ -15,10 +15,17 @@ window.BlazorWorker = function () {
 
     const workerDef = function () {
         const initConf = JSON.parse('$initConf$');
+
         const nonExistingDlls = [];
         let blazorBootManifest = {
-            resources: { assembly: { "AssemblyName.dll": "sha256-<sha256>"}}};
+            resources: { assembly: { "AssemblyName.dll": "sha256-<sha256>" } }
+        };
+
+        let endInvokeCallBack;
         const onReady = () => {
+
+            endInvokeCallBack =
+                Module.mono_bind_static_method(initConf.endInvokeCallBackEndpoint);
             const messageHandler =
                 Module.mono_bind_static_method(initConf.MessageEndPoint);
             // Future messages goes directly to the message handler
@@ -170,6 +177,84 @@ window.BlazorWorker = function () {
                 self.importScripts(`${initConf.appRoot}/${initConf.wasmRoot}/${dotnetjsfilename}`);
             
             }, errorInfo => onError(errorInfo));
+
+        self.jsRuntimeSerializers = new Map();
+        self.jsRuntimeSerializers.set('nativejson', {
+            serialize: o => JSON.stringify(o),
+            deserialize: s => JSON.parse(s)
+        });
+
+        const empty = {};
+
+        // reduce dot notation to last member of chain
+        const getChildFromDotNotation = member =>
+            member.split(".").reduce((m, prop) => Object.hasOwnProperty.call(m, prop) ? m[prop] : empty, self);
+
+        // Async invocation with callback.
+        self.beginInvokeAsync = async function (serializerId, invokeId, method, isVoid, argsString) {
+
+            //console.debug("beginInvokeAsync call", { serializerId, invokeId, method, isVoid, argsString });
+            let result;
+            let isError = false;
+            let serializer = self.jsRuntimeSerializers.get(serializerId);
+            if (!serializer) {
+                result = `beginInvokeAsync: Unknown serializer with id '${serializerId}'`;
+                serializer = self.jsRuntimeSerializers.get('nativejson');
+                isError = true;
+            }
+
+            // todo: remove me.
+            //console.debug('beginInvokeAsync::serializer', serializer);
+
+            const methodHandle = getChildFromDotNotation(method);
+
+            if (!isError && methodHandle === empty) {
+                result = `beginInvokeAsync: Method '${method}' not defined`;
+                isError = true;
+            }
+
+            if (!isError) {
+                
+                try {
+                    const argsArray = serializer.deserialize(argsString);
+                    result = await methodHandle(...argsArray);
+                }
+                catch (e) {
+                    result = `${e}\nJS Stacktrace:${(e.stack || new Error().stack)}`;
+                    isError = true;
+                }
+            }
+            
+            let resultString;
+            if (isVoid && !isError) {
+                resultString = null;
+            } else {
+                try {
+                    resultString = serializer.serialize(result);
+                } catch (e) {
+                    result = `${e}\nJS Stacktrace:${(e.stack || new Error().stack)}`;
+                    isError = true;
+                }
+            }
+            
+            try {
+                //console.debug("endInvokeCallBack", {method, invokeId, isError, resultString})
+                endInvokeCallBack(invokeId, isError, resultString);
+            } catch (e) {
+                
+                console.error(`BlazorWorker: beginInvokeAsync: Callback to ${initConf.endInvokeCallBackEndpoint} failed. Method: ${method}, args: ${argsString}`, e);
+                throw e;
+            }
+        };
+
+        // Import script from a path relative to approot
+        self.importLocalScripts = (...urls) => {
+            self.importScripts(urls.map(url => initConf.appRoot + (url.startsWith('/') ? '' : '/') + url));
+        };
+
+        self.isObjectDefined = (workerScopeObject) => {
+            return getChildFromDotNotation(workerScopeObject) !== empty;
+        };
     };
 
     const inlineWorker = `self.onmessage = ${workerDef}()`; 
@@ -186,13 +271,14 @@ window.BlazorWorker = function () {
             deploy_prefix: initOptions.deployPrefix,
             MessageEndPoint: initOptions.messageEndPoint,
             InitEndPoint: initOptions.initEndPoint,
+            endInvokeCallBackEndpoint: initOptions.endInvokeCallBackEndpoint,
             wasmRoot: initOptions.wasmRoot,
             blazorBoot: "_framework/blazor.boot.json",
             debug: initOptions.debug
         };
 
         // Initialize worker
-        const renderedConfig = JSON.stringify(initConf).replace('$appRoot$', appRoot);
+        const renderedConfig = JSON.stringify(initConf);
         const renderedInlineWorker = inlineWorker.replace('$initConf$', renderedConfig);
         window.URL = window.URL || window.webkitURL;
         const blob = new Blob([renderedInlineWorker], { type: 'application/javascript' });
@@ -214,6 +300,8 @@ window.BlazorWorker = function () {
     const postMessage = function (workerId, message) {
         workers[workerId].worker.postMessage(message);
     };
+
+
 
     return {
         disposeWorker,

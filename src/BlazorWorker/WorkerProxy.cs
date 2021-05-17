@@ -20,7 +20,8 @@ namespace BlazorWorker.Core
         static WorkerProxy()
         {
             var messageServiceType = typeof(MessageService);
-            messageMethod = $"[{messageServiceType.Assembly.GetName().Name}]{messageServiceType.FullName}:{nameof(MessageService.OnMessage)}";
+            messageMethod = MonoTypeHelper.GetStaticMethodId<MessageService>(nameof(MessageService.OnMessage));
+            //$"[{messageServiceType.Assembly.GetName().Name}]{messageServiceType.FullName}:{nameof(MessageService.OnMessage)}";
         }
 
         public WorkerProxy(IJSRuntime jsRuntime)

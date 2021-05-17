@@ -2,6 +2,7 @@ using BlazorWorker.Core;
 using BlazorWorker.WorkerBackgroundService;
 using BlazorWorker.WorkerCore;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -11,11 +12,15 @@ namespace BlazorWorker.BackgroundServiceFactory
     internal class WorkerBackgroundServiceProxy {
         private static long idSource;
         internal static readonly string InitEndPoint;
+        internal static readonly string EndInvokeCallBackEndpoint;
         public static long GetNextId() => ++idSource;
         static WorkerBackgroundServiceProxy()
         {
             var wim = typeof(WorkerInstanceManager);
-            InitEndPoint = $"[{wim.Assembly.GetName().Name}]{wim.FullName}:{nameof(WorkerInstanceManager.Init)}";
+            InitEndPoint =
+                MonoTypeHelper.GetStaticMethodId<WorkerInstanceManager>(nameof(WorkerInstanceManager.Init));
+            EndInvokeCallBackEndpoint =
+                MonoTypeHelper.GetStaticMethodId<JSInvokeService>(nameof(JSInvokeService.EndInvokeCallBack));
         }
 
     }
@@ -26,16 +31,19 @@ namespace BlazorWorker.BackgroundServiceFactory
         private readonly WebWorkerOptions options;
         private readonly long instanceId;
 
-        private readonly MessageHandlerRegistry messageHandlerRegistry;
+        private static readonly MessageHandlerRegistry<WorkerBackgroundServiceProxy<T>> messageHandlerRegistry;
+        private readonly MessageHandler<WorkerBackgroundServiceProxy<T>> messageHandler;
+
         private readonly TaskRegister initTask = new TaskRegister();
         private readonly TaskRegister disposeTaskRegistry = new TaskRegister();
+
         private TaskCompletionSource<bool> initWorkerTask;
         private readonly TaskRegister<MethodCallResult> messageRegister
             = new TaskRegister<MethodCallResult>();
         private readonly TaskRegister<InitInstanceFromFactoryComplete> initFromFactoryRegister
             = new TaskRegister<InitInstanceFromFactoryComplete>();
-        private Dictionary<long, EventHandle> eventRegister
-            = new Dictionary<long, EventHandle>();
+        private ConcurrentDictionary<long, EventHandle> eventRegister
+            = new ConcurrentDictionary<long, EventHandle>();
 
         public bool IsInitialized { get; private set; }
         public bool IsDisposed { get; private set; }
@@ -48,6 +56,17 @@ namespace BlazorWorker.BackgroundServiceFactory
         /// </summary>
         public List<IAsyncDisposable> Disposables { get; } = new List<IAsyncDisposable>();
 
+        static WorkerBackgroundServiceProxy()
+        {
+            messageHandlerRegistry = new MessageHandlerRegistry<WorkerBackgroundServiceProxy<T>>(p => p.options.MessageSerializer);
+            messageHandlerRegistry.Add<InitInstanceComplete>(p => p.OnInitInstanceComplete);
+            messageHandlerRegistry.Add<InitInstanceFromFactoryComplete>(p => p.OnInitInstanceFromFactoryComplete);
+            messageHandlerRegistry.Add<InitWorkerComplete>(p => p.OnInitWorkerComplete);
+            messageHandlerRegistry.Add<DisposeInstanceComplete>(p => p.OnDisposeInstanceComplete);
+            messageHandlerRegistry.Add<EventRaised>(p => p.OnEventRaised);
+            messageHandlerRegistry.Add<MethodCallResult>(p => p.OnMethodCallResult);
+        }
+
         internal WorkerBackgroundServiceProxy(
             IWorker worker,
             WebWorkerOptions options)
@@ -56,18 +75,12 @@ namespace BlazorWorker.BackgroundServiceFactory
             this.options = options;
             this.instanceId = WorkerBackgroundServiceProxy.GetNextId();
 
-            this.messageHandlerRegistry = new MessageHandlerRegistry(this.options.MessageSerializer);
-            this.messageHandlerRegistry.Add<InitInstanceComplete>(OnInitInstanceComplete);
-            this.messageHandlerRegistry.Add<InitInstanceFromFactoryComplete>(OnInitInstanceFromFactoryComplete);
-            this.messageHandlerRegistry.Add<InitWorkerComplete>(OnInitWorkerComplete);
-            this.messageHandlerRegistry.Add<DisposeInstanceComplete>(OnDisposeInstanceComplete);
-            this.messageHandlerRegistry.Add<EventRaised>(OnEventRaised);
-            this.messageHandlerRegistry.Add<MethodCallResult>(OnMethodCallResult);
+            this.messageHandler = messageHandlerRegistry.GetRegistryForInstance(this);
         }
 
         private void OnDisposeInstanceComplete(DisposeInstanceComplete message)
         {
-            if (!this.disposeTaskRegistry.TryGetValue(message.CallId, out var disposeTask)) {
+            if (!this.disposeTaskRegistry.TryRemove(message.CallId, out var disposeTask)) {
                 return;
             }
 
@@ -79,6 +92,11 @@ namespace BlazorWorker.BackgroundServiceFactory
             {
                 disposeTask.SetException(message.Exception);
             }
+        }
+
+        private bool IsInfrastructureMessage(string message)
+        {
+            return this.messageHandler.HandlesMessage(message);
         }
 
         public IWorkerMessageService GetWorkerMessageService()
@@ -108,11 +126,12 @@ namespace BlazorWorker.BackgroundServiceFactory
                         workerInitOptions.AddAssemblyOf<T>();
                     }
 
-                    await this.worker.InitAsync(new WorkerInitOptions {
-                        DependentAssemblyFilenames =
-                            WorkerBackgroundServiceDependencies.DependentAssemblyFilenames,
-                        InitEndPoint = WorkerBackgroundServiceProxy.InitEndPoint
-                    }.MergeWith(workerInitOptions));
+                await this.worker.InitAsync(new WorkerInitOptions {
+                    DependentAssemblyFilenames = 
+                        WorkerBackgroundServiceDependencies.DependentAssemblyFilenames,
+                    InitEndPoint = WorkerBackgroundServiceProxy.InitEndPoint,
+                    EndInvokeCallBackEndpoint = WorkerBackgroundServiceProxy.EndInvokeCallBackEndpoint
+                }.MergeWith(workerInitOptions));
 
                     this.worker.IncomingMessage += OnMessage;
 
@@ -194,18 +213,17 @@ namespace BlazorWorker.BackgroundServiceFactory
 
         private void OnMessage(object sender, string rawMessage)
         {
-            this.messageHandlerRegistry.HandleMessage(rawMessage);
+            this.messageHandler.HandleMessage(rawMessage);
         }
 
         private void OnMethodCallResult(MethodCallResult message)
         {
-            if (!this.messageRegister.TryGetValue(message.CallId, out var taskCompletionSource))
+            if (!this.messageRegister.TryRemove(message.CallId, out var taskCompletionSource))
             {
                 return;
             }
-
-            taskCompletionSource.SetResult(message);
-            this.messageRegister.Remove(message.CallId);
+            
+            taskCompletionSource.SetResult(message); 
         }
 
         private void OnEventRaised(EventRaised message)
@@ -233,7 +251,7 @@ namespace BlazorWorker.BackgroundServiceFactory
 
         private void OnInitInstanceComplete(InitInstanceComplete message)
         {
-            if (!this.initTask.TryGetValue(message.CallId, out var initTask))
+            if (!this.initTask.TryRemove(message.CallId, out var initTask))
             {
                 return;
             }
@@ -250,12 +268,10 @@ namespace BlazorWorker.BackgroundServiceFactory
 
         private void OnInitInstanceFromFactoryComplete(InitInstanceFromFactoryComplete message)
         {
-            if (!this.initFromFactoryRegister.TryGetValue(message.CallId, out var taskCompletionSource))
+            if (!this.initFromFactoryRegister.TryRemove(message.CallId, out var taskCompletionSource))
             {
                 return;
             }
-
-            this.initFromFactoryRegister.Remove(message.CallId);
 
             if (message.IsSuccess)
             {
@@ -314,7 +330,11 @@ namespace BlazorWorker.BackgroundServiceFactory
                 }
             };
 
-            this.eventRegister.Add(handle.Id, handle);
+            if (!this.eventRegister.TryAdd(handle.Id, handle))
+            {
+                throw new InvalidOperationException($"{nameof(WorkerBackgroundServiceProxy)}: Error when registering event listener: event handler id {handle.Id} not available.");
+            }
+
             var message = new RegisterEvent
             {
                 EventName = eventName,

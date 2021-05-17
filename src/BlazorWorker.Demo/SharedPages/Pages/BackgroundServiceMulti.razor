@@ -89,9 +89,9 @@
                         var progressRef = new ProgressRef();
                         piProgress.Add(progressRef);
                         await service.RegisterEventListenerAsync(nameof(MathsService.Pi),
-                            (object s, int pinum) =>
+                            (object s, PiProgress eventInfo) =>
                             {
-                                progressRef.Progress = (int)Math.Floor((100 * ((decimal)pinum / sliceSize)));
+                                progressRef.Progress = (int)Math.Floor((100 * ((decimal)eventInfo.Progress / sliceSize)));
                                 StateHasChanged();
                             });
                     }

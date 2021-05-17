@@ -1,15 +1,29 @@
 ﻿using System;
 using System.Threading.Tasks;
 using BlazorWorker.Core.SimpleInstanceService;
+using BlazorWorker.WorkerCore;
 using BlazorWorker.WorkerCore.SimpleInstanceService;
 
 namespace BlazorWorker.Core.CoreInstanceService
 {
-    using TargetType = BlazorWorker.WorkerCore.SimpleInstanceService.SimpleInstanceService;
+    using WorkerSimpleInstanceService = BlazorWorker.WorkerCore.SimpleInstanceService.SimpleInstanceService;
     internal class CoreInstanceService : ICoreInstanceService
     {
         private static long sourceId;
         private readonly SimpleInstanceServiceProxy simpleInstanceServiceProxy;
+        private readonly static string initEndpointID;
+        private readonly static string endInvokeCallBackEndpointID;
+
+        static CoreInstanceService()
+        {
+            initEndpointID = 
+                MonoTypeHelper.GetStaticMethodId<WorkerSimpleInstanceService>(nameof(WorkerSimpleInstanceService.Init));
+            endInvokeCallBackEndpointID = 
+                MonoTypeHelper.GetStaticMethodId<JSInvokeService>(nameof(JSInvokeService.EndInvokeCallBack));
+#if DEBUG
+            Console.WriteLine($"{nameof(CoreInstanceService)}(): {initEndpointID}, {endInvokeCallBackEndpointID}");
+#endif
+        }
 
         public CoreInstanceService(SimpleInstanceServiceProxy simpleInstanceServiceProxy)
         {
@@ -57,11 +71,13 @@ namespace BlazorWorker.Core.CoreInstanceService
                 {
                     options.AddAssemblyOfType(t);
                 }
-                
-                await this.simpleInstanceServiceProxy.InitializeAsync(new WorkerInitOptions()
-                {
-                    InitEndPoint = $"[{typeof(TargetType).Assembly.GetName().Name}]{typeof(TargetType).FullName}:{nameof(TargetType.Init)}"
-                }.MergeWith(options));
+
+                await this.simpleInstanceServiceProxy.InitializeAsync(
+                    new WorkerInitOptions
+                    {
+                        InitEndPoint = initEndpointID,
+                        EndInvokeCallBackEndpoint = endInvokeCallBackEndpointID
+                    }.MergeWith(options)); ;
             }
             var initResult = await this.simpleInstanceServiceProxy.InitInstance(
                 new InitInstanceRequest

@@ -1,0 +1,144 @@
+﻿@using BlazorWorker.Demo.IoCExample
+@using BlazorWorker.Extensions.JSRuntime
+@using TG.Blazor.IndexedDB
+@inject IWorkerFactory workerFactory
+@inject IndexedDBManager indexedDBManager
+
+<div class="row">
+    <div class="col-5 col-xs-12">
+        <h1>.NET Worker Thread Service with IndexedDB</h1>
+
+        This page demonstrates IndexedDB.
+        In this example, the class MyServiceStartup is a factory class for MyIocService.
+        The factory is implemented using ServiceCollection as an IoC Container.
+
+        <br /><br />
+        <button disabled=@RunDisabled @onclick=OnClick class="btn btn-primary">Run test</button><br /><br />
+        <br />
+        <br />
+        <strong>Output:</strong>
+        <hr />
+<pre>
+@output
+</pre>
+    </div>
+    <div class="col-7 col-xs-12">
+        <GithubSource RelativePath="Pages/IoCExamplePage.razor" />
+    </div>
+</div>
+@code {
+
+    string output = "";
+    IWorker worker;
+    IWorkerBackgroundService<MyIndexDBServiceStartup> startupService;
+    string canDisposeWorker => worker == null ? null : "disabled";
+    string RunDisabled => Running ? "disabled" : null;
+    bool Running = false;
+    public async Task OnClick(EventArgs _)
+    {
+        Running = true;
+        //output = "";
+        var rn = Environment.NewLine;
+        try
+        {
+
+            if (worker == null)
+            {
+                worker = await workerFactory.CreateAsync();
+            }
+
+            var sw = new System.Diagnostics.Stopwatch();
+            IWorkerBackgroundService<MyIndexDBService> myIocIndexedDbService;
+
+
+            var serviceCollectionDependencies = new string[] {
+                    "Microsoft.Extensions.DependencyInjection.Abstractions.dll"
+#if NET5
+                    ,"System.Diagnostics.Tracing.dll"
+#endif
+                };
+
+            if (startupService == null)
+            {
+                output = $"{rn}{LogDate()} Creating background service Startup class...";
+                StateHasChanged();
+
+                sw.Start();
+                startupService = await worker.CreateBackgroundServiceAsync<MyIndexDBServiceStartup>(wo =>
+                    wo.AddConventionalAssemblyOfService()
+                        .AddAssemblyOf<Microsoft.Extensions.DependencyInjection.ServiceCollection>()
+                        .AddAssemblies(serviceCollectionDependencies)
+                        .AddBlazorWorkerJsRuntime()
+                        .AddAssemblyOf<IndexedDBManager>()
+                    );
+
+                output += $"{rn}{LogDate()} Background service created in {sw.ElapsedMilliseconds}ms";
+                StateHasChanged();
+            }
+
+            output += $"{rn}{LogDate()} Resolving instance...";
+            myIocIndexedDbService = await startupService.CreateBackgroundServiceAsync(startup => startup.Resolve<MyIndexDBService>());
+
+
+            await using (myIocIndexedDbService)
+            {
+                long id;
+                var storeName = indexedDBManager.Stores[0].Name;
+                output += $"{rn}{LogDate()} Retrieving test person from store '{storeName}'...";
+                var testPerson = (await this.indexedDBManager.GetRecords<Person>(storeName)).FirstOrDefault();
+                if (testPerson == null)
+                {
+                    output += $"{rn}{LogDate()} No test person present, creating a test person...";
+                    await InvokeAsync(StateHasChanged);
+
+                    await this.indexedDBManager.AddRecord<Person>(
+                        new StoreRecord<Person>()
+                        {
+                            Storename = storeName,
+                            Data = new Person() { Name = "Morgoff" }
+                        });
+
+                    output += $"{rn}{LogDate()} Test person record added. Verifying that it can be retrieved on the main thread...";
+                    testPerson = (await this.indexedDBManager.GetRecords<Person>(storeName)).FirstOrDefault();
+                    output += $"{rn}{LogDate()} Retrieved = {testPerson?.Name ??"N/A" }";
+
+                }
+                else
+                {
+                    output += $"{rn}{LogDate()} Test person present.";
+                    await InvokeAsync(StateHasChanged);
+                }
+
+                id = testPerson.Id.Value;
+
+                output += $"{rn}{LogDate()} Trying to to get the name of the test person using the worker...";
+                await InvokeAsync(StateHasChanged);
+                output += $"{rn}{LogDate()} PersonName() = {await myIocIndexedDbService.RunAsync(s => s.GetPersonName(id))}";
+            }
+
+            StateHasChanged();
+
+        }
+        catch (Exception e)
+        {
+            output += $"{rn}Error = {e}";
+            InvokeAsync(StateHasChanged);
+        }
+        finally
+        {
+            Running = false;
+        }
+    }
+
+    public async Task OnDisposeWorker()
+    {
+        await worker.DisposeAsync();
+        worker = null;
+        startupService = null;
+    }
+
+    private string LogDate()
+    {
+        return DateTime.Now.ToString("HH:mm:ss:fff");
+    }
+}

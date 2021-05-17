@@ -1,4 +1,5 @@
-﻿using BlazorWorker.WorkerCore.SimpleInstanceService;
+﻿using BlazorWorker.WorkerCore;
+using BlazorWorker.WorkerCore.SimpleInstanceService;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8,10 +9,10 @@ namespace BlazorWorker.Core.SimpleInstanceService
     public class SimpleInstanceServiceProxy : ISimpleInstanceService
     {
         private readonly IWorker worker;
-        private Dictionary<long, TaskCompletionSource<DisposeResult>> disposeResultSourceByCallId = 
-            new Dictionary<long, TaskCompletionSource<DisposeResult>>();
-        private Dictionary<long, TaskCompletionSource<InitInstanceResult>> initInstanceResultByCallId =
-            new Dictionary<long, TaskCompletionSource<InitInstanceResult>>();
+        private readonly TaskRegister<DisposeResult> disposeResultRegister = 
+            new TaskRegister<DisposeResult>();
+        private readonly TaskRegister<InitInstanceResult> initInstanceRegister =
+            new TaskRegister<InitInstanceResult>();
         private TaskCompletionSource<InitServiceResult> initWorker;
 
         private long callIdSource;
@@ -48,7 +49,7 @@ namespace BlazorWorker.Core.SimpleInstanceService
             Console.WriteLine($"{nameof(SimpleInstanceServiceProxy)}:{message}");
             if (DisposeResult.CanDeserialize(message)) {
                 var result = DisposeResult.Deserialize(message);
-                if (disposeResultSourceByCallId.TryGetValue(result.CallId, out var taskCompletionSource))
+                if (disposeResultRegister.TryRemove(result.CallId, out var taskCompletionSource))
                 {
                     taskCompletionSource.SetResult(result);
                 }
@@ -64,7 +65,7 @@ namespace BlazorWorker.Core.SimpleInstanceService
             if (InitInstanceResult.CanDeserialize(message))
             {
                 var result = InitInstanceResult.Deserialize(message);
-                if (initInstanceResultByCallId.TryGetValue(result.CallId, out var taskCompletionSource))
+                if (initInstanceRegister.TryRemove(result.CallId, out var taskCompletionSource))
                 {
                     taskCompletionSource.SetResult(result);
                 }
@@ -74,20 +75,18 @@ namespace BlazorWorker.Core.SimpleInstanceService
 
         public async Task<DisposeResult> DisposeInstance(DisposeInstanceRequest request)
         {
-            request.CallId = ++callIdSource;
-            var res = new TaskCompletionSource<DisposeResult>();
-            disposeResultSourceByCallId.Add(request.CallId, res);
+            var (callIdSource, tcs) = disposeResultRegister.CreateAndAdd();
+            request.CallId = callIdSource;
             await this.worker.PostMessageAsync(request.Serialize());
-            return await res.Task;
+            return await tcs.Task;
         }
 
         public async Task<InitInstanceResult> InitInstance(InitInstanceRequest request)
         {
-            request.CallId = ++callIdSource;
-            var res = new TaskCompletionSource<InitInstanceResult>();
-            initInstanceResultByCallId.Add(request.CallId, res);
+            var (callIdSource, tcs) = initInstanceRegister.CreateAndAdd();
+            request.CallId = callIdSource;
             await this.worker.PostMessageAsync(request.Serialize());
-            return await res.Task;
+            return await tcs.Task;
         }
     }
 }

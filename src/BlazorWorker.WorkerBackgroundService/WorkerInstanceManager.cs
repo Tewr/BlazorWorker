@@ -2,6 +2,7 @@
 using BlazorWorker.WorkerCore;
 using BlazorWorker.WorkerCore.SimpleInstanceService;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -11,14 +12,29 @@ namespace BlazorWorker.WorkerBackgroundService
 {
     public partial class WorkerInstanceManager
     {
-        public readonly Dictionary<long, IEventWrapper> events =
-             new Dictionary<long, IEventWrapper>();
+        private readonly ConcurrentDictionary<long, IEventWrapper> events =
+             new ConcurrentDictionary<long, IEventWrapper>();
+
+        private static readonly MessageHandlerRegistry<WorkerInstanceManager> messageHandlerRegistry
+            = new MessageHandlerRegistry<WorkerInstanceManager>(wim => wim.serializer);
 
         public static readonly WorkerInstanceManager Instance = new WorkerInstanceManager();
+
         internal readonly ISerializer serializer;
         private readonly WebWorkerOptions options;
-        private readonly MessageHandlerRegistry messageHandlerRegistry;
+        
+        private readonly MessageHandler<WorkerInstanceManager> messageHandler;
         private readonly SimpleInstanceService simpleInstanceService;
+
+        static WorkerInstanceManager()
+        {
+            messageHandlerRegistry.Add<InitInstance>(wim => wim.InitInstance);
+            messageHandlerRegistry.Add<InitInstanceFromFactory>(wim => wim.InitInstanceFromFactory);
+            messageHandlerRegistry.Add<DisposeInstance>(wim => wim.DisposeInstance);
+            messageHandlerRegistry.Add<MethodCallParams>(wim => wim.HandleMethodCall);
+            messageHandlerRegistry.Add<RegisterEvent>(wim => wim.RegisterEvent);
+            messageHandlerRegistry.Add<UnRegisterEvent>(wim => wim.UnRegisterEvent);
+        }
 
         public WorkerInstanceManager()
         {
@@ -26,13 +42,7 @@ namespace BlazorWorker.WorkerBackgroundService
             this.options = new WebWorkerOptions();
             this.simpleInstanceService = SimpleInstanceService.Instance;
 
-            this.messageHandlerRegistry = new MessageHandlerRegistry(this.serializer);
-            this.messageHandlerRegistry.Add<InitInstance>(InitInstance);
-            this.messageHandlerRegistry.Add<InitInstanceFromFactory>(InitInstanceFromFactory);
-            this.messageHandlerRegistry.Add<DisposeInstance>(DisposeInstance);
-            this.messageHandlerRegistry.Add<MethodCallParams>(HandleMethodCall);
-            this.messageHandlerRegistry.Add<RegisterEvent>(RegisterEvent);
-            this.messageHandlerRegistry.Add<UnRegisterEvent>(UnRegisterEvent);
+            this.messageHandler = messageHandlerRegistry.GetRegistryForInstance(this);
         }
 
         public static void Init() {
@@ -58,12 +68,12 @@ namespace BlazorWorker.WorkerBackgroundService
 
         private bool IsInfrastructureMessage(string message)
         {
-            return this.messageHandlerRegistry.HandlesMessage(message);
+            return this.messageHandler.HandlesMessage(message);
         }
 
         private void OnMessage(object sender, string message)
         {
-            this.messageHandlerRegistry.HandleMessage(message);
+            this.messageHandler.HandleMessage(message);
         }
 
         private void HandleMethodCall(MethodCallParams methodCallMessage)
@@ -109,13 +119,11 @@ namespace BlazorWorker.WorkerBackgroundService
 
         private void UnRegisterEvent(UnRegisterEvent unregisterEventMessage)
         {
-            if (!events.TryGetValue(unregisterEventMessage.EventHandleId, out var wrapper)) {
+            if (!events.TryRemove(unregisterEventMessage.EventHandleId, out var wrapper)) {
                 return;
             }
 
             wrapper.Unregister();
-
-            events.Remove(unregisterEventMessage.EventHandleId);
         }
 
         private void RegisterEvent(RegisterEvent registerEventMessage)
@@ -141,7 +149,10 @@ namespace BlazorWorker.WorkerBackgroundService
             var delegateMethod = Delegate.CreateDelegate(eventSignature.EventHandlerType, wrapper, nameof(EventHandlerWrapper<object>.OnEvent)); 
             eventSignature.AddEventHandler(instance, delegateMethod);
             wrapper.Unregister = () => eventSignature.RemoveEventHandler(instance, delegateMethod);
-            events.Add(wrapper.EventHandleId, wrapper);
+            if (!events.TryAdd(wrapper.EventHandleId, wrapper))
+            {
+                throw new InvalidOperationException($"{nameof(WorkerInstanceManager)}.{nameof(RegisterEvent)}: Unable to register event with id {wrapper.EventHandleId}, id not available.");
+            }
         }
 
         public void InitInstance(InitInstance createInstanceInfo)
