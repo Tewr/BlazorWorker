@@ -36,7 +36,9 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
         public async Task PostMessageAsync(string message)
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
+#if DEBUG
             Console.WriteLine($"{nameof(InjectableMessageService)}.{nameof(PostMessageAsync)}('{message}')");
+#endif
             MessageService.PostMessage(message);
         }
     }

@@ -24,7 +24,6 @@ namespace BlazorWorker.WorkerBackgroundService
 
         public void OnEvent(object _, T eventArgs)
         {
-            //Console.WriteLine("ONEVENT");
             wim.PostObject(new EventRaised()
             {
                 EventHandleId = EventHandleId,

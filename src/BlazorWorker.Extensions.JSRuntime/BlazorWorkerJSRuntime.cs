@@ -81,7 +81,9 @@ namespace BlazorWorker.Extensions.JSRuntime
 
         public static string InvokeMethod(string objectInstanceId, string argsString)
         {
+#if DEBUG
             Console.WriteLine($"{nameof(BlazorWorkerJSRuntime)}.{nameof(InvokeMethod)}({objectInstanceId}, {argsString})");
+#endif
             try
             {
                 var obj = DotNetObjectReferenceTracker.GetObjectReference(long.Parse(objectInstanceId));
@@ -101,7 +103,7 @@ namespace BlazorWorker.Extensions.JSRuntime
             }
             catch (Exception e)
             {
-                Console.WriteLine($"{nameof(BlazorWorkerJSRuntime)}.{nameof(InvokeMethod)}({objectInstanceId}, {argsString}) error: {e.ToString()}");
+                Console.Error.WriteLine($"{nameof(BlazorWorkerJSRuntime)}.{nameof(InvokeMethod)}({objectInstanceId}, {argsString}) error: {e.ToString()}");
                 throw;
             }
         }
