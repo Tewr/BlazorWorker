@@ -115,4 +115,18 @@ The nominal use case is that the Service class specifies a parameterless constru
 If provided as constructor parameters, any of the two following services will be created and injected into the service: 
 
 * <code>HttpClient</code> - use to make outgoing http calls, like in blazor. <a href="https://docs.microsoft.com/en-us/dotnet/api/system.net.http.httpclient">Reference</a>.
-* <code>IWorkerMessageService</code> - to communicate with the worker from blazor using messages, the lower-most level of communication. Accepts messages from <code>IWorker.PostMessageAsync</code>, and provides messages using <code>IWorker.IncomingMessage</code>. See the <a href="src/BlazorWorker.Demo/Client/Pages/CoreExample.razor">Core example</a> for a use case.
+* <code>IWorkerMessageService</code> - to communicate with the worker from blazor using messages, the lower-most level of communication. Accepts messages from <code>IWorker.PostMessageAsync</code>, and provides messages using <code>IWorker.IncomingMessage</code>. See the <a href="src/BlazorWorker.Demo/SharedPages/CoreExample.razor">Core example</a> for a use case.
+
+For a full-fledged IOC Setup see the See the <a href="src/BlazorWorker.Demo/SharedPages/IoCExamplePage.razor">IOC example</a>.
+
+
+
+## Core package
+[![NuGet](https://img.shields.io/nuget/dt/Tewr.BlazorWorker.Core.svg?label=Tewr.BlazorWorker.Core)](https://www.nuget.org/packages/Tewr.BlazorWorker.Core)
+
+The Core package does not provide any serialization. This is useful for scenarios with simple API's (smaller download size), or for building a custom high-level API.  See the <a href="src/BlazorWorker.Demo/Client/Pages/CoreExample.razor">Core example</a> for a use case.
+
+## Extensions.JSRuntime package
+[![NuGet](https://img.shields.io/nuget/dt/Tewr.BlazorWorker.Extensions.JSRuntime.svg?label=Tewr.BlazorWorker.Extensions.JSRuntime)](https://www.nuget.org/packages/Tewr.BlazorWorker.Extensions.JSRuntime)
+
+The JSRuntime package has primarily been developed as a middleware for supporting IndexedDB, more specifically the package [Tg.Blazor.IndexedDB](https://github.com/wtulloch/Blazor.IndexedDB).  See the <a href="src/BlazorWorker.Demo/SharedPages/IndexedDb.razor">IndexedDb example</a> for a use case.
