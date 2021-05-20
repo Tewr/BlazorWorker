@@ -1,5 +1,8 @@
 [![NuGet](https://img.shields.io/nuget/dt/Tewr.BlazorWorker.BackgroundService.svg?label=Tewr.BlazorWorker.BackgroundService)](https://www.nuget.org/packages/Tewr.BlazorWorker.BackgroundService)
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=AC77J8GFQ6LYA&item_name=BlazorWorker+Project&currency_code=EUR&source=url)
+<p align="center">
+  <img width="150" height="150" src="icon.svg" align="right">
+</p>
 
 # BlazorWorker
 Library that provides a simple API for exposing dotnet [web workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) in Client-side [Blazor](https://github.com/dotnet/aspnetcore/tree/master/src/Components#blazor).
