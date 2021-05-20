@@ -74,7 +74,7 @@ namespace BlazorWorker.Extensions.JSRuntime
         {
             if (!isJsInitialized && !JSInvokeService.IsObjectDefined("BlazorWorkerJSRuntimeSerializer"))
             {
-                JSInvokeService.ImportLocalScripts("_content/BlazorWorker.Extensions.JSRuntime/BlazorWorkerJSRuntime.js");
+                JSInvokeService.ImportLocalScripts("_content/Tewr.BlazorWorker.Extensions.JSRuntime/BlazorWorkerJSRuntime.js");
                 isJsInitialized = true;
             }
         }
