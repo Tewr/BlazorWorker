@@ -9,8 +9,10 @@
         <h1>.NET Worker Thread Service with IndexedDB</h1>
 
         This page demonstrates IndexedDB.
-        In this example, the class MyServiceStartup is a factory class for MyIocService.
+        In this example, the class @(nameof(MyIndexDBServiceStartup)) is a factory class for @(nameof(MyIndexDBService)).
         The factory is implemented using ServiceCollection as an IoC Container.
+
+        The example is using the library <a href="https://github.com/wtulloch/Blazor.IndexedDB">TG.Blazor.IndexedDB</a>.
 
         <br /><br />
         <button disabled=@RunDisabled @onclick=OnClick class="btn btn-primary">Run test</button><br /><br />
@@ -23,7 +25,7 @@
 </pre>
     </div>
     <div class="col-7 col-xs-12">
-        <GithubSource RelativePath="Pages/IoCExamplePage.razor" />
+        <GithubSource RelativePath="Pages/IndexedDb.razor" />
     </div>
 </div>
 @code {

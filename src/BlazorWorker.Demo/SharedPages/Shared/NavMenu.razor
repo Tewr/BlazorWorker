@@ -55,6 +55,12 @@
                 <span class="oi oi-info" aria-hidden="true"></span><small>Core @BlazorCoreWorkerVersion</small>
             </NavLink>
         </li>
+
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="https://www.nuget.org/packages/Tewr.BlazorWorker.Extensions.JSRuntime">
+                <span class="oi oi-info" aria-hidden="true"></span><small>JSRuntime @BlazorWorkerJSRuntimeVersion</small>
+            </NavLink>
+        </li>
     </ul>
 </div>
 
@@ -73,4 +79,7 @@
 
     static string BlazorCoreWorkerVersion { get; } =
       $"v{typeof(BlazorWorker.WorkerCore.IWorkerMessageService).Assembly.GetName().Version}";
+
+    static string BlazorWorkerJSRuntimeVersion { get; } =
+      $"v{typeof(BlazorWorker.Extensions.JSRuntime.BlazorWorkerJSRuntime).Assembly.GetName().Version}";
 }

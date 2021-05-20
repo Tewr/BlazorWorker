@@ -11,11 +11,12 @@
     <PackageTags>WebWorker Worker Process Threading Multithreading Blazor Isolation</PackageTags>
     <PackageId>Tewr.BlazorWorker.Extensions.JSRuntime</PackageId>
     <Configurations>Debug;Release;Nuget</Configurations>
-    <Version>1.0.0-preview</Version>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <Version>1.0.1-preview</Version>
+    <AssemblyVersion>1.0.1.0</AssemblyVersion>
     <DocumentationFile>BlazorWorker.Core.xml</DocumentationFile>
     <PackageIcon>icon.png</PackageIcon>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageReleaseNotes>Fixes script load bug</PackageReleaseNotes>
   </PropertyGroup>
   
   <ItemGroup>

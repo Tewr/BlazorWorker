@@ -3,9 +3,9 @@
 <br />
 <!-- <PrettyCode CodeFile="@FullRawUrl" /> -->
 @code {
-    private const string Fragment = "Tewr/BlazorWorker/master/src/BlazorWorker.Demo.SharedPages/";
-    private const string RawRoot = "https://rawcdn.githack.com/" + Fragment;
-    private const string Root = "https://github.com/" + Fragment;
+    private const string Tag = "v3.0.0";
+    private static readonly string RawRoot = $"https://rawcdn.githack.com/Tewr/BlazorWorker/{Tag}/src/BlazorWorker.Demo/SharedPages/";
+    private static readonly string Root = $"https://github.com/Tewr/BlazorWorker/blob/{Tag}/src/BlazorWorker.Demo/SharedPages/";
 
     [Parameter]
     public string RelativePath { get; set; }
