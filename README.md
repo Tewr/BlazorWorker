@@ -120,14 +120,13 @@ If provided as constructor parameters, any of the two following services will be
 * <code>HttpClient</code> - use to make outgoing http calls, like in blazor. <a href="https://docs.microsoft.com/en-us/dotnet/api/system.net.http.httpclient">Reference</a>.
 * <code>IWorkerMessageService</code> - to communicate with the worker from blazor using messages, the lower-most level of communication. Accepts messages from <code>IWorker.PostMessageAsync</code>, and provides messages using <code>IWorker.IncomingMessage</code>. See the <a href="src/BlazorWorker.Demo/SharedPages/Pages/CoreExample.razor">Core example</a> for a use case.
 
-For a full-fledged IOC Setup see the See the <a href="src/BlazorWorker.Demo/SharedPages/Pages/IoCExamplePage.razor">IOC example</a>.
-
+These are the only services that will be injected. Any other custom dependencies has to be automated in some other way. Two extension methods simplify this by exposing the factory pattern which can be implemented with a container of your choice: <code>IWorker.CreateBackgroundServiceUsingFactoryAsync<TFactory, TService></code> and <code>IWorkerBackgroundService<TFactory>.CreateBackgroundServiceAsync<TFactory, TService></code>. For an example of a full-fledged IOC Setup using <code>Microsoft.Extensions.DependencyInjection</code> see the <a href="src/BlazorWorker.Demo/SharedPages/Pages/IoCExamplePage.razor">IOC example</a>.
 
 
 ## Core package
 [![NuGet](https://img.shields.io/nuget/dt/Tewr.BlazorWorker.Core.svg?label=Tewr.BlazorWorker.Core)](https://www.nuget.org/packages/Tewr.BlazorWorker.Core)
 
-The Core package does not provide any serialization. This is useful for scenarios with simple API's (smaller download size), or for building a custom high-level API.  See the <a href="src/BlazorWorker.Demo/SharedPages/Pages/CoreExample.razor">Core example</a> for a use case.
+The Core package does not provide any serialization. This is useful for scenarios with simple API's (smaller download size), or for building a custom high-level API. See the <a href="src/BlazorWorker.Demo/SharedPages/Pages/CoreExample.razor">Core example</a> for a use case.
 
 ## Extensions.JSRuntime package
 [![NuGet](https://img.shields.io/nuget/dt/Tewr.BlazorWorker.Extensions.JSRuntime.svg?label=Tewr.BlazorWorker.Extensions.JSRuntime)](https://www.nuget.org/packages/Tewr.BlazorWorker.Extensions.JSRuntime)
