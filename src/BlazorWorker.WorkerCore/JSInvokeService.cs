@@ -1,6 +1,12 @@
-﻿using System;
+﻿using BlazorWorker.WorkerCore.WebAssemblyBindingsProxy;
+using System;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace BlazorWorker.WorkerCore
 {
@@ -12,7 +18,30 @@ namespace BlazorWorker.WorkerCore
 
         public static T Invoke<T>(string method, params object[] args)
         {
+            Console.WriteLine($"Calling {nameof(JSInvokeService)}.{nameof(Invoke)}: {method}(object[{args.Count()}] args)");
             return (T)self.Invoke(method, args);
+        }
+
+        public static unsafe int TypedArrayCopyFrom(int JSHandle, ReadOnlySpan<byte> span)
+        {
+#if NET5
+            // source has to be instantiated.
+            if (span == null || span.Length == 0)
+            {
+                throw new System.ArgumentException("Source cannot be null or of length 0", nameof(span));
+            }
+            ReadOnlySpan<byte> bytes = MemoryMarshal.AsBytes(span);
+            fixed (byte* ptr = bytes)
+            {
+                var uSize = Unsafe.SizeOf<byte>();
+                object res = Runtime.TypedArrayCopyFrom(JSHandle, (int)ptr, 0, span.Length, uSize, out int exception);
+                if (exception != 0)
+                    throw new Exception((string)res);
+                return (int)res / uSize;
+            }
+#else
+            return -1;
+#endif
         }
 
         public static Task InvokeVoidAsync(string method, string serializedArgs)

@@ -25,9 +25,22 @@ namespace BlazorWorker.WorkerCore
 #endif
         }
 
+        public static void OnMessageWithByteArray(string message, byte[] byteArray)
+        {
+            Message?.Invoke(null, message);
+#if DEBUG
+            Console.WriteLine($"{nameof(MessageService)}.{nameof(OnMessage)}: {message}");
+#endif
+        }
+
         public static void PostMessage(string message)
         {
             self.Invoke("postMessage", message);
+        }
+
+        public static void PostMessage(string message, byte[] byteArray)
+        {
+            self.Invoke("postMessageWithData", message, byteArray);
         }
 
     }

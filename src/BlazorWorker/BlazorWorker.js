@@ -30,7 +30,8 @@ window.BlazorWorker = function () {
                 Module.mono_bind_static_method(initConf.MessageEndPoint);
             // Future messages goes directly to the message handler
             self.onmessage = msg => {
-                messageHandler(msg.data);
+                console.debug("Blazorworker.js::self.onmessage", msg);
+                messageHandler(msg.data.message);
             };
 
             if (!initConf.InitEndPoint) {
@@ -255,6 +256,28 @@ window.BlazorWorker = function () {
         self.isObjectDefined = (workerScopeObject) => {
             return getChildFromDotNotation(workerScopeObject) !== empty;
         };
+
+        self.arrays = [];
+        self.returnTempByteArray = () => {
+            const tx = new ArrayBuffer(800);
+            // Copy the dotnet array to the arraybuffer 
+            const arrayBufferView = new Uint8Array(tx);
+            arrayBufferView.set([7, 8, 9], 0);
+            self.arrays.push(arrayBufferView);
+            console.debug("returnTempByteArray", arrayBufferView);
+            return arrayBufferView;
+        };
+
+        self.tempByteArray = () => {
+            console.debug("tempByteArray", self.arrays);
+            debugger;
+        };
+
+        self.postMessageWithData = (message, byteArray) => {
+            // TODO: How to get bytearray here?
+            // look at source code of bp.toUint8Array + bp.readInt32Field
+            self.postMessage({ message, byteArray }, [byteArray]);
+        };
     };
 
     const inlineWorker = `self.onmessage = ${workerDef}()`; 
@@ -295,13 +318,32 @@ window.BlazorWorker = function () {
             }
             callbackInstance.invokeMethod(initOptions.callbackMethod, ev.data);
         };
+
+
     };
 
-    const postMessage = function (workerId, message) {
-        workers[workerId].worker.postMessage(message);
+    const postMessage = function (postMessageArg) {
+        const bp = Blazor.platform;
+        const workerId  = bp.readUint64Field(postMessageArg, 0);
+        const message   = bp.readStringField(postMessageArg, 8);
+        const byteArray = bp.toUint8Array(bp.readInt32Field(postMessageArg, 12));
+
+        // Create a new arraybuffer. The dotnet arraybuffer cannot be passed over the process border
+        // as its bound to webassembly memory.
+        const transferableArrayBuffer = new ArrayBuffer(byteArray.byteLength);
+        // Copy the dotnet array to the arraybuffer 
+        const arrayBufferView = new Uint8Array(transferableArrayBuffer);
+        arrayBufferView.set(byteArray, 0);
+        //var arrayBuffer = new ArrayBuffer(byteArray.buffer, byteArray.byteOffset, byteArray.byteLength);
+
+        console.debug("BlazorWorker.js::postMessage", workerId, message, byteArray, transferableArrayBuffer);
+        if (byteArray) {
+            workers[workerId].worker.postMessage({ message, transferableArrayBuffer }, [transferableArrayBuffer]);
+        }
+        else {
+            workers[workerId].worker.postMessage({ message });
+        }
     };
-
-
 
     return {
         disposeWorker,

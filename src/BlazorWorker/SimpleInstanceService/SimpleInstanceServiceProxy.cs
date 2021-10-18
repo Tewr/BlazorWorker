@@ -15,8 +15,6 @@ namespace BlazorWorker.Core.SimpleInstanceService
             new TaskRegister<InitInstanceResult>();
         private TaskCompletionSource<InitServiceResult> initWorker;
 
-        private long callIdSource;
-
         public bool IsInitialized { get; internal set; }
 
         public SimpleInstanceServiceProxy(IWorker worker)

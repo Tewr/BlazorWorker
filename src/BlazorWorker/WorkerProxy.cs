@@ -1,6 +1,8 @@
 using BlazorWorker.WorkerCore;
 using Microsoft.JSInterop;
 using System;
+using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 namespace BlazorWorker.Core
 {
@@ -68,9 +70,26 @@ namespace BlazorWorker.Core
 
         public async Task PostMessageAsync(string message)
         {
+            var arg = new PostMessageArg() { Identifier = this.Identifier, Message = message, ByteArray = new byte[] {1,2,3 } };
+#if NET5_0
+            (jsRuntime as IJSUnmarshalledRuntime).InvokeUnmarshalled<PostMessageArg, object>(
+                "BlazorWorker.postMessage", arg);
+#else
             await jsRuntime.InvokeVoidAsync("BlazorWorker.postMessage", this.Identifier, message);
+#endif
         }
 
         public long Identifier { get; }
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct PostMessageArg
+    {
+        [FieldOffset(0)]
+        public long Identifier;
+        [FieldOffset(8)]
+        public string Message;
+        [FieldOffset(12)]
+        public byte[] ByteArray;
     }
 }

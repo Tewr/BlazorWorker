@@ -21,6 +21,11 @@
             Simple static message service that runs in the worker thread.
             </summary>
         </member>
+        <member name="T:BlazorWorker.WorkerCore.WebAssemblyBindingsProxy.Runtime">
+            <summary>
+            Invocation for Runtime class in https://github.com/mono/mono/blob/1bdb6cc55c3f5813407be9eb9bfe05aa891e1faf/sdks/wasm/src/driver.c#L353
+            </summary>
+        </member>
         <member name="T:BlazorWorker.Core.WorkerInitOptions">
             <summary>
             Options for initializing the worker.
