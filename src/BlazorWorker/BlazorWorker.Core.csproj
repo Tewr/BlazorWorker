@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;net5.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1;net5.0;net6.0</TargetFrameworks>
     <Authors>Tor Knutsson (Tewr)</Authors>
     <Product>BlazorWorker</Product>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -32,6 +32,10 @@
   <PropertyGroup Condition="'$(TargetFramework)'=='net5.0'">
     <DefineConstants>$(DefineConstants);NET5</DefineConstants>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)'=='net6.0'">
+    <DefineConstants>$(DefineConstants);NET6</DefineConstants>
+  </PropertyGroup>
   
   <ItemGroup Condition="'$(TargetFramework)'=='netstandard2.1'">
       <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.3" />
@@ -42,7 +46,12 @@
       <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
       <PackageReference Include="Microsoft.JSInterop" Version="5.0.0" />
   </ItemGroup>
-    
+
+  <ItemGroup Condition="'$(TargetFramework)'=='net6.0'">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
+    <PackageReference Include="Microsoft.JSInterop" Version="5.0.0" />
+  </ItemGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\BlazorWorker.WorkerCore\BlazorWorker.WorkerCore.csproj">
       <PrivateAssets>all</PrivateAssets>
