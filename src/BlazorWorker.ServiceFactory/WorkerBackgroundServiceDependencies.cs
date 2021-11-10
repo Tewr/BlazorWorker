@@ -34,7 +34,7 @@ namespace BlazorWorker.BackgroundServiceFactory
                 }).ToArray();
 #endif
 
-#if NET5
+#if NET5 || NET6
         public static string[] DependentAssemblyFilenames =
             BlazorWorkerDependentAssemblyFilenames.Concat(
                 new[] {

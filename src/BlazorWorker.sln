@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29319.158
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31808.319
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorWorker.Core", "BlazorWorker\BlazorWorker.Core.csproj", "{8170248B-F92D-4DFA-8F1A-2C637A9A9188}"
 EndProject
@@ -51,6 +51,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{775EF4B5-04A1-40D8-8E0A-BC04EF624F98}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorWorker.Extensions.JSRuntimeTests", "..\test\BlazorWorker.Extensions.JSRuntimeTests\BlazorWorker.Extensions.JSRuntimeTests.csproj", "{1FF84418-B2C8-4AC4-9989-087B9BE3753B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Net6", "Net6", "{9185B197-2CDC-45D2-B8F7-8C23FB89EE80}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorWorkerNet6Test", "..\..\..\BlazorWorkerNet6Test\BlazorWorkerNet6Test\BlazorWorkerNet6Test.csproj", "{217DD2F0-4E9F-48AE-B572-0C5E5A262EB9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -132,6 +136,12 @@ Global
 		{1FF84418-B2C8-4AC4-9989-087B9BE3753B}.Nuget|Any CPU.Build.0 = Debug|Any CPU
 		{1FF84418-B2C8-4AC4-9989-087B9BE3753B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1FF84418-B2C8-4AC4-9989-087B9BE3753B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{217DD2F0-4E9F-48AE-B572-0C5E5A262EB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{217DD2F0-4E9F-48AE-B572-0C5E5A262EB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{217DD2F0-4E9F-48AE-B572-0C5E5A262EB9}.Nuget|Any CPU.ActiveCfg = Debug|Any CPU
+		{217DD2F0-4E9F-48AE-B572-0C5E5A262EB9}.Nuget|Any CPU.Build.0 = Debug|Any CPU
+		{217DD2F0-4E9F-48AE-B572-0C5E5A262EB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{217DD2F0-4E9F-48AE-B572-0C5E5A262EB9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -154,6 +164,8 @@ Global
 		{C3065384-9265-419E-A011-F52237331B4C} = {93F1C962-3ECC-48DA-8C70-B99126637564}
 		{6B21FE65-FC0A-40E0-87D2-6BF016C0224B} = {002D69EE-3096-42E9-AFFB-E293089A106A}
 		{1FF84418-B2C8-4AC4-9989-087B9BE3753B} = {775EF4B5-04A1-40D8-8E0A-BC04EF624F98}
+		{9185B197-2CDC-45D2-B8F7-8C23FB89EE80} = {E05838C4-02F5-403B-B7E4-338924A6D5AB}
+		{217DD2F0-4E9F-48AE-B572-0C5E5A262EB9} = {9185B197-2CDC-45D2-B8F7-8C23FB89EE80}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0CCA60FE-BC52-494C-B600-B35B8865535C}

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;net5.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1;net5.0;net6.0</TargetFrameworks>
     <PackageId>Tewr.BlazorWorker.BackgroundService</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>Use dotnet Web Workers Threads in Blazor</Description>
@@ -26,6 +26,10 @@
 
   <PropertyGroup Condition="'$(TargetFramework)'=='net5.0'">
     <DefineConstants>$(DefineConstants);NET5</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)'=='net6.0'">
+    <DefineConstants>$(DefineConstants);NET6</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='netstandard2.1'">
