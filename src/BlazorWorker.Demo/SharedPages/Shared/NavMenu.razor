@@ -7,60 +7,11 @@
 
 <div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
     <ul class="nav flex-column">
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-cog" aria-hidden="true"></span> Simple Worker
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="BackgroundServiceMulti">
-                <span class="oi oi-copywriting" aria-hidden="true"></span> Multiple Workers
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="CoreExample">
-                <span class="oi oi-command" aria-hidden="true"></span> Core Example
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="Http">
-                <span class="oi oi-globe" aria-hidden="true"></span> HttpClient Example
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="IoCExample">
-                <span class="oi oi-globe" aria-hidden="true"></span> IoC / DI Example
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="IndexedDB">
-                <span class="oi oi-globe" aria-hidden="true"></span> IndexedDB
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="https://github.com/tewr/BlazorWorker">
-                <span class="oi oi-fork" aria-hidden="true"></span> To the source!
-            </NavLink>
-        </li>
-
-
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="https://www.nuget.org/packages/Tewr.BlazorWorker.BackgroundService">
-                <span class="oi oi-info" aria-hidden="true"></span><small>BackgroundService @BlazorWorkerVersion</small>
-            </NavLink>
-        </li>
-
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="https://www.nuget.org/packages/Tewr.BlazorWorker.Core">
-                <span class="oi oi-info" aria-hidden="true"></span><small>Core @BlazorCoreWorkerVersion</small>
-            </NavLink>
-        </li>
-
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="https://www.nuget.org/packages/Tewr.BlazorWorker.Extensions.JSRuntime">
-                <span class="oi oi-info" aria-hidden="true"></span><small>JSRuntime @BlazorWorkerJSRuntimeVersion</small>
-            </NavLink>
-        </li>
+        @foreach(var navlink in NavMenuLinksModel.NavMenuLinks) {
+            <li class="nav-item px-3"> 
+                <NavMenuLink Model=navlink/>
+            </li>
+        }        
     </ul>
 </div>
 
@@ -73,13 +24,5 @@
     {
         collapseNavMenu = !collapseNavMenu;
     }
-
-    static string BlazorWorkerVersion { get; } =
-    $"v{typeof(BlazorWorker.BackgroundServiceFactory.WorkerBackgroundServiceExtensions).Assembly.GetName().Version}";
-
-    static string BlazorCoreWorkerVersion { get; } =
-      $"v{typeof(BlazorWorker.WorkerCore.IWorkerMessageService).Assembly.GetName().Version}";
-
-    static string BlazorWorkerJSRuntimeVersion { get; } =
-      $"v{typeof(BlazorWorker.Extensions.JSRuntime.BlazorWorkerJSRuntime).Assembly.GetName().Version}";
+ 
 }

@@ -14,7 +14,7 @@
         };
 #endif
 
-#if NET5
+#if NET5_0_OR_GREATER
         public static readonly string[] DependentAssemblyFilenames = new[]
         {
             "BlazorWorker.WorkerCore.dll",
@@ -66,6 +66,7 @@
             "System.Threading.dll",
         };
 #endif
+
 
     }
 }

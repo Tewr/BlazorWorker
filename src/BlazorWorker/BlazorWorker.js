@@ -15,7 +15,7 @@ window.BlazorWorker = function () {
 
     const workerDef = function () {
         const initConf = JSON.parse('$initConf$');
-
+        
         const nonExistingDlls = [];
         let blazorBootManifest = {
             resources: { assembly: { "AssemblyName.dll": "sha256-<sha256>" } }
@@ -23,11 +23,10 @@ window.BlazorWorker = function () {
 
         let endInvokeCallBack;
         const onReady = () => {
-
             endInvokeCallBack =
-                Module.mono_bind_static_method(initConf.endInvokeCallBackEndpoint);
+                BINDING.bind_static_method(initConf.endInvokeCallBackEndpoint);
             const messageHandler =
-                Module.mono_bind_static_method(initConf.MessageEndPoint);
+                BINDING.bind_static_method(initConf.MessageEndPoint);
             // Future messages goes directly to the message handler
             self.onmessage = msg => {
                 messageHandler(msg.data);
@@ -73,36 +72,34 @@ window.BlazorWorker = function () {
         }
         
         var config = {};
-        var Module = {};
+        var module = (self['Module'] || {});
         
         const wasmBinaryFile = `${initConf.appRoot}/${initConf.wasmRoot}/dotnet.wasm`;
         const suppressMessages = ['DEBUGGING ENABLED'];
         const appBinDirName = 'appBinDir';
 
-        Module.print = line => (suppressMessages.indexOf(line) < 0 && console.log(`WASM-WORKER: ${line}`));
+        module.print = line => (suppressMessages.indexOf(line) < 0 && console.log(`WASM-WORKER: ${line}`));
 
-        Module.printErr = line => {
-            console.error(`WASM-WORKER: ${line}`);
-            showErrorNotification();
+        module.printErr = line => {
+            console.error(`WASM-WORKER: ${line}`, arguments);
         };
-        Module.preRun = [];
-        Module.postRun = [];
-        Module.preloadPlugins = [];
-
-        Module.locateFile = fileName => {
+        module.preRun = module.preRun || [];
+        module.postRun = module.postRun || [];
+        module.preloadPlugins = [];
+        module.locateFile = fileName => {
             switch (fileName) {
                 case 'dotnet.wasm': return wasmBinaryFile;
                 default: return fileName;
             }
         };
-
-        Module.preRun.push(() => {
+        module.onRuntimeInitialized = () => 
+            MONO.mono_wasm_setenv('DOTNET_SYSTEM_GLOBALIZATION_INVARIANT', '1');
+        module.preRun.push(() => {
             const mono_wasm_add_assembly = Module.cwrap('mono_wasm_add_assembly', null, [
                 'string',
                 'number',
                 'number',
             ]);
-
             mono_string_get_utf8 = Module.cwrap('mono_wasm_string_get_utf8', 'number', ['number']);
 
             MONO.loaded_files = [];
@@ -116,11 +113,12 @@ window.BlazorWorker = function () {
                     return;
                 }
 
-                const runDependencyId = `blazor:${url}`;
+                const runDependencyId = `blazorWorker:${url}`;
                 addRunDependency(runDependencyId);
 
                 asyncLoad(baseUrl+'/'+ url).then(
                     data => {
+                        
                         const heapAddress = Module._malloc(data.length);
                         const heapMemory = new Uint8Array(Module.HEAPU8.buffer, heapAddress, data.length);
                         heapMemory.set(data);
@@ -141,11 +139,12 @@ window.BlazorWorker = function () {
             });
         });
 
-        Module.postRun.push(() => {
-            MONO.mono_wasm_setenv("MONO_URI_DOTNETRELATIVEORABSOLUTE", "true");
+        module.postRun.push(() => {
+
             const load_runtime = Module.cwrap('mono_wasm_load_runtime', null, ['string', 'number']);
             load_runtime(appBinDirName, 0);
             MONO.mono_wasm_runtime_is_ready = true;
+           
             onReady();
             if (initConf.debug && nonExistingDlls.length > 0) {
                 console.warn(`BlazorWorker: Module.postRun: ${nonExistingDlls.length} assemblies was specified as a dependency for the worker but was not present in the bootloader. This may be normal if trimmming is used. To remove this warning, either configure the linker not to trim the specified assemblies if they were removed in error, or conditionally remove the specified dependencies for builds that uses trimming. If trimming is not used, make sure that the assembly is included in the build.`, nonExistingDlls);
@@ -155,7 +154,7 @@ window.BlazorWorker = function () {
         config.file_list = [];
         
         global = globalThis;
-        self.Module = Module;
+        self.Module = module;
 
         //TODO: This call could/should be session cached. But will the built-in blazor fetch service worker override 
         // (PWA et al) do this already if configured ?
@@ -165,7 +164,7 @@ window.BlazorWorker = function () {
                 let dotnetjsfilename = '';
                 const runttimeSection = blazorboot.resources.runtime;
                 for (var p in runttimeSection) {
-                    if (Object.prototype.hasOwnProperty.call(runttimeSection, p) && p.endsWith('.js')) {
+                    if (Object.prototype.hasOwnProperty.call(runttimeSection, p) && p.startsWith('dotnet.') && p.endsWith('.js')) {
                         dotnetjsfilename = p;
                     }
                 }
@@ -193,7 +192,6 @@ window.BlazorWorker = function () {
         // Async invocation with callback.
         self.beginInvokeAsync = async function (serializerId, invokeId, method, isVoid, argsString) {
 
-            //console.debug("beginInvokeAsync call", { serializerId, invokeId, method, isVoid, argsString });
             let result;
             let isError = false;
             let serializer = self.jsRuntimeSerializers.get(serializerId);
@@ -203,8 +201,6 @@ window.BlazorWorker = function () {
                 isError = true;
             }
 
-            // todo: remove me.
-            //console.debug('beginInvokeAsync::serializer', serializer);
 
             const methodHandle = getChildFromDotNotation(method);
 
@@ -238,7 +234,6 @@ window.BlazorWorker = function () {
             }
             
             try {
-                //console.debug("endInvokeCallBack", {method, invokeId, isError, resultString})
                 endInvokeCallBack(invokeId, isError, resultString);
             } catch (e) {
                 
