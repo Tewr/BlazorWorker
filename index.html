@@ -1,5 +1,5 @@
-﻿<!DOCTYPE html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8" />
@@ -8,16 +8,16 @@
     <base href="/BlazorWorker/" />
     <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
     <link href="css/app.css" rel="stylesheet" />
+    <link href="BlazorWorker.Demo.Client.styles.css" rel="stylesheet" />
 </head>
 
 <body>
-    <app>
+    <div id="app">
         <div class="loader-box">
             <img src="loading-icon.svg" width="97" height="88" />
             <br /><br />
             <p id="loadingText">Loading...</p>
             <br />
-            <progress id="pbar"></progress>
         </div>
         <style>
             .loader-box {
@@ -29,41 +29,8 @@
                 font-size: 10px;
             }
         </style>
-    </app>
-
+    </div>
     <script type="text/javascript">
-
-        (function () {
-            /*
-             * Loader/splash screen
-             * */
-
-            var total = 0;
-            var loaded = 0;
-
-            var proxied = window.fetch;
-            window.fetch = function (input, init) {
-                var file = input;
-                total++;
-
-                return proxied(input, init).then(function (response) {
-                    loaded++;
-                    var progress = Math.floor(((loaded / total) * 100));
-                    document.getElementById("pbar").max = total;
-                    document.getElementById("pbar").value = loaded;
-                    document.getElementById("loadingText").innerHTML = "Loaded " + file + ", " + progress + " %..."
-
-                    if (loaded == total) {
-                        // Reset override.
-                        window.fetch = proxied;
-                        document.getElementById("loadingText").innerHTML = "Loading 100%, opening application...";
-                    }
-
-                    return response;
-                });
-
-            };
-        })();
 
         // Single Page Apps for GitHub Pages
         // https://github.com/rafrex/spa-github-pages
@@ -93,7 +60,6 @@
             }
         }(window.location))
     </script>
-
     <div id="blazor-error-ui">
         An unhandled error has occurred.
         <a href="" class="reload">Reload</a>
@@ -104,4 +70,3 @@
 </body>
 
 </html>
-
