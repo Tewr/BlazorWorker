@@ -156,7 +156,7 @@ namespace BlazorWorker.Core
             source.AddAssemblies("System.Net.Http.dll", "System.Net.Http.WebAssemblyHttpHandler.dll");
 #endif
 
-#if NET5
+#if NET5_0_OR_GREATER
             source.AddAssemblies(
                 "System.Net.Http.dll", 
                 "System.Security.Cryptography.X509Certificates.dll",
