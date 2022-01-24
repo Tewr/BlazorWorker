@@ -67,7 +67,7 @@
 
                 handle = await backgroundService.CreateInstance<CoreMathsService>(options =>
                     options.AddConventionalAssemblyOfService()
-#if NET5
+#if NET5_0_OR_GREATER
                         .AddAssemblies("System.Text.RegularExpressions.dll")
 #endif
                         );

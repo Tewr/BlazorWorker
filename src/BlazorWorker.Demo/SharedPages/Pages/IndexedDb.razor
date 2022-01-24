@@ -55,8 +55,11 @@
 
             var serviceCollectionDependencies = new string[] {
                     "Microsoft.Extensions.DependencyInjection.Abstractions.dll"
-#if NET5
+#if NET5_0_OR_GREATER
                     ,"System.Diagnostics.Tracing.dll"
+#endif
+#if NET6_0_OR_GREATER
+                    ,"Microsoft.Extensions.DependencyInjection.dll"
 #endif
                 };
 

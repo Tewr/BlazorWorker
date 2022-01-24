@@ -20,7 +20,7 @@ namespace BlazorWorker.Core
             DeployPrefix = "_framework/_bin";
             WasmRoot = "_framework/wasm";
 #endif
-#if NET5
+#if NET5_0_OR_GREATER
             DeployPrefix = "_framework";
             WasmRoot = "_framework";
 #endif

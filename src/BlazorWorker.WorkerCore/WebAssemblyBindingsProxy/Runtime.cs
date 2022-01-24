@@ -14,7 +14,7 @@ namespace BlazorWorker.WorkerCore.WebAssemblyBindingsProxy
         private static readonly string type = $"WebAssembly.{nameof(Runtime)}";
 #endif
 
-#if NET5
+#if NET5 || NET6
         private const string assembly = "System.Private.Runtime.InteropServices.JavaScript";
         private static readonly string type = $"System.Runtime.InteropServices.JavaScript.{nameof(Runtime)}";
 #endif
