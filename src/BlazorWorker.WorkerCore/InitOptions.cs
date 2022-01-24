@@ -74,9 +74,28 @@ namespace BlazorWorker.Core
         /// </summary>
         public string EndInvokeCallBackEndpoint { get; set; }
 
+        /// <summary>
+        /// Sets environment variables in the target worker. 
+        /// </summary>
+        /// <remarks>
+        /// Defaults to a single entry: DOTNET_SYSTEM_GLOBALIZATION_INVARIANT = '1'.
+        /// For more information see https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-environment-variables
+        /// </remarks>
+        public Dictionary<string, string> EnvMap { get; set; } 
+            = new Dictionary<string, string>() { 
+                { "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1" },
+            };
+
         public WorkerInitOptions MergeWith(WorkerInitOptions initOptions)
         {
-
+            var newEnvMap = new Dictionary<string , string>(this.EnvMap);
+            if (initOptions.EnvMap != null)
+            {
+                foreach (var entry in initOptions.EnvMap)
+                {
+                    newEnvMap[entry.Key] = entry.Value;
+                }
+            }
             return new WorkerInitOptions
             {
                 CallbackMethod = initOptions.CallbackMethod ?? this.CallbackMethod,
@@ -87,7 +106,8 @@ namespace BlazorWorker.Core
                 UseConventionalServiceAssembly = initOptions.UseConventionalServiceAssembly,
                 MessageEndPoint = initOptions.MessageEndPoint ?? this.MessageEndPoint,
                 InitEndPoint = initOptions.InitEndPoint ?? this.InitEndPoint,
-                EndInvokeCallBackEndpoint = initOptions.EndInvokeCallBackEndpoint ?? this.EndInvokeCallBackEndpoint
+                EndInvokeCallBackEndpoint = initOptions.EndInvokeCallBackEndpoint ?? this.EndInvokeCallBackEndpoint,
+                EnvMap = newEnvMap
             };
         }
     }
@@ -167,6 +187,19 @@ namespace BlazorWorker.Core
                 "System.Diagnostics.Tracing.dll");
 #endif
 
+            return source;
+        }
+
+        /// <summary>
+        /// Set the specified <paramref name="environmentVariableName"/> to the specified <paramref name="value"/> when the worker runtime has been initialized
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="environmentVariableName"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static WorkerInitOptions SetEnv(this WorkerInitOptions source, string environmentVariableName, string value)
+        {
+            source.EnvMap[environmentVariableName] = value;
             return source;
         }
     }

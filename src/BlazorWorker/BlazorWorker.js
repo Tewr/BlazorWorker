@@ -92,8 +92,15 @@ window.BlazorWorker = function () {
                 default: return fileName;
             }
         };
-        module.onRuntimeInitialized = () => 
-            MONO.mono_wasm_setenv('DOTNET_SYSTEM_GLOBALIZATION_INVARIANT', '1');
+        module.onRuntimeInitialized = () => {
+            const envMap = initConf.envMap;
+            for (const key in envMap) {
+                if (Object.prototype.hasOwnProperty.call(envMap, key)) {
+                    MONO.mono_wasm_setenv(key, envMap[key]);
+                }
+            }
+        }
+            
         module.preRun.push(() => {
             const mono_wasm_add_assembly = Module.cwrap('mono_wasm_add_assembly', null, [
                 'string',
@@ -269,6 +276,7 @@ window.BlazorWorker = function () {
             endInvokeCallBackEndpoint: initOptions.endInvokeCallBackEndpoint,
             wasmRoot: initOptions.wasmRoot,
             blazorBoot: "_framework/blazor.boot.json",
+            envMap: initOptions.envMap,
             debug: initOptions.debug
         };
 
