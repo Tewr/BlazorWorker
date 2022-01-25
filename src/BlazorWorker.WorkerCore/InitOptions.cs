@@ -197,6 +197,9 @@ namespace BlazorWorker.Core
         /// <param name="environmentVariableName"></param>
         /// <param name="value"></param>
         /// <returns></returns>
+        /// <remarks>
+        /// For more information see https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-environment-variables
+        /// </remarks>
         public static WorkerInitOptions SetEnv(this WorkerInitOptions source, string environmentVariableName, string value)
         {
             source.EnvMap[environmentVariableName] = value;
