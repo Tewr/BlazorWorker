@@ -9,7 +9,8 @@ using System.Threading.Tasks;
 
 namespace BlazorWorker.BackgroundServiceFactory
 {
-    internal class WorkerBackgroundServiceProxy {
+    internal class WorkerBackgroundServiceProxy
+    {
         private static long idSource;
         internal static readonly string InitEndPoint;
         internal static readonly string EndInvokeCallBackEndpoint;
@@ -80,7 +81,8 @@ namespace BlazorWorker.BackgroundServiceFactory
 
         private void OnDisposeInstanceComplete(DisposeInstanceComplete message)
         {
-            if (!this.disposeTaskRegistry.TryRemove(message.CallId, out var disposeTask)) {
+            if (!this.disposeTaskRegistry.TryRemove(message.CallId, out var disposeTask))
+            {
                 return;
             }
 
@@ -126,17 +128,21 @@ namespace BlazorWorker.BackgroundServiceFactory
                         workerInitOptions.AddAssemblyOf<T>();
                     }
 
-                await this.worker.InitAsync(new WorkerInitOptions {
-                    DependentAssemblyFilenames = 
+                    workerInitOptions.CustomKnownTypes = this.options.MessageSerializer.Serialize(workerInitOptions.CustomKnownTypes);
+
+                    await this.worker.InitAsync(new WorkerInitOptions
+                    {
+                        DependentAssemblyFilenames =
                         WorkerBackgroundServiceDependencies.DependentAssemblyFilenames,
-                    InitEndPoint = WorkerBackgroundServiceProxy.InitEndPoint,
-                    EndInvokeCallBackEndpoint = WorkerBackgroundServiceProxy.EndInvokeCallBackEndpoint
-                }.MergeWith(workerInitOptions));
+                        InitEndPoint = WorkerBackgroundServiceProxy.InitEndPoint,
+                        EndInvokeCallBackEndpoint = WorkerBackgroundServiceProxy.EndInvokeCallBackEndpoint
+                    }.MergeWith(workerInitOptions));
 
                     this.worker.IncomingMessage += OnMessage;
 
                     await initWorkerTask.Task;
-                    if (this.worker is WorkerProxy proxy) {
+                    if (this.worker is WorkerProxy proxy)
+                    {
                         proxy.IsInitialized = true;
                     }
                 }
@@ -175,7 +181,7 @@ namespace BlazorWorker.BackgroundServiceFactory
             }
         }
 
-        public async Task<WorkerBackgroundServiceProxy<TService>> InitFromFactoryAsync<TService>(Expression<Func<T,TService>> expression) where TService:class
+        public async Task<WorkerBackgroundServiceProxy<TService>> InitFromFactoryAsync<TService>(Expression<Func<T, TService>> expression) where TService : class
         {
             if (!this.IsInitialized)
             {
@@ -222,8 +228,8 @@ namespace BlazorWorker.BackgroundServiceFactory
             {
                 return;
             }
-            
-            taskCompletionSource.SetResult(message); 
+
+            taskCompletionSource.SetResult(message);
         }
 
         private void OnEventRaised(EventRaised message)
@@ -276,7 +282,8 @@ namespace BlazorWorker.BackgroundServiceFactory
             if (message.IsSuccess)
             {
                 taskCompletionSource.SetResult(message);
-            }else
+            }
+            else
             {
                 taskCompletionSource.SetException(message.Exception);
             }
@@ -393,7 +400,7 @@ namespace BlazorWorker.BackgroundServiceFactory
             var returnMessage = await taskCompletionSource.Task;
             if (returnMessage.IsException)
             {
-                throw new AggregateException($"Worker exception: {returnMessage.Exception.Message}",  returnMessage.Exception);
+                throw new AggregateException($"Worker exception: {returnMessage.Exception.Message}", returnMessage.Exception);
             }
             if (string.IsNullOrEmpty(returnMessage.ResultPayload))
             {

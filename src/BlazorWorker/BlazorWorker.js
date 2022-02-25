@@ -1,5 +1,5 @@
 window.BlazorWorker = function () {
-    
+
     const workers = {};
     const disposeWorker = function (workerId) {
 
@@ -15,7 +15,7 @@ window.BlazorWorker = function () {
 
     const workerDef = function () {
         const initConf = JSON.parse('$initConf$');
-        
+
         const nonExistingDlls = [];
         let blazorBootManifest = {
             resources: { assembly: { "AssemblyName.dll": "sha256-<sha256>" } }
@@ -37,7 +37,7 @@ window.BlazorWorker = function () {
             }
 
             try {
-                Module.mono_call_static_method(initConf.InitEndPoint, []);
+                Module.mono_call_static_method(initConf.InitEndPoint, initConf.InitEndPoint.includes("SimpleInstanceService") ? [] : [JSON.stringify(initConf.customKnownTypes)]);
             } catch (e) {
                 console.error(`Init method ${initConf.InitEndPoint} failed`, e);
                 throw e;
@@ -70,10 +70,10 @@ window.BlazorWorker = function () {
                 xhr.send(undefined);
             });
         }
-        
+
         var config = {};
         var module = (self['Module'] || {});
-        
+
         const wasmBinaryFile = `${initConf.appRoot}/${initConf.wasmRoot}/dotnet.wasm`;
         const suppressMessages = ['DEBUGGING ENABLED'];
         const appBinDirName = 'appBinDir';
@@ -100,7 +100,7 @@ window.BlazorWorker = function () {
                 }
             }
         }
-            
+
         module.preRun.push(() => {
             const mono_wasm_add_assembly = Module.cwrap('mono_wasm_add_assembly', null, [
                 'string',
@@ -111,7 +111,7 @@ window.BlazorWorker = function () {
 
             MONO.loaded_files = [];
             var baseUrl = `${initConf.appRoot}/${initConf.deploy_prefix}`;
-            
+
             initConf.DependentAssemblyFilenames.forEach(url => {
 
                 if (!blazorBootManifest.resources.assembly.hasOwnProperty(url)) {
@@ -123,9 +123,9 @@ window.BlazorWorker = function () {
                 const runDependencyId = `blazorWorker:${url}`;
                 addRunDependency(runDependencyId);
 
-                asyncLoad(baseUrl+'/'+ url).then(
+                asyncLoad(baseUrl + '/' + url).then(
                     data => {
-                        
+
                         const heapAddress = Module._malloc(data.length);
                         const heapMemory = new Uint8Array(Module.HEAPU8.buffer, heapAddress, data.length);
                         heapMemory.set(data);
@@ -151,7 +151,7 @@ window.BlazorWorker = function () {
             const load_runtime = Module.cwrap('mono_wasm_load_runtime', null, ['string', 'number']);
             load_runtime(appBinDirName, 0);
             MONO.mono_wasm_runtime_is_ready = true;
-           
+
             onReady();
             if (initConf.debug && nonExistingDlls.length > 0) {
                 console.warn(`BlazorWorker: Module.postRun: ${nonExistingDlls.length} assemblies was specified as a dependency for the worker but was not present in the bootloader. This may be normal if trimmming is used. To remove this warning, either configure the linker not to trim the specified assemblies if they were removed in error, or conditionally remove the specified dependencies for builds that uses trimming. If trimming is not used, make sure that the assembly is included in the build.`, nonExistingDlls);
@@ -159,7 +159,7 @@ window.BlazorWorker = function () {
         });
 
         config.file_list = [];
-        
+
         global = globalThis;
         self.Module = module;
 
@@ -181,7 +181,7 @@ window.BlazorWorker = function () {
                 }
 
                 self.importScripts(`${initConf.appRoot}/${initConf.wasmRoot}/${dotnetjsfilename}`);
-            
+
             }, errorInfo => onError(errorInfo));
 
         self.jsRuntimeSerializers = new Map();
@@ -217,7 +217,7 @@ window.BlazorWorker = function () {
             }
 
             if (!isError) {
-                
+
                 try {
                     const argsArray = serializer.deserialize(argsString);
                     result = await methodHandle(...argsArray);
@@ -227,7 +227,7 @@ window.BlazorWorker = function () {
                     isError = true;
                 }
             }
-            
+
             let resultString;
             if (isVoid && !isError) {
                 resultString = null;
@@ -239,11 +239,11 @@ window.BlazorWorker = function () {
                     isError = true;
                 }
             }
-            
+
             try {
                 endInvokeCallBack(invokeId, isError, resultString);
             } catch (e) {
-                
+
                 console.error(`BlazorWorker: beginInvokeAsync: Callback to ${initConf.endInvokeCallBackEndpoint} failed. Method: ${method}, args: ${argsString}`, e);
                 throw e;
             }
@@ -259,7 +259,7 @@ window.BlazorWorker = function () {
         };
     };
 
-    const inlineWorker = `self.onmessage = ${workerDef}()`; 
+    const inlineWorker = `self.onmessage = ${workerDef}()`;
 
     const initWorker = function (id, callbackInstance, initOptions) {
         let appRoot = (document.getElementsByTagName('base')[0] || { href: window.location.origin }).href || "";
@@ -277,7 +277,8 @@ window.BlazorWorker = function () {
             wasmRoot: initOptions.wasmRoot,
             blazorBoot: "_framework/blazor.boot.json",
             envMap: initOptions.envMap,
-            debug: initOptions.debug
+            debug: initOptions.debug,
+            customKnownTypes: JSON.parse(initOptions.customKnownTypes)
         };
 
         // Initialize worker

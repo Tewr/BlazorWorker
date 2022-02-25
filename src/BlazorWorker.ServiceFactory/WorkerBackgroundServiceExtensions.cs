@@ -27,7 +27,7 @@ namespace BlazorWorker.BackgroundServiceFactory
                 throw new ArgumentNullException(nameof(webWorkerProxy));
             }
 
-            var proxy = new WorkerBackgroundServiceProxy<T>(webWorkerProxy, new WebWorkerOptions());
+            var proxy = new WorkerBackgroundServiceProxy<T>(webWorkerProxy, CreateAndInitWebWorkerOptions(workerInitOptions));
             if (workerInitOptions == null)
             {
                 workerInitOptions = new WorkerInitOptions().AddAssemblyOf<T>();
@@ -49,8 +49,8 @@ namespace BlazorWorker.BackgroundServiceFactory
         public static async Task<IWorkerBackgroundService<TService>> CreateBackgroundServiceUsingFactoryAsync<TFactory, TService>(
             this IWorker webWorkerProxy,
             Expression<Func<TFactory, TService>> factoryExpression,
-            Action<WorkerInitOptions> workerInitOptionsModifier = null) 
-            where TFactory : class 
+            Action<WorkerInitOptions> workerInitOptionsModifier = null)
+            where TFactory : class
             where TService : class
         {
             if (webWorkerProxy is null)
@@ -72,7 +72,8 @@ namespace BlazorWorker.BackgroundServiceFactory
             {
                 workerInitOptionsModifier(workerInitOptions);
             }
-            var factoryProxy = new WorkerBackgroundServiceProxy<TFactory>(webWorkerProxy, new WebWorkerOptions());
+
+            var factoryProxy = new WorkerBackgroundServiceProxy<TFactory>(webWorkerProxy, CreateAndInitWebWorkerOptions(workerInitOptions));
             await factoryProxy.InitAsync(workerInitOptions);
 
             var newProxy = await factoryProxy.InitFromFactoryAsync(factoryExpression);
@@ -110,6 +111,13 @@ namespace BlazorWorker.BackgroundServiceFactory
             }
 
             return await webWorkerProxy.InitFromFactoryAsync(factoryExpression);
+        }
+
+        private static WebWorkerOptions CreateAndInitWebWorkerOptions(WorkerInitOptions workerInitOptions)
+        {
+            return workerInitOptions?.CustomKnownTypes != null ?
+                    new WebWorkerOptions((Type[])workerInitOptions.CustomKnownTypes) :
+                    new WebWorkerOptions();
         }
     }
 }

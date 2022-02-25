@@ -85,6 +85,11 @@
             For more information see https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-environment-variables
             </remarks>
         </member>
+        <member name="P:BlazorWorker.Core.WorkerInitOptions.CustomKnownTypes">
+            <summary>
+            Specifies custom, known types to the serializer instead of the KnownTypeAttribute.
+            </summary>
+        </member>
         <member name="T:BlazorWorker.Core.WorkerInitOptionsExtensions">
             <summary>
             Contains convenience extensions for <see cref="T:BlazorWorker.Core.WorkerInitOptions"/>
@@ -139,6 +144,14 @@
             <remarks>
             For more information see https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-environment-variables
             </remarks>
+        </member>
+        <member name="M:BlazorWorker.Core.WorkerInitOptionsExtensions.AddCustomKnownTypes(BlazorWorker.Core.WorkerInitOptions,System.Type[])">
+            <summary>
+            Sets the value of CustomKnownTypes after serializing the types specified in the parameter.
+            </summary>
+            <param name="source"></param>
+            <param name="customKnownTypes"></param>
+            <returns></returns>
         </member>
     </members>
 </doc>

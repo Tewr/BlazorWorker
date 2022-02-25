@@ -1,18 +1,28 @@
-﻿namespace BlazorWorker.WorkerBackgroundService
+﻿using System;
+
+namespace BlazorWorker.WorkerBackgroundService
 {
     public class WebWorkerOptions
     {
+        private readonly Type[] customKnownTypes;
         private ISerializer messageSerializer;
         private IExpressionSerializer expressionSerializer;
 
-        public ISerializer MessageSerializer { 
-            get => messageSerializer ?? (messageSerializer = new DefaultMessageSerializer()); 
-            set => messageSerializer = value; 
+        public WebWorkerOptions(Type[] customKnownTypes = null)
+        {
+            this.customKnownTypes = customKnownTypes;
         }
 
-        public IExpressionSerializer ExpressionSerializer { 
-            get => expressionSerializer ?? (expressionSerializer = new SerializeLinqExpressionSerializer()) ; 
-            set => expressionSerializer = value; 
+        public ISerializer MessageSerializer
+        {
+            get => messageSerializer ?? new DefaultMessageSerializer();
+            set => messageSerializer = value;
+        }
+
+        public IExpressionSerializer ExpressionSerializer
+        {
+            get => expressionSerializer ?? new SerializeLinqExpressionSerializer(customKnownTypes);
+            set => expressionSerializer = value;
         }
     }
 }
