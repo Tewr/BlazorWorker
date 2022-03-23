@@ -113,12 +113,10 @@ namespace BlazorWorker.BackgroundServiceFactory
             return await webWorkerProxy.InitFromFactoryAsync(factoryExpression);
         }
 
-        private static WebWorkerOptions CreateAndInitWebWorkerOptions(WorkerInitOptions workerInitOptions)
-        {
-            return workerInitOptions?.CustomKnownTypes != null ?
-                    new WebWorkerOptions((Type[])workerInitOptions.CustomKnownTypes) :
-                    new WebWorkerOptions();
-        }
+        private static WebWorkerOptions CreateAndInitWebWorkerOptions(WorkerInitOptions workerInitOptions) =>
+            workerInitOptions?.CustomKnownTypeNames is null ?
+                new WebWorkerOptions() :
+                new WebWorkerOptions(workerInitOptions.CustomKnownTypeNames);
     }
 }
 

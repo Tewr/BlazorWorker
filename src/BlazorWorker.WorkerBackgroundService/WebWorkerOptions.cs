@@ -1,17 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace BlazorWorker.WorkerBackgroundService
 {
     public class WebWorkerOptions
     {
-        private readonly Type[] customKnownTypes;
+        private readonly IEnumerable<Type> customKnownTypes;
         private ISerializer messageSerializer;
         private IExpressionSerializer expressionSerializer;
 
-        public WebWorkerOptions(Type[] customKnownTypes = null)
-        {
-            this.customKnownTypes = customKnownTypes;
-        }
+        public WebWorkerOptions(IEnumerable<string> customKnownTypeNames = null) =>
+            customKnownTypes = customKnownTypeNames?.Select(name => Type.GetType(name));
 
         public ISerializer MessageSerializer
         {

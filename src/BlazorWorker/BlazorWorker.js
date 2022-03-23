@@ -37,7 +37,7 @@ window.BlazorWorker = function () {
             }
 
             try {
-                Module.mono_call_static_method(initConf.InitEndPoint, initConf.InitEndPoint.includes("SimpleInstanceService") ? [] : [JSON.stringify(initConf.customKnownTypes)]);
+                Module.mono_call_static_method(initConf.InitEndPoint, initConf.InitEndPoint.includes("SimpleInstanceService") ? [] : [JSON.stringify(initConf.customKnownTypeNames)]);
             } catch (e) {
                 console.error(`Init method ${initConf.InitEndPoint} failed`, e);
                 throw e;
@@ -278,7 +278,7 @@ window.BlazorWorker = function () {
             blazorBoot: "_framework/blazor.boot.json",
             envMap: initOptions.envMap,
             debug: initOptions.debug,
-            customKnownTypes: JSON.parse(initOptions.customKnownTypes)
+            customKnownTypeNames: initOptions.customKnownTypeNames
         };
 
         // Initialize worker

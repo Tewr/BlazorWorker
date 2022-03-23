@@ -86,10 +86,10 @@ namespace BlazorWorker.Core
                 { "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1" },
             };
 
-        /// <summary>
-        /// Specifies custom, known types to the serializer instead of the KnownTypeAttribute.
-        /// </summary>
-        public object CustomKnownTypes { get; set; }
+        ///// <summary>
+        ///// Specifies custom, known type names to register types to serializer instead of using the KnownTypeAttribute.
+        ///// </summary>
+        public string[] CustomKnownTypeNames { get; set; }
 
         public WorkerInitOptions MergeWith(WorkerInitOptions initOptions)
         {
@@ -113,7 +113,7 @@ namespace BlazorWorker.Core
                 InitEndPoint = initOptions.InitEndPoint ?? this.InitEndPoint,
                 EndInvokeCallBackEndpoint = initOptions.EndInvokeCallBackEndpoint ?? this.EndInvokeCallBackEndpoint,
                 EnvMap = newEnvMap,
-                CustomKnownTypes = initOptions.CustomKnownTypes
+                CustomKnownTypeNames = initOptions.CustomKnownTypeNames
             };
         }
     }
@@ -213,14 +213,14 @@ namespace BlazorWorker.Core
         }
 
         /// <summary>
-        /// Sets the value of CustomKnownTypes after serializing the types specified in the parameter.
+        /// Sets the AssemblyQualifiedName values from specified <paramref name="customKnownTypes"/> to <see cref="WorkerInitOptions.CustomKnownTypeNames"/>.
         /// </summary>
         /// <param name="source"></param>
         /// <param name="customKnownTypes"></param>
         /// <returns></returns>
         public static WorkerInitOptions AddCustomKnownTypes(this WorkerInitOptions source, Type[] customKnownTypes)
         {
-            source.CustomKnownTypes = customKnownTypes;
+            source.CustomKnownTypeNames = customKnownTypes.Select(type => type.AssemblyQualifiedName).Distinct().ToArray();
             return source;
         }
     }

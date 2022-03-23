@@ -2,6 +2,7 @@
 using BlazorWorker.WorkerCore.SimpleInstanceService;
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
@@ -41,11 +42,11 @@ namespace BlazorWorker.WorkerBackgroundService
             this.messageHandler = messageHandlerRegistry.GetRegistryForInstance(this);
         }
 
-        public static void Init(string customKnownTypes)
+        public static void Init(string customKnownTypeNames)
         {
-            Instance.options = customKnownTypes is null ?
+            Instance.options = customKnownTypeNames == "null" ?
                 new WebWorkerOptions() :
-                new WebWorkerOptions(Instance.serializer.Deserialize<Type[]>(customKnownTypes));
+                new WebWorkerOptions(Instance.serializer.Deserialize<Type[]>(customKnownTypeNames).Select(type => type.AssemblyQualifiedName));
 
             MessageService.Message += Instance.OnMessage;
             Instance.PostObject(new InitWorkerComplete());

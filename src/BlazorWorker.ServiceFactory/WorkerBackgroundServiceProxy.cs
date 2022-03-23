@@ -128,8 +128,6 @@ namespace BlazorWorker.BackgroundServiceFactory
                         workerInitOptions.AddAssemblyOf<T>();
                     }
 
-                    workerInitOptions.CustomKnownTypes = this.options.MessageSerializer.Serialize(workerInitOptions.CustomKnownTypes);
-
                     await this.worker.InitAsync(new WorkerInitOptions
                     {
                         DependentAssemblyFilenames =
