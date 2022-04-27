@@ -22,6 +22,10 @@ To people coming from the .NET world, an analogy for what this library does is c
 The library comes in two flavours, one built on top of the other:
 - BlazorWorker.BackgroundService: A high-level API that hides the complexity of messaging
 - BlazorWorker.Core: A low-level API to communicate with a new .NET process in a web worker
+- 
+### Native framework multithreading
+Multi-threading enthusiasts should closely monitor [this tracking issue](https://github.com/dotnet/runtime/issues/68162) in the dotnet runtime repo, which promises experimental threading support in .net 7 (projected for november 2022)
+
 
 ## Installation
 Nuget package:
