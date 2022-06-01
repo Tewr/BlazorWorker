@@ -124,9 +124,8 @@ Since .net6.0, the runtime defaults to the invariant culture, and new cultures c
 
 You may try to circument any problems relating to this by changing the default options.
 
-```
-  
-  var serviceInstance3 = await worker.CreateBackgroundServiceAsync<MyService>(
+```cs
+  var serviceInstance4 = await worker.CreateBackgroundServiceAsync<MyService>(
       options => options
           .AddConventionalAssemblyOfService()
           // Allow custom cultures by setting this to zero
