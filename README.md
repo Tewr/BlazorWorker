@@ -118,6 +118,25 @@ If your dll name does not match the name of the assembly, or if your service has
   );
 ```
 
+## More Culture!
+
+Since .net6.0, the runtime defaults to the invariant culture, and new cultures cannot be used or created by default. You [may](https://github.com/Tewr/BlazorWorker/issues/67) get the exception with the message "Only the invariant culture is supported in globalization-invariant mode", commonly when using third-party libraries that make use of any culture other than the invariant one.
+
+You may try to circument any problems relating to this by changing the default options.
+
+```
+  
+  var serviceInstance3 = await worker.CreateBackgroundServiceAsync<MyService>(
+      options => options
+          .AddConventionalAssemblyOfService()
+          // Allow custom cultures by setting this to zero
+          .SetEnv("DOTNET_SYSTEM_GLOBALIZATION_PREDEFINED_CULTURES_ONLY", "0")
+  );
+```
+
+Read more [here](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-environment-variables#dotnet_system_globalization_) on culture options.
+
+
 ## Injectable services
 The nominal use case is that the Service class specifies a parameterless constructor.
 
