@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1;net5.0;net6.0</TargetFrameworks>
     <Configurations>Debug;Release;Nuget</Configurations>
-    <Version>3.2.0</Version>
+    <Version>3.2.1</Version>
     <Authors>Tor Knutsson (Tewr)</Authors>
     <Company>Tor Knutsson (Tewr)</Company>
     <Product>BlazorWorker</Product>
