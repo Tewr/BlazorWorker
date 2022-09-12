@@ -24,7 +24,7 @@ The library comes in two flavours, one built on top of the other:
 - BlazorWorker.Core: A low-level API to communicate with a new .NET process in a web worker
 - 
 ### Native framework multithreading
-Multi-threading enthusiasts should closely monitor [this tracking issue](https://github.com/dotnet/runtime/issues/68162) in the dotnet runtime repo, which promises experimental threading support in .net 7 (projected for november 2022)
+Multi-threading enthusiasts should closely monitor [this tracking issue](https://github.com/dotnet/runtime/issues/68162) in the dotnet runtime repo, which promises experimental threading support in ~~.net 7 (projected for november 2022)~~ .net8, projected for November 2023.
 
 
 ## Installation
