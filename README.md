@@ -43,6 +43,7 @@ Add the following line in `Program.cs`:
 And then in a `.razor` View:
 ```cs
 @using BlazorWorker.BackgroundServiceFactory
+@using BlazorWorker.Core
 @inject IWorkerFactory workerFactory
 ```
 
