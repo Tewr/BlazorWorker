@@ -54,7 +54,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorWorker.Extensions.JSR
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Net6", "Net6", "{9185B197-2CDC-45D2-B8F7-8C23FB89EE80}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorWorker.Demo.Client", "BlazorWorker.Demo\Net6\Client\BlazorWorker.Demo.Client\BlazorWorker.Demo.Client.csproj", "{16FC5205-53E7-40CA-B3F3-A2172226A104}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorWorker.Demo.Client", "BlazorWorker.Demo\Net6\Client\BlazorWorker.Demo.Client\BlazorWorker.Demo.Client.csproj", "{16FC5205-53E7-40CA-B3F3-A2172226A104}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Net7", "Net7", "{C45CA3F7-E410-4CBB-A46A-CD91F9E2D1E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorWorker.Demo.Client", "BlazorWorker.Demo\Net7\Client\BlazorWorker.Demo.Client\BlazorWorker.Demo.Client.csproj", "{9AE5D6D4-A79F-49FB-B9F9-6C9672DBEEAA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -142,6 +146,12 @@ Global
 		{16FC5205-53E7-40CA-B3F3-A2172226A104}.Nuget|Any CPU.Build.0 = Debug|Any CPU
 		{16FC5205-53E7-40CA-B3F3-A2172226A104}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{16FC5205-53E7-40CA-B3F3-A2172226A104}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9AE5D6D4-A79F-49FB-B9F9-6C9672DBEEAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9AE5D6D4-A79F-49FB-B9F9-6C9672DBEEAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9AE5D6D4-A79F-49FB-B9F9-6C9672DBEEAA}.Nuget|Any CPU.ActiveCfg = Debug|Any CPU
+		{9AE5D6D4-A79F-49FB-B9F9-6C9672DBEEAA}.Nuget|Any CPU.Build.0 = Debug|Any CPU
+		{9AE5D6D4-A79F-49FB-B9F9-6C9672DBEEAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9AE5D6D4-A79F-49FB-B9F9-6C9672DBEEAA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -166,6 +176,8 @@ Global
 		{1FF84418-B2C8-4AC4-9989-087B9BE3753B} = {775EF4B5-04A1-40D8-8E0A-BC04EF624F98}
 		{9185B197-2CDC-45D2-B8F7-8C23FB89EE80} = {E05838C4-02F5-403B-B7E4-338924A6D5AB}
 		{16FC5205-53E7-40CA-B3F3-A2172226A104} = {9185B197-2CDC-45D2-B8F7-8C23FB89EE80}
+		{C45CA3F7-E410-4CBB-A46A-CD91F9E2D1E8} = {E05838C4-02F5-403B-B7E4-338924A6D5AB}
+		{9AE5D6D4-A79F-49FB-B9F9-6C9672DBEEAA} = {C45CA3F7-E410-4CBB-A46A-CD91F9E2D1E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0CCA60FE-BC52-494C-B600-B35B8865535C}

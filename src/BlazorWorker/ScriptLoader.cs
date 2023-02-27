@@ -28,7 +28,14 @@ namespace BlazorWorker.Core
             }
 
             string scriptContent;
-            var stream = this.GetType().Assembly.GetManifestResourceStream("BlazorWorker.Core.BlazorWorker.js");
+            var resourceName =
+#if NET7_0_OR_GREATER
+                "BlazorWorker.Core.BlazorWorker7.js";
+#else
+                "BlazorWorker.Core.BlazorWorker.js";
+#endif
+
+            var stream = this.GetType().Assembly.GetManifestResourceStream(resourceName);
             using (stream)
             {
                 using (var streamReader = new StreamReader(stream))
