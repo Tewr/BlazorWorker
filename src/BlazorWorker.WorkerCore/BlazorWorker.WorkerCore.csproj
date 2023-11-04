@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>net7.0</TargetFrameworks>
     <Configurations>Debug;Release;Nuget</Configurations>
-    <Version>4.0.0</Version>
+    <Version>4.0.0-preview1</Version>
     <Authors>Tor Knutsson (Tewr)</Authors>
     <Company>Tor Knutsson (Tewr)</Company>
     <Product>BlazorWorker</Product>
