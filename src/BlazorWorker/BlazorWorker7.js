@@ -21,8 +21,14 @@ window.BlazorWorker = function () {
         const fetchHandler = {
             apply: function (target, thisArg, args) {
                 args[0] = args[0].replace(blobRoot, initConf.appRoot);
-                console.log("BlazorWorker7::fetchHandler.apply", { target, thisArg, args });
-                return target.apply(thisArg, args);
+                //console.log("BlazorWorker7::fetchHandler.apply", { target, thisArg, args });
+                let fetchReturn = target.apply(thisArg, args);
+                if (args[0].endsWith("mono-config.json")) {
+                    // Override fetch result for "mono-config.json"
+                    return Promise.race([new Response(JSON.stringify(self.blazorbootMonoConfig),
+                        { "status": 200, headers: { "Content-Type": "application/json" } })]);
+                }
+                return fetchReturn;
             }
         }
         const proxyFetch = new Proxy(fetch, fetchHandler);
@@ -38,11 +44,20 @@ window.BlazorWorker = function () {
                 }
 
                 return target[prop];
+                
             }
         }
         self.window = new Proxy(self, handler);
         let messageHandler;
-        let endInvokeCallBack;
+        const envMap = initConf.envMap;
+        globalThis.ENV = globalThis.ENV || {};
+        for (const key in envMap) {
+            if (Object.prototype.hasOwnProperty.call(envMap, key)) {
+                globalThis.ENV[key] = envMap[key];
+                //MONO.mono_wasm_setenv(key, envMap[key]);
+            }
+        }
+        //let endInvokeCallBack;
         const onReady = () => {
             /*endInvokeCallBack =
                 BINDING.bind_static_method(initConf.endInvokeCallBackEndpoint);*/
@@ -53,9 +68,10 @@ window.BlazorWorker = function () {
                 messageHandler(msg.data);
             };
 
-            if (!initConf.InitEndPoint) {
+            /*if (!initConf.InitEndPoint) {
                 return;
-            }
+            }*/
+            
 
             try {
                 self.initMethod();
@@ -103,6 +119,53 @@ window.BlazorWorker = function () {
         asyncLoad(`${initConf.appRoot}/${initConf.blazorBoot}`, 'json')
             .then(async blazorboot => {
 
+                const blazorbootMonoConfig = {
+                    "mainAssemblyName": "BlazorWorker.WorkerCore.dll",
+                    "assemblyRootFolder": "_framework",
+                    "debugLevel": initConf.DebugLevel || -1,
+                    "assets":
+                        [...Object.keys(blazorboot.resources.assembly)
+                            .concat(Object.keys(blazorboot.resources.pdb || {}) || []).map(dllName => {
+                                return {
+                                    "behavior": "assembly",
+                                    "name": dllName
+                                };
+                            }),
+                        ...[
+                            /** todo: remove ? supportFiles directory does not exist*/
+                            {
+                                "virtualPath": "runtimeconfig.bin",
+                                "behavior": "vfs",
+                                "name": "supportFiles/0_runtimeconfig.bin"
+                            },
+                            /** todo: remove ? supportFiles directory does not exist*/
+                            {
+                                "virtualPath": "dotnet.js.symbols",
+                                "behavior": "vfs",
+                                "name": "supportFiles/1_dotnet.js.symbols"
+                            },
+                            {
+                                "loadRemote": false,
+                                "behavior": "icu",
+                                "name": "icudt.dat"
+                            },
+                            {
+                                "virtualPath": "/usr/share/zoneinfo/",
+                                "behavior": "vfs",
+                                "name": "dotnet.timezones.blat"
+                            },
+                            {
+                                "behavior": "dotnetwasm",
+                                "name": "_framework/dotnet.wasm"
+                            }
+                            ]],
+                    "remoteSources": [],
+                    "pthreadPoolSize": 0,
+                    "generatedFromBlazorBoot":true
+                };
+
+                self.blazorbootMonoConfig = blazorbootMonoConfig;
+
                 let dotnetjsfilename = '';
                 const runttimeSection = blazorboot.resources.runtime;
                 for (var p in runttimeSection) {
@@ -134,7 +197,6 @@ window.BlazorWorker = function () {
                 //self.assemblyExports = exports;
                 messageHandler = exports.BlazorWorker.WorkerCore.MessageService.OnMessage;
                 const initExports = await getAssemblyExports("BlazorWorker.WorkerBackgroundService");
-                debugger
                 self.initMethod = getChildFromDotNotation("BlazorWorker.WorkerBackgroundService.WorkerInstanceManager.Init", initExports)
                 //endInvokeCallBack = exports.BlazorWorker.JSInvokeService.EndInvokeCallBack;
                 await dotnet.run();
