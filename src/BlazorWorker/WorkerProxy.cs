@@ -11,7 +11,7 @@ namespace BlazorWorker.Core
         private readonly ScriptLoader scriptLoader;
         private static long idSource;
         private bool isDisposed = false;
-        private static readonly string messageMethod;
+        private static readonly MethodIdentifier messageMethod;
         private readonly DotNetObjectReference<WorkerProxy> thisReference;
 
 

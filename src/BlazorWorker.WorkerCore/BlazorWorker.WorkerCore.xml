@@ -4,17 +4,11 @@
         <name>BlazorWorker.WorkerCore</name>
     </assembly>
     <members>
-        <member name="M:BlazorWorker.WorkerCore.JSInvokeService.ImportLocalScripts(System.String[])">
+        <member name="M:BlazorWorker.WorkerCore.JSInvokeService.PrivateImportLocalScripts(System.String[])">
             <summary>
             Prepending the specified <paramref name="relativeUrls"/> with the base path of the application, invokes the importScripts() method of the WorkerGlobalScope interface, which synchronously imports one or more scripts into the worker's scope.
             </summary>
             <param name="relativeUrls"></param>
-        </member>
-        <member name="M:BlazorWorker.WorkerCore.JSInvokeService.IsObjectDefined(System.String)">
-            <summary>
-            Returns <c>true</c> if the specified <paramref name="objectPath"/> is defined on the global scope
-            </summary>
-            <param name="objectPath"></param>
         </member>
         <member name="T:BlazorWorker.WorkerCore.MessageService">
             <summary>

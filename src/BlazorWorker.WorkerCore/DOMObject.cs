@@ -1,8 +1,10 @@
 ﻿using System;
 using BlazorWorker.WorkerCore.WebAssemblyBindingsProxy;
 
+
 namespace BlazorWorker.WorkerCore
 {
+
     // Serves as a wrapper around a JSObject.
     class DOMObject : IDisposable
     {
