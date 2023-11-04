@@ -24,9 +24,12 @@ The library comes in two flavours, one built on top of the other:
 - BlazorWorker.Core: A low-level API to communicate with a new .NET process in a web worker
 - 
 ### Native framework multithreading
-Multi-threading enthusiasts should closely monitor [this tracking issue](https://github.com/dotnet/runtime/issues/68162) in the dotnet runtime repo, which promises experimental threading support in ~~.net 7 (projected for november 2022)~~ .net8, projected for November 2023.
+Multi-threading enthusiasts should closely monitor [this tracking issue](https://github.com/dotnet/runtime/issues/68162) in the dotnet runtime repo, which promises experimental threading support in ~~.net 7 (projected for november 2022)~~ ~~.net8, projected for November 2023.~~ .net9, projected for November 2024.
 
 .net7-rc2 has an experimental multithreading api, read about it [here](https://devblogs.microsoft.com/dotnet/asp-net-core-updates-in-dotnet-7-rc-2/#webassembly-multithreading-experimental)
+
+### Net 7 Support
+Due to the high number of breaking changes in Net7, a complete rewrite of the bootstrapper was neccessary. Net 7 support is currently in preview, and tracked in [this issue](https://github.com/Tewr/BlazorWorker/issues/85). As it stands, support for .net6 and previous framework versions will be dropped as of version 4.
 
 ## Installation
 Nuget package:
