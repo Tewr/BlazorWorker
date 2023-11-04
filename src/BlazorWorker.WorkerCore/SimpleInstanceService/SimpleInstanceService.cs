@@ -4,10 +4,11 @@ using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices.JavaScript;
 
 namespace BlazorWorker.WorkerCore.SimpleInstanceService
 {
-    public class SimpleInstanceService
+    public partial class SimpleInstanceService
     {
         
         public static readonly SimpleInstanceService Instance = new SimpleInstanceService();
@@ -35,6 +36,7 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
             AppDomain.CurrentDomain.AssemblyResolve += LogFailedAssemblyResolve;
         }
 
+        [JSExport]
         public static void Init()
         {
             Instance.InnerInit();
@@ -231,11 +233,12 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
 
         private static Assembly LogFailedAssemblyResolve(object sender, ResolveEventArgs args)
         {
-            Console.Error.WriteLine($"{typeof(SimpleInstanceService).FullName}: '{args.RequestingAssembly}' is requesting missing assembly '{args.Name}'). See https://github.com/Tewr/BlazorWorker#setup-dependencies for common solutions to this problem.");
+            Console.WriteLine($"{typeof(SimpleInstanceService).FullName}: '{args.RequestingAssembly}' is requesting missing assembly '{args.Name}'). See https://github.com/Tewr/BlazorWorker#setup-dependencies for common solutions to this problem.");
+            //Console.Error.WriteLine($"{typeof(SimpleInstanceService).FullName}: '{args.RequestingAssembly}' is requesting missing assembly '{args.Name}'). See https://github.com/Tewr/BlazorWorker#setup-dependencies for common solutions to this problem.");
 
-            //return null;
+            return null;
             // Nobody really cares about this exception for now, it can't be caught.
-            throw new InvalidOperationException($"{typeof(SimpleInstanceService).FullName}: '{args.RequestingAssembly}' is requesting missing assembly '{args.Name}')");
+            //throw new InvalidOperationException($"{typeof(SimpleInstanceService).FullName}: '{args.RequestingAssembly}' is requesting missing assembly '{args.Name}')");
         }
     }
 }

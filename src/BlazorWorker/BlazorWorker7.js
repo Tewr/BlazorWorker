@@ -20,17 +20,20 @@ window.BlazorWorker = function () {
         const proxyLocation = { href: initConf.appRoot };
         const fetchHandler = {
             apply: function (target, thisArg, args) {
+                // replaces blob urls with appRoot urls. Mono will attempt to load dlls from self.location.href.
                 args[0] = args[0].replace(blobRoot, initConf.appRoot);
-                //console.log("BlazorWorker7::fetchHandler.apply", { target, thisArg, args });
-                let fetchReturn = target.apply(thisArg, args);
+
+                // TODO: Can this horrible hack be avoided by calling dotnet.withConfig ?
+                // https://github.com/dotnet/runtime/blob/main/src/mono/wasm/runtime/dotnet.d.ts#L75C5-L75C15
                 if (args[0].endsWith("mono-config.json")) {
-                    // Override fetch result for "mono-config.json"
                     return Promise.race([new Response(JSON.stringify(self.blazorbootMonoConfig),
                         { "status": 200, headers: { "Content-Type": "application/json" } })]);
                 }
-                return fetchReturn;
+
+                return target.apply(thisArg, args);
             }
         }
+        self.nativeFetch = fetch;
         const proxyFetch = new Proxy(fetch, fetchHandler);
         self.fetch = proxyFetch;
         const handler = {
@@ -49,76 +52,32 @@ window.BlazorWorker = function () {
         }
         self.window = new Proxy(self, handler);
         let messageHandler;
-        const envMap = initConf.envMap;
-        globalThis.ENV = globalThis.ENV || {};
-        for (const key in envMap) {
-            if (Object.prototype.hasOwnProperty.call(envMap, key)) {
-                globalThis.ENV[key] = envMap[key];
-                //MONO.mono_wasm_setenv(key, envMap[key]);
-            }
-        }
-        //let endInvokeCallBack;
+
         const onReady = () => {
-            /*endInvokeCallBack =
-                BINDING.bind_static_method(initConf.endInvokeCallBackEndpoint);*/
-            /*const messageHandler =
-                BINDING.bind_static_method(initConf.MessageEndPoint);*/
             // Future messages goes directly to the message handler
             self.onmessage = msg => {
                 messageHandler(msg.data);
             };
 
-            /*if (!initConf.InitEndPoint) {
-                return;
-            }*/
-            
-
             try {
                 self.initMethod();
-                /*let methodName = initConf.InitEndPoint;
-                debugger;
-                const initMethod = getChildFromDotNotation(`assemblyExports.${methodName}`);
-                initMethod();*/
-                //Module.mono_call_static_method(initConf.InitEndPoint, []);
             } catch (e) {
-                console.error(`Init method ${initConf.InitEndPoint} failed`, e);
+                console.error(`Init method ${JSON.stringify(initConf.initEndPoint)} failed`, e);
                 throw e;
             }
         };
 
-
-        function asyncLoad(url, reponseType) {
-            return new Promise((resolve, reject) => {
-                const xhr = new XMLHttpRequest();
-                const arrayBufferType = 'arraybuffer';
-                xhr.open('GET', url, /* async: */ true);
-                xhr.responseType = reponseType || arrayBufferType;
-                xhr.onload = function xhr_onload() {
-                    if (xhr.status == 200 || xhr.status == 0 && xhr.response) {
-                        if (this.responseType === arrayBufferType) {
-                            const asm = new Uint8Array(xhr.response);
-                            resolve(asm);
-                        } else {
-                            resolve(xhr.response);
-                        }
-                    } else {
-                        reject(xhr);
-                    }
-                };
-                xhr.onerror = reject;
-                xhr.send(undefined);
-            });
-        }
-        
         // reduce dot notation to last member of chain
         const getChildFromDotNotation = (member, root) =>
             member.split(".").reduce((m, prop) => Object.hasOwnProperty.call(m, prop) ? m[prop] : empty, root || self);
 
         //TODO: This call could/should be session cached. But will the built-in blazor fetch service worker override 
         // (PWA et al) do this already if configured ?
-        asyncLoad(`${initConf.appRoot}/${initConf.blazorBoot}`, 'json')
-            .then(async blazorboot => {
+        fetch(`${initConf.appRoot}/${initConf.blazorBoot}`)
+            .then(async response => {
 
+                const blazorboot = await response.json();
+               
                 const blazorbootMonoConfig = {
                     "mainAssemblyName": "BlazorWorker.WorkerCore.dll",
                     "assemblyRootFolder": "_framework",
@@ -132,13 +91,11 @@ window.BlazorWorker = function () {
                                 };
                             }),
                         ...[
-                            /** todo: remove ? supportFiles directory does not exist*/
                             {
                                 "virtualPath": "runtimeconfig.bin",
                                 "behavior": "vfs",
                                 "name": "supportFiles/0_runtimeconfig.bin"
                             },
-                            /** todo: remove ? supportFiles directory does not exist*/
                             {
                                 "virtualPath": "dotnet.js.symbols",
                                 "behavior": "vfs",
@@ -178,11 +135,11 @@ window.BlazorWorker = function () {
                     throw 'BlazorWorker: Unable to locate dotnetjs file in blazor boot config.';
                 }
 
-                //const { dotnet } = self.importScripts(`${initConf.appRoot}/${initConf.wasmRoot}/${dotnetjsfilename}`);
                 const { dotnet } = await import(`${initConf.appRoot}/${initConf.wasmRoot}/${dotnetjsfilename}`);
-                const { setModuleImports, getAssemblyExports, getConfig } = await dotnet
+                
+                const { setModuleImports, getAssemblyExports } = await dotnet
                     .withDiagnosticTracing(false)
-                    .withApplicationArgumentsFromQuery()
+                    .withEnvironmentVariables(initConf.envMap)
                     .create();
 
                 setModuleImports('BlazorWorker7.js', {
@@ -191,82 +148,25 @@ window.BlazorWorker = function () {
                     }
                 });
 
-                const config = getConfig();
-                const exports = await getAssemblyExports(config.mainAssemblyName);
-                // Save this info for later.
-                //self.assemblyExports = exports;
-                messageHandler = exports.BlazorWorker.WorkerCore.MessageService.OnMessage;
-                const initExports = await getAssemblyExports("BlazorWorker.WorkerBackgroundService");
-                self.initMethod = getChildFromDotNotation("BlazorWorker.WorkerBackgroundService.WorkerInstanceManager.Init", initExports)
-                //endInvokeCallBack = exports.BlazorWorker.JSInvokeService.EndInvokeCallBack;
+                const getMethodFromMethodIdentifier = async function (methodIdentifier) {
+                    const exports = await getAssemblyExports(methodIdentifier.assemblyName);
+                    const method = getChildFromDotNotation(methodIdentifier.fullMethodName, exports);
+                    if (!method || method === empty || !(method instanceof Function)) {
+                        throw new Error(`Unable to find method '${methodIdentifier.fullMethodName}' in assembly '${methodIdentifier.assemblyName}}'. Are you missing a JSExport attribute?`);
+                    }
+
+                    return method;
+                }
+
+                messageHandler = await getMethodFromMethodIdentifier(initConf.messageEndPoint);
+                self.initMethod = await getMethodFromMethodIdentifier(initConf.initEndPoint);
+ 
                 await dotnet.run();
                 onReady();
             
             }, errorInfo => console.error("error loading blazorboot", errorInfo));
 
-        /*self.jsRuntimeSerializers = new Map();
-        self.jsRuntimeSerializers.set('nativejson', {
-            serialize: o => JSON.stringify(o),
-            deserialize: s => JSON.parse(s)
-        });*/
-
         const empty = {};
-
-
-
-        // Async invocation with callback.
-        /*
-        self.beginInvokeAsync = async function (serializerId, invokeId, method, isVoid, argsString) {
-
-            let result;
-            let isError = false;
-            let serializer = self.jsRuntimeSerializers.get(serializerId);
-            if (!serializer) {
-                result = `beginInvokeAsync: Unknown serializer with id '${serializerId}'`;
-                serializer = self.jsRuntimeSerializers.get('nativejson');
-                isError = true;
-            }
-
-
-            const methodHandle = getChildFromDotNotation(method);
-
-            if (!isError && methodHandle === empty) {
-                result = `beginInvokeAsync: Method '${method}' not defined`;
-                isError = true;
-            }
-
-            if (!isError) {
-                
-                try {
-                    const argsArray = serializer.deserialize(argsString);
-                    result = await methodHandle(...argsArray);
-                }
-                catch (e) {
-                    result = `${e}\nJS Stacktrace:${(e.stack || new Error().stack)}`;
-                    isError = true;
-                }
-            }
-            
-            let resultString;
-            if (isVoid && !isError) {
-                resultString = null;
-            } else {
-                try {
-                    resultString = serializer.serialize(result);
-                } catch (e) {
-                    result = `${e}\nJS Stacktrace:${(e.stack || new Error().stack)}`;
-                    isError = true;
-                }
-            }
-            
-            try {
-                endInvokeCallBack(invokeId, isError, resultString);
-            } catch (e) {
-                
-                console.error(`BlazorWorker: beginInvokeAsync: Callback to ${initConf.endInvokeCallBackEndpoint} failed. Method: ${method}, args: ${argsString}`, e);
-                throw e;
-            }
-        };*/
 
         // Import script from a path relative to approot
         self.importLocalScripts = (...urls) => {
@@ -283,22 +183,22 @@ window.BlazorWorker = function () {
     const initWorker = function (id, callbackInstance, initOptions) {
         let appRoot = (document.getElementsByTagName('base')[0] || { href: window.location.origin }).href || "";
         if (appRoot.endsWith("/")) {
-            appRoot = appRoot.substr(0, appRoot.length - 1);
+            appRoot = appRoot.substring(0, appRoot.length - 1);
         }
 
         const initConf = {
             appRoot: appRoot,
             DependentAssemblyFilenames: initOptions.dependentAssemblyFilenames,
             deploy_prefix: initOptions.deployPrefix,
-            MessageEndPoint: initOptions.messageEndPoint,
-            InitEndPoint: initOptions.initEndPoint,
+            messageEndPoint: initOptions.messageEndPoint,
+            initEndPoint: initOptions.initEndPoint,
             endInvokeCallBackEndpoint: initOptions.endInvokeCallBackEndpoint,
             wasmRoot: initOptions.wasmRoot,
             blazorBoot: "_framework/blazor.boot.json",
             envMap: initOptions.envMap,
             debug: initOptions.debug
         };
-
+        
         // Initialize worker
         const renderedConfig = JSON.stringify(initConf);
         const renderedInlineWorker = inlineWorker.replace('$initConf$', renderedConfig);

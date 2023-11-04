@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlazorWorker.WorkerCore;
 
 namespace BlazorWorker.Core
 {
@@ -52,12 +53,12 @@ namespace BlazorWorker.Core
         /// <summary>
         /// Mono-wasm-annotated endpoint for sending messages to the worker. Experts only.
         /// </summary>
-        public string MessageEndPoint { get; set; }
+        public MethodIdentifier MessageEndPoint { get; set; }
 
         /// <summary>
         /// Mono-wasm-annotated endpoint for instanciating the worker. Experts only.
         /// </summary>
-        public string InitEndPoint { get; set; }
+        public MethodIdentifier InitEndPoint { get; set; }
 
         /// <summary>
         /// Unique blazor identifier for handling callbacks. As referenced by JSInvokableAttribute. Experts only.
@@ -205,5 +206,11 @@ namespace BlazorWorker.Core
             source.EnvMap[environmentVariableName] = value;
             return source;
         }
+    }
+
+    public class MethodIdentifier
+    {
+        public string AssemblyName { get; set; }
+        public string FullMethodName { get; set; }
     }
 }

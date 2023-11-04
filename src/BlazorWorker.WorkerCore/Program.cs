@@ -1,7 +1,7 @@
 ﻿using System;
 #if NET7_0_OR_GREATER
 
-Console.WriteLine("Hello, Dotnet Worker in Browser!");
+Console.WriteLine("BlazorWorker.WorkerCore:Started");
 
 #else
 

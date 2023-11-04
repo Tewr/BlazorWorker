@@ -11,7 +11,7 @@ namespace BlazorWorker.BackgroundServiceFactory
 {
     internal class WorkerBackgroundServiceProxy {
         private static long idSource;
-        internal static readonly string InitEndPoint;
+        internal static readonly MethodIdentifier InitEndPoint;
         //internal static readonly string EndInvokeCallBackEndpoint;
         public static long GetNextId() => ++idSource;
         static WorkerBackgroundServiceProxy()

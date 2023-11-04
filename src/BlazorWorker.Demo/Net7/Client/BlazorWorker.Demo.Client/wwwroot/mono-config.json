@@ -683,14 +683,6 @@
       "behavior": "assembly",
       "name": "BlazorWorker.WorkerCore.pdb"
     },
-		{
-	  "behavior": "assembly",
-	  "name": "BlazorWorker.WorkerBackgroundService.dll"
-	},
-	{
-	  "behavior": "assembly",
-	  "name": "BlazorWorker.BackgroundServiceFactory.dll"
-	},
     {
       "virtualPath": "runtimeconfig.bin",
       "behavior": "vfs",
@@ -717,5 +709,6 @@
     }
   ],
   "remoteSources": [],
-  "pthreadPoolSize": 0
+  "pthreadPoolSize": 0,
+  "servedFromStatic": true
 }

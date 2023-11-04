@@ -11,7 +11,7 @@ namespace BlazorWorker.Core.CoreInstanceService
     {
         private static long sourceId;
         private readonly SimpleInstanceServiceProxy simpleInstanceServiceProxy;
-        private readonly static string initEndpointID;
+        private readonly static MethodIdentifier initEndpointID;
         //private readonly static string endInvokeCallBackEndpointID;
 
         static CoreInstanceService()
@@ -77,7 +77,6 @@ namespace BlazorWorker.Core.CoreInstanceService
                     new WorkerInitOptions
                     {
                         InitEndPoint = initEndpointID,
-                        //EndInvokeCallBackEndpoint = endInvokeCallBackEndpointID
                     }.MergeWith(options)); ;
             }
             var initResult = await this.simpleInstanceServiceProxy.InitInstance(
