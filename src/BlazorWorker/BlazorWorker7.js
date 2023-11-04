@@ -20,7 +20,8 @@ window.BlazorWorker = function () {
         const proxyLocation = { href: initConf.appRoot };
         const fetchHandler = {
             apply: function (target, thisArg, args) {
-                args[0] = args[0].replace(blobRoot, initConf.appRoot)
+                args[0] = args[0].replace(blobRoot, initConf.appRoot);
+                console.log("BlazorWorker7::fetchHandler.apply", { target, thisArg, args });
                 return target.apply(thisArg, args);
             }
         }
@@ -40,13 +41,13 @@ window.BlazorWorker = function () {
             }
         }
         self.window = new Proxy(self, handler);
-        
+        let messageHandler;
         let endInvokeCallBack;
         const onReady = () => {
-            endInvokeCallBack =
-                BINDING.bind_static_method(initConf.endInvokeCallBackEndpoint);
-            const messageHandler =
-                BINDING.bind_static_method(initConf.MessageEndPoint);
+            /*endInvokeCallBack =
+                BINDING.bind_static_method(initConf.endInvokeCallBackEndpoint);*/
+            /*const messageHandler =
+                BINDING.bind_static_method(initConf.MessageEndPoint);*/
             // Future messages goes directly to the message handler
             self.onmessage = msg => {
                 messageHandler(msg.data);
@@ -57,7 +58,12 @@ window.BlazorWorker = function () {
             }
 
             try {
-                Module.mono_call_static_method(initConf.InitEndPoint, []);
+                self.initMethod();
+                /*let methodName = initConf.InitEndPoint;
+                debugger;
+                const initMethod = getChildFromDotNotation(`assemblyExports.${methodName}`);
+                initMethod();*/
+                //Module.mono_call_static_method(initConf.InitEndPoint, []);
             } catch (e) {
                 console.error(`Init method ${initConf.InitEndPoint} failed`, e);
                 throw e;
@@ -88,6 +94,9 @@ window.BlazorWorker = function () {
             });
         }
         
+        // reduce dot notation to last member of chain
+        const getChildFromDotNotation = (member, root) =>
+            member.split(".").reduce((m, prop) => Object.hasOwnProperty.call(m, prop) ? m[prop] : empty, root || self);
 
         //TODO: This call could/should be session cached. But will the built-in blazor fetch service worker override 
         // (PWA et al) do this already if configured ?
@@ -121,25 +130,30 @@ window.BlazorWorker = function () {
 
                 const config = getConfig();
                 const exports = await getAssemblyExports(config.mainAssemblyName);
-
+                // Save this info for later.
+                //self.assemblyExports = exports;
+                messageHandler = exports.BlazorWorker.WorkerCore.MessageService.OnMessage;
+                const initExports = await getAssemblyExports("BlazorWorker.WorkerBackgroundService");
+                debugger
+                self.initMethod = getChildFromDotNotation("BlazorWorker.WorkerBackgroundService.WorkerInstanceManager.Init", initExports)
+                //endInvokeCallBack = exports.BlazorWorker.JSInvokeService.EndInvokeCallBack;
                 await dotnet.run();
                 onReady();
             
             }, errorInfo => console.error("error loading blazorboot", errorInfo));
 
-        self.jsRuntimeSerializers = new Map();
+        /*self.jsRuntimeSerializers = new Map();
         self.jsRuntimeSerializers.set('nativejson', {
             serialize: o => JSON.stringify(o),
             deserialize: s => JSON.parse(s)
-        });
+        });*/
 
         const empty = {};
 
-        // reduce dot notation to last member of chain
-        const getChildFromDotNotation = member =>
-            member.split(".").reduce((m, prop) => Object.hasOwnProperty.call(m, prop) ? m[prop] : empty, self);
+
 
         // Async invocation with callback.
+        /*
         self.beginInvokeAsync = async function (serializerId, invokeId, method, isVoid, argsString) {
 
             let result;
@@ -190,7 +204,7 @@ window.BlazorWorker = function () {
                 console.error(`BlazorWorker: beginInvokeAsync: Callback to ${initConf.endInvokeCallBackEndpoint} failed. Method: ${method}, args: ${argsString}`, e);
                 throw e;
             }
-        };
+        };*/
 
         // Import script from a path relative to approot
         self.importLocalScripts = (...urls) => {

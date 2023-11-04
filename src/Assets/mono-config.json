@@ -1,5 +1,5 @@
 {
-  "mainAssemblyName": "BlazorWorker.WorkerCore.dll",
+  "mainAssemblyName": "BlazorWorker.Demo.Client.dll",
   "assemblyRootFolder": "_framework",
   "debugLevel": -1,
   "assets": [
@@ -677,19 +677,15 @@
     },
     {
       "behavior": "assembly",
-      "name": "BlazorWorker.WorkerCore.dll"
+      "name": "BlazorWorker.Demo.Client.dll"
     },
     {
       "behavior": "assembly",
-      "name": "BlazorWorker.WorkerCore.pdb"
+      "name": "BlazorWorker.Demo.Client.pdb"
     },
-		{
-	  "behavior": "assembly",
-	  "name": "BlazorWorker.WorkerBackgroundService.dll"
-	},
 	{
 	  "behavior": "assembly",
-	  "name": "BlazorWorker.BackgroundServiceFactory.dll"
+	  "name": "BlazorWorker.WorkerBackgroundService.dll"
 	},
     {
       "virtualPath": "runtimeconfig.bin",

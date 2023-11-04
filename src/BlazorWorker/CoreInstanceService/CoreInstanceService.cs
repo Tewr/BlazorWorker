@@ -12,16 +12,17 @@ namespace BlazorWorker.Core.CoreInstanceService
         private static long sourceId;
         private readonly SimpleInstanceServiceProxy simpleInstanceServiceProxy;
         private readonly static string initEndpointID;
-        private readonly static string endInvokeCallBackEndpointID;
+        //private readonly static string endInvokeCallBackEndpointID;
 
         static CoreInstanceService()
         {
             initEndpointID = 
                 MonoTypeHelper.GetStaticMethodId<WorkerSimpleInstanceService>(nameof(WorkerSimpleInstanceService.Init));
-            endInvokeCallBackEndpointID = 
+            /*endInvokeCallBackEndpointID = 
                 MonoTypeHelper.GetStaticMethodId<JSInvokeService>(nameof(JSInvokeService.EndInvokeCallBack));
+            */
 #if DEBUG
-            Console.WriteLine($"{nameof(CoreInstanceService)}(): {initEndpointID}, {endInvokeCallBackEndpointID}");
+            Console.WriteLine($"{nameof(CoreInstanceService)}(): {initEndpointID}");//, {endInvokeCallBackEndpointID}");
 #endif
         }
 
@@ -76,7 +77,7 @@ namespace BlazorWorker.Core.CoreInstanceService
                     new WorkerInitOptions
                     {
                         InitEndPoint = initEndpointID,
-                        EndInvokeCallBackEndpoint = endInvokeCallBackEndpointID
+                        //EndInvokeCallBackEndpoint = endInvokeCallBackEndpointID
                     }.MergeWith(options)); ;
             }
             var initResult = await this.simpleInstanceServiceProxy.InitInstance(

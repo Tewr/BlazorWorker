@@ -10,12 +10,6 @@
             </summary>
             <param name="relativeUrls"></param>
         </member>
-        <member name="M:BlazorWorker.WorkerCore.JSInvokeService.IsObjectDefined(System.String)">
-            <summary>
-            Returns <c>true</c> if the specified <paramref name="objectPath"/> is defined on the global scope
-            </summary>
-            <param name="objectPath"></param>
-        </member>
         <member name="T:BlazorWorker.WorkerCore.MessageService">
             <summary>
             Simple static message service that runs in the worker thread.
