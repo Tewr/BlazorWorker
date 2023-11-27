@@ -22,10 +22,15 @@ window.BlazorWorker = function () {
             apply: function (target, thisArg, args) {
                 // replaces blob urls with appRoot urls. Mono will attempt to load dlls from self.location.href.
                 args[0] = args[0].replace(blobRoot, initConf.appRoot);
-
                 // TODO: Can this horrible hack be avoided by calling dotnet.withConfig ?
                 // https://github.com/dotnet/runtime/blob/main/src/mono/wasm/runtime/dotnet.d.ts#L75C5-L75C15
+                if (self.modifiedBlazorbootConfig && args[0].endsWith(initConf.blazorBoot)) {
+                    
+                    return Promise.race([new Response(JSON.stringify(self.modifiedBlazorbootConfig),
+                        { "status": 200, headers: { "Content-Type": "application/json" } })]);
+                }
                 if (args[0].endsWith("mono-config.json")) {
+                    debugger;
                     return Promise.race([new Response(JSON.stringify(self.blazorbootMonoConfig),
                         { "status": 200, headers: { "Content-Type": "application/json" } })]);
                 }
@@ -75,9 +80,12 @@ window.BlazorWorker = function () {
         // (PWA et al) do this already if configured ?
         fetch(`${initConf.appRoot}/${initConf.blazorBoot}`)
             .then(async response => {
-
                 const blazorboot = await response.json();
-               
+                /* START NET 8 */
+                self.modifiedBlazorbootConfig = blazorboot;
+                self.modifiedBlazorbootConfig.mainAssemblyName = "BlazorWorker.WorkerCore";
+                /* END NET 8 */
+
                 const blazorbootMonoConfig = {
                     "mainAssemblyName": "BlazorWorker.WorkerCore.dll",
                     "assemblyRootFolder": "_framework",
@@ -124,7 +132,7 @@ window.BlazorWorker = function () {
                 self.blazorbootMonoConfig = blazorbootMonoConfig;
 
                 let dotnetjsfilename = '';
-                const runttimeSection = blazorboot.resources.runtime;
+                /*const runttimeSection = blazorboot.resources.runtime;
                 for (var p in runttimeSection) {
                     if (Object.prototype.hasOwnProperty.call(runttimeSection, p) && p.startsWith('dotnet.') && p.endsWith('.js')) {
                         dotnetjsfilename = p;
@@ -133,7 +141,9 @@ window.BlazorWorker = function () {
 
                 if (dotnetjsfilename === '') {
                     throw 'BlazorWorker: Unable to locate dotnetjs file in blazor boot config.';
-                }
+                }*/
+
+                dotnetjsfilename = "dotnet.js";
 
                 const { dotnet } = await import(`${initConf.appRoot}/${initConf.wasmRoot}/${dotnetjsfilename}`);
                 

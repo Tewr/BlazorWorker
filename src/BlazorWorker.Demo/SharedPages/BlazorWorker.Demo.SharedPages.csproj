@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
-    <TargetFrameworks>net7.0</TargetFrameworks>
+    <TargetFrameworks>net8.0</TargetFrameworks>
     <LangVersion>Latest</LangVersion>
   </PropertyGroup>
   
   <ItemGroup>   
 
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -15,28 +15,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\BlazorWorker.Demo.IoCExample\BlazorWorker.Demo.IoCExample.csproj" />
-    <ProjectReference Include="..\..\BlazorWorker.WorkerCore\BlazorWorker.WorkerCore.csproj" />
-    <ProjectReference Include="..\Shared\BlazorWorker.Demo.Shared.csproj" />
-  </ItemGroup>
-  
-  <ItemGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <PackageReference Include="Tewr.BlazorWorker.BackgroundService" Version="3.0.0" />
-  </ItemGroup>
-  
-  <ItemGroup Condition="'$(Configuration)|$(Platform)'!='Release|AnyCPU'">
     <ProjectReference Include="..\..\BlazorWorker.ServiceFactory\BlazorWorker.BackgroundServiceFactory.csproj" />
     <ProjectReference Include="..\..\BlazorWorker.WorkerBackgroundService\BlazorWorker.WorkerBackgroundService.csproj" />
     <ProjectReference Include="..\..\BlazorWorker.WorkerCore\BlazorWorker.WorkerCore.csproj" />
-    <ProjectReference Include="..\..\BlazorWorker\BlazorWorker.Core.csproj" />
+    <ProjectReference Include="..\Shared\BlazorWorker.Demo.Shared.csproj" />
   </ItemGroup>
-
-  <PropertyGroup Condition="'$(TargetFramework)'=='net5.0'">
-    <DefineConstants>$(DefineConstants);NET5</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.1'">
-    <DefineConstants>$(DefineConstants);NETSTANDARD21</DefineConstants>
-  </PropertyGroup>
-
+ 
+ 
+ 
 </Project>
