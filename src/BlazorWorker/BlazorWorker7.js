@@ -146,8 +146,8 @@ window.BlazorWorker = function () {
                 dotnetjsfilename = "dotnet.js";
 
                 const { dotnet } = await import(`${initConf.appRoot}/${initConf.wasmRoot}/${dotnetjsfilename}`);
-                
                 const { setModuleImports, getAssemblyExports } = await dotnet
+                    .withConfig({ err: (e) => { console.error(e || "(null)") } })
                     .withDiagnosticTracing(false)
                     .withEnvironmentVariables(initConf.envMap)
                     .create();
@@ -171,7 +171,6 @@ window.BlazorWorker = function () {
                 messageHandler = await getMethodFromMethodIdentifier(initConf.messageEndPoint);
                 self.initMethod = await getMethodFromMethodIdentifier(initConf.initEndPoint);
  
-                await dotnet.run();
                 onReady();
             
             }, errorInfo => console.error("error loading blazorboot", errorInfo));
