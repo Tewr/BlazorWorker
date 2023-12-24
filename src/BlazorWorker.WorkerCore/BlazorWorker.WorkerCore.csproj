@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0</TargetFrameworks>
+    <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
     <Configurations>Debug;Release;Nuget</Configurations>
-    <Version>4.0.0-preview1</Version>
+    <Version>4.0.0-preview2</Version>
     <Authors>Tor Knutsson (Tewr)</Authors>
     <Company>Tor Knutsson (Tewr)</Company>
     <Product>BlazorWorker</Product>

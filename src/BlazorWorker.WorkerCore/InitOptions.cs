@@ -27,7 +27,7 @@ namespace BlazorWorker.Core
 #if DEBUG
             Debug = true;
 #endif
-            RuntimePreprocessorSymbols = [];
+            RuntimePreprocessorSymbols = new();
 #if NET7_0
             RuntimePreprocessorSymbols.Add("NET7_0", true);
 #endif

@@ -33,7 +33,6 @@ window.BlazorWorker = function () {
                 if (args[0].endsWith("mono-config.json")) {
                     // TODO: Can this horrible hack be avoided by calling dotnet.withConfig ?
                     // https://github.com/dotnet/runtime/blob/main/src/mono/wasm/runtime/dotnet.d.ts#L75C5-L75C15
-                    debugger;
                     return Promise.race([new Response(JSON.stringify(self.blazorbootMonoConfig),
                         { "status": 200, headers: { "Content-Type": "application/json" } })]);
                 }

@@ -1,14 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0</TargetFrameworks>
+    <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
     <LangVersion>Latest</LangVersion>
   </PropertyGroup>
-  
-  <ItemGroup>   
 
+  <ItemGroup Condition="'$(TargetFramework)'=='net7.0'">   
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)'=='net8.0'">
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.0" />
   </ItemGroup>
+
 
   <ItemGroup>
     <PackageReference Include="TG.Blazor.IndexedDB" Version="1.5.0-preview" />
