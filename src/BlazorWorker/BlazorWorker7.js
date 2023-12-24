@@ -22,14 +22,17 @@ window.BlazorWorker = function () {
             apply: function (target, thisArg, args) {
                 // replaces blob urls with appRoot urls. Mono will attempt to load dlls from self.location.href.
                 args[0] = args[0].replace(blobRoot, initConf.appRoot);
-                // TODO: Can this horrible hack be avoided by calling dotnet.withConfig ?
-                // https://github.com/dotnet/runtime/blob/main/src/mono/wasm/runtime/dotnet.d.ts#L75C5-L75C15
-                if (self.modifiedBlazorbootConfig && args[0].endsWith(initConf.blazorBoot)) {
-                    
-                    return Promise.race([new Response(JSON.stringify(self.modifiedBlazorbootConfig),
-                        { "status": 200, headers: { "Content-Type": "application/json" } })]);
+                
+                if (initConf.runtimePreprocessorSymbols.NET8_0_OR_GREATER) {
+                    if (self.modifiedBlazorbootConfig && args[0].endsWith(initConf.blazorBoot)) {
+
+                        return Promise.race([new Response(JSON.stringify(self.modifiedBlazorbootConfig),
+                            { "status": 200, headers: { "Content-Type": "application/json" } })]);
+                    }
                 }
                 if (args[0].endsWith("mono-config.json")) {
+                    // TODO: Can this horrible hack be avoided by calling dotnet.withConfig ?
+                    // https://github.com/dotnet/runtime/blob/main/src/mono/wasm/runtime/dotnet.d.ts#L75C5-L75C15
                     debugger;
                     return Promise.race([new Response(JSON.stringify(self.blazorbootMonoConfig),
                         { "status": 200, headers: { "Content-Type": "application/json" } })]);
@@ -81,73 +84,91 @@ window.BlazorWorker = function () {
         fetch(`${initConf.appRoot}/${initConf.blazorBoot}`)
             .then(async response => {
                 const blazorboot = await response.json();
-                /* START NET 8 */
-                self.modifiedBlazorbootConfig = blazorboot;
-                self.modifiedBlazorbootConfig.mainAssemblyName = "BlazorWorker.WorkerCore";
-                /* END NET 8 */
+                /* START NET8_0_OR_GREATER */
+                if (initConf.runtimePreprocessorSymbols.NET8_0_OR_GREATER) {
+                    self.modifiedBlazorbootConfig = blazorboot;
+                    self.modifiedBlazorbootConfig.mainAssemblyName = "BlazorWorker.WorkerCore";
+                }
+                /* END NET8_0_OR_GREATER */
+                /* START NET7_0 */
+                if (initConf.runtimePreprocessorSymbols.NET7_0) {
+                    const blazorbootMonoConfig = {
+                        "mainAssemblyName": "BlazorWorker.WorkerCore.dll",
+                        "assemblyRootFolder": "_framework",
+                        "debugLevel": initConf.DebugLevel || -1,
+                        "assets":
+                            [...Object.keys(blazorboot.resources.assembly)
+                                .concat(Object.keys(blazorboot.resources.pdb || {}) || []).map(dllName => {
+                                    return {
+                                        "behavior": "assembly",
+                                        "name": dllName
+                                    };
+                                }),
+                            ...[
+                                {
+                                    "virtualPath": "runtimeconfig.bin",
+                                    "behavior": "vfs",
+                                    "name": "supportFiles/0_runtimeconfig.bin"
+                                },
+                                {
+                                    "virtualPath": "dotnet.js.symbols",
+                                    "behavior": "vfs",
+                                    "name": "supportFiles/1_dotnet.js.symbols"
+                                },
+                                {
+                                    "loadRemote": false,
+                                    "behavior": "icu",
+                                    "name": "icudt.dat"
+                                },
+                                {
+                                    "virtualPath": "/usr/share/zoneinfo/",
+                                    "behavior": "vfs",
+                                    "name": "dotnet.timezones.blat"
+                                },
+                                {
+                                    "behavior": "dotnetwasm",
+                                    "name": "_framework/dotnet.wasm"
+                                }
+                                ]],
+                        "remoteSources": [],
+                        "pthreadPoolSize": 0,
+                        "generatedFromBlazorBoot":true
+                    };
 
-                const blazorbootMonoConfig = {
-                    "mainAssemblyName": "BlazorWorker.WorkerCore.dll",
-                    "assemblyRootFolder": "_framework",
-                    "debugLevel": initConf.DebugLevel || -1,
-                    "assets":
-                        [...Object.keys(blazorboot.resources.assembly)
-                            .concat(Object.keys(blazorboot.resources.pdb || {}) || []).map(dllName => {
-                                return {
-                                    "behavior": "assembly",
-                                    "name": dllName
-                                };
-                            }),
-                        ...[
-                            {
-                                "virtualPath": "runtimeconfig.bin",
-                                "behavior": "vfs",
-                                "name": "supportFiles/0_runtimeconfig.bin"
-                            },
-                            {
-                                "virtualPath": "dotnet.js.symbols",
-                                "behavior": "vfs",
-                                "name": "supportFiles/1_dotnet.js.symbols"
-                            },
-                            {
-                                "loadRemote": false,
-                                "behavior": "icu",
-                                "name": "icudt.dat"
-                            },
-                            {
-                                "virtualPath": "/usr/share/zoneinfo/",
-                                "behavior": "vfs",
-                                "name": "dotnet.timezones.blat"
-                            },
-                            {
-                                "behavior": "dotnetwasm",
-                                "name": "_framework/dotnet.wasm"
-                            }
-                            ]],
-                    "remoteSources": [],
-                    "pthreadPoolSize": 0,
-                    "generatedFromBlazorBoot":true
-                };
-
-                self.blazorbootMonoConfig = blazorbootMonoConfig;
+                    self.blazorbootMonoConfig = blazorbootMonoConfig;
+                }
+                /* END NET7_0 */
 
                 let dotnetjsfilename = '';
-                /*const runttimeSection = blazorboot.resources.runtime;
-                for (var p in runttimeSection) {
-                    if (Object.prototype.hasOwnProperty.call(runttimeSection, p) && p.startsWith('dotnet.') && p.endsWith('.js')) {
-                        dotnetjsfilename = p;
+                /* START NET7_0 */
+                if (initConf.runtimePreprocessorSymbols.NET7_0) {
+                    const runttimeSection = blazorboot.resources.runtime;
+                    for (var p in runttimeSection) {
+                        if (Object.prototype.hasOwnProperty.call(runttimeSection, p) && p.startsWith('dotnet.') && p.endsWith('.js')) {
+                            dotnetjsfilename = p;
+                        }
+                    }
+    
+                    if (dotnetjsfilename === '') {
+                        throw 'BlazorWorker: Unable to locate dotnetjs file in blazor boot config.';
                     }
                 }
-
-                if (dotnetjsfilename === '') {
-                    throw 'BlazorWorker: Unable to locate dotnetjs file in blazor boot config.';
-                }*/
-
-                dotnetjsfilename = "dotnet.js";
-
+                /* END NET7_0 */
+                /* START NET8_0_OR_GREATER */
+                if (initConf.runtimePreprocessorSymbols.NET8_0_OR_GREATER) {
+                    dotnetjsfilename = "dotnet.js";
+                }
+                /* END NET8_0_OR_GREATER */
                 const { dotnet } = await import(`${initConf.appRoot}/${initConf.wasmRoot}/${dotnetjsfilename}`);
+
                 const { setModuleImports, getAssemblyExports } = await dotnet
-                    .withConfig({ err: (e) => { console.error(e || "(null)") } })
+                    .withConfig({
+                        // https://github.com/dotnet/runtime/blob/955604c6620d0eaf9a10b4591449e377a6faa7d3/src/mono/browser/runtime/dotnet.d.ts#L20
+                        // as well as
+                        // https://github.com/dotnet/runtime/blob/955604c6620d0eaf9a10b4591449e377a6faa7d3/src/mono/browser/runtime/dotnet.d.ts#L97
+                        err: (e) => { console.error(`WORKER ${initConf.workerId}: ${(e || "(null)")}`) },
+                        out: (o) => { console.info(`WORKER ${initConf.workerId}: ${(o || "(null)")}`) }
+                    })
                     .withDiagnosticTracing(false)
                     .withEnvironmentVariables(initConf.envMap)
                     .create();
@@ -194,11 +215,13 @@ window.BlazorWorker = function () {
         if (appRoot.endsWith("/")) {
             appRoot = appRoot.substring(0, appRoot.length - 1);
         }
-
+        
         const initConf = {
             appRoot: appRoot,
-            DependentAssemblyFilenames: initOptions.dependentAssemblyFilenames,
-            deploy_prefix: initOptions.deployPrefix,
+            workerId:id,
+            //DependentAssemblyFilenames: initOptions.dependentAssemblyFilenames,
+            runtimePreprocessorSymbols: initOptions.runtimePreprocessorSymbols || {},
+            //deploy_prefix: initOptions.deployPrefix,
             messageEndPoint: initOptions.messageEndPoint,
             initEndPoint: initOptions.initEndPoint,
             endInvokeCallBackEndpoint: initOptions.endInvokeCallBackEndpoint,

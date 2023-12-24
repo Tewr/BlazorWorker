@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BlazorWorker.WorkerCore;
 
 namespace BlazorWorker.Core
 {
@@ -28,6 +27,20 @@ namespace BlazorWorker.Core
 #if DEBUG
             Debug = true;
 #endif
+            RuntimePreprocessorSymbols = [];
+#if NET7_0
+            RuntimePreprocessorSymbols.Add("NET7_0", true);
+#endif
+#if NET7_0_OR_GREATER
+            RuntimePreprocessorSymbols.Add("NET7_0_OR_GREATER", true);
+#endif
+#if NET8_0
+            RuntimePreprocessorSymbols.Add("NET8_0", true);
+#endif
+#if NET8_0_OR_GREATER
+            RuntimePreprocessorSymbols.Add("NET8_0_OR_GREATER", true);
+#endif
+
         }
 
         /// <summary>
@@ -48,6 +61,7 @@ namespace BlazorWorker.Core
         /// <summary>
         /// Specifies a list of assembly files names (dlls) that should be loaded when initializing the worker.
         /// </summary>
+        [Obsolete("Manual dependency optimization is silently ignored in this version of BlazorWorker.")]
         public string[] DependentAssemblyFilenames { get; set; }
 
         /// <summary>
@@ -76,6 +90,11 @@ namespace BlazorWorker.Core
         public string EndInvokeCallBackEndpoint { get; set; }
 
         /// <summary>
+        /// https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/preprocessor-directives
+        /// </summary>
+        public Dictionary<string, bool> RuntimePreprocessorSymbols { get; set; }
+
+        /// <summary>
         /// Sets environment variables in the target worker. 
         /// </summary>
         /// <remarks>
@@ -100,10 +119,10 @@ namespace BlazorWorker.Core
             return new WorkerInitOptions
             {
                 CallbackMethod = initOptions.CallbackMethod ?? this.CallbackMethod,
-                DependentAssemblyFilenames = this.DependentAssemblyFilenames
+                /*DependentAssemblyFilenames = this.DependentAssemblyFilenames
                     .Concat(initOptions.DependentAssemblyFilenames)
                     .Distinct()
-                    .ToArray(),
+                    .ToArray(),*/
                 UseConventionalServiceAssembly = initOptions.UseConventionalServiceAssembly,
                 MessageEndPoint = initOptions.MessageEndPoint ?? this.MessageEndPoint,
                 InitEndPoint = initOptions.InitEndPoint ?? this.InitEndPoint,
@@ -125,6 +144,7 @@ namespace BlazorWorker.Core
         /// <param name="source"></param>
         /// <param name="dependentAssemblyFilenames"></param>
         /// <returns></returns>
+        [Obsolete("Manual dependency optimization is silently ignored in this version of BlazorWorker.")]
         public static WorkerInitOptions AddAssemblies(this WorkerInitOptions source, params string[] dependentAssemblyFilenames)
         {
             source.DependentAssemblyFilenames =
@@ -137,6 +157,7 @@ namespace BlazorWorker.Core
         /// </summary>
         /// <param name="source"></param>
         /// <returns></returns>
+        [Obsolete("Manual dependency optimization is silently ignored in this version of BlazorWorker.")]
         public static WorkerInitOptions AddConventionalAssemblyOfService(this WorkerInitOptions source)
         {
             source.UseConventionalServiceAssembly = true;
@@ -148,6 +169,7 @@ namespace BlazorWorker.Core
         /// </summary>
         /// <param name="source"></param>
         /// <returns></returns>
+        [Obsolete("Manual dependency optimization is silently ignored in this version of BlazorWorker.")]
         public static WorkerInitOptions AddAssemblyOf<T>(this WorkerInitOptions source)
         {
             return source.AddAssemblyOfType(typeof(T));
@@ -159,6 +181,7 @@ namespace BlazorWorker.Core
         /// <param name="source"></param>
         /// <param name="type"></param>
         /// <returns></returns>
+        [Obsolete("Manual dependency optimization is silently ignored in this version of BlazorWorker.")]
         public static WorkerInitOptions AddAssemblyOfType(this WorkerInitOptions source, Type type)
         {
             source.AddAssemblies($"{type.Assembly.GetName().Name}.dll");
@@ -171,6 +194,7 @@ namespace BlazorWorker.Core
         /// <param name="source"></param>
         /// <returns></returns>
         /// <remarks>When this method has been called, <see cref="System.Net.Http.HttpClient"/> can be used inside the service either by instanciating it or by injection into the constructor.</remarks>
+        [Obsolete("Manual dependency optimization is silently ignored in this version of BlazorWorker.")]
         public static WorkerInitOptions AddHttpClient(this WorkerInitOptions source)
         {
 #if NETSTANDARD21

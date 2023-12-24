@@ -51,6 +51,7 @@ namespace BlazorWorker.Core
                 this.Identifier, 
                 thisReference,
                 new WorkerInitOptions {
+
                     DependentAssemblyFilenames = 
                        WorkerProxyDependencies.DependentAssemblyFilenames,
                     CallbackMethod = nameof(OnMessage),
