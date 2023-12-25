@@ -23,12 +23,11 @@ The library comes in two flavours, one built on top of the other:
 - BlazorWorker.BackgroundService: A high-level API that hides the complexity of messaging
 - BlazorWorker.Core: A low-level API to communicate with a new .NET process in a web worker
 
-### Net 7 Support
-Due to the high number of breaking changes in Net7, a complete rewrite of the bootstrapper was neccessary. Net 7 support is currently in preview, and tracked in [this issue](https://github.com/Tewr/BlazorWorker/issues/85). As it stands, support for .net6 and previous framework versions will be dropped as of version 4.
+### Net 5 & 6 Support
+.netstandard2, .net5 and .net6 can be used as targets with BlazorWorker version v3.x, but new features will not be developed for these targets dues to the breaking changes in .net7.
 
-### Net 8 Support
-Net8 Support is not yet available. Tracked in [this issue](https://github.com/Tewr/BlazorWorker/issues/90)
-
+### Net 7 & 8 Support
+.net7 & .net8 targets is currently in preview and can be tested using the [preview release v4.0.0-preview2](https://github.com/Tewr/BlazorWorker/releases/tag/v4.0.0-preview2) - available on nuget [here](https://www.nuget.org/packages/Tewr.BlazorWorker.BackgroundService/4.0.0-preview2) and [here](https://www.nuget.org/packages/Tewr.BlazorWorker.Core/4.0.0-preview2).
 
 ### Native framework multithreading
 Multi-threading enthusiasts should closely monitor [this tracking issue](https://github.com/dotnet/runtime/issues/68162) in the dotnet runtime repo, which promises experimental threading support in ~~.net 7 (projected for november 2022)~~ ~~.net8, projected for November 2023.~~ .net9, projected for November 2024.
