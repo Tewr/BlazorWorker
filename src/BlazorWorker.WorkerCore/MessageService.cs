@@ -24,7 +24,7 @@ namespace BlazorWorker.WorkerCore
 #endif
         }
 
-        [JSImport("PostMessage", "BlazorWorker7.js")]
+        [JSImport("PostMessage", "BlazorWorker.js")]
         public static partial void PostMessage(string message);
     }
 }

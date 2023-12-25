@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net7.0</TargetFrameworks>
+    <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
     <PackageId>Tewr.BlazorWorker.BackgroundService</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>Use dotnet Web Workers Threads in Blazor</Description>
@@ -11,7 +11,7 @@
     <Authors>Tewr</Authors>
     <Product>BlazorWorker</Product>
     <Configurations>Debug;Release;Nuget</Configurations>
-    <Version>4.0.0-preview1</Version>
+    <Version>4.0.0-preview2</Version>
     <PackageIcon>icon.png</PackageIcon>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
@@ -20,12 +20,16 @@
     <None Include="icon.png" Pack="true" Visible="false" PackagePath="" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.JSInterop" Version="7.0.2" />
+  <ItemGroup Condition="'$(TargetFramework)'=='net7.0'">
+    <PackageReference Include="Microsoft.JSInterop" Version="7.0.0" />
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework)'=='net8.0'">
+    <PackageReference Include="Microsoft.JSInterop" Version="8.0.0" />
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Serialize.Linq" Version="2.0.0" />
   </ItemGroup>
 

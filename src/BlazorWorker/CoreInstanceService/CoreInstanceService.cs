@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using BlazorWorker.Core.SimpleInstanceService;
-using BlazorWorker.WorkerCore;
 using BlazorWorker.WorkerCore.SimpleInstanceService;
 
 namespace BlazorWorker.Core.CoreInstanceService

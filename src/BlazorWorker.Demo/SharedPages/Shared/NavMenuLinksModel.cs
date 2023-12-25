@@ -14,10 +14,6 @@ namespace BlazorWorker.Demo.SharedPages.Shared
         static string BlazorCoreWorkerVersion { get; } =
           $"v{typeof(BlazorWorker.WorkerCore.IWorkerMessageService).Assembly.GetName().Version}";
 
-        static string BlazorWorkerJSRuntimeVersion { get; } =
-          $"v{typeof(BlazorWorker.Extensions.JSRuntime.BlazorWorkerJSRuntime).Assembly.GetName().Version}";
-
-
         public static IEnumerable<NavMenuLinkInfo> NavMenuLinks { get; } = new List<NavMenuLinkInfo>()
         {
             {
@@ -46,9 +42,6 @@ namespace BlazorWorker.Demo.SharedPages.Shared
             },
             {
                 new() { Icon = "info", Href="https://www.nuget.org/packages/Tewr.BlazorWorker.Core", Small=true, Text = $"Core {BlazorCoreWorkerVersion}" }
-            },
-            {
-                new() { Icon = "info", Href="https://www.nuget.org/packages/Tewr.BlazorWorker.Extensions.JSRuntime", Small=true, Text = $"JSRuntime {BlazorWorkerJSRuntimeVersion}" }
             }
         };
     }
