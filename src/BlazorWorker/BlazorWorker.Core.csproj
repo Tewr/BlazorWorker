@@ -11,7 +11,7 @@
     <PackageTags>WebWorker Worker Process Threading Multithreading Blazor Isolation</PackageTags>
     <PackageId>Tewr.BlazorWorker.Core</PackageId>
     <Configurations>Debug;Release;Nuget</Configurations>
-    <Version>4.0.0-preview1</Version>
+    <Version>4.0.0-preview2</Version>
     <AssemblyVersion>4.0.0.0</AssemblyVersion>
     <DocumentationFile>BlazorWorker.Core.xml</DocumentationFile>
     <PackageIcon>icon.png</PackageIcon>
@@ -23,7 +23,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <EmbeddedResource Include="BlazorWorker7.js" />
+    <EmbeddedResource Include="BlazorWorker.js" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='net7.0'">
