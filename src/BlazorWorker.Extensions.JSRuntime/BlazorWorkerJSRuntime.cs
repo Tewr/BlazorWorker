@@ -66,9 +66,7 @@ namespace BlazorWorker.Extensions.JSRuntime
             }
             cancellationToken.ThrowIfCancellationRequested();
 
-            //Console.WriteLine($"{nameof(BlazorWorkerJSRuntime)}.{nameof(InvokeAsync)}({identifier}): deserializing result: {resultObj?.ToString()} ");
             var result = Deserialize<TValue>(resultObj);
-            //Console.WriteLine($"{nameof(BlazorWorkerJSRuntime)}.{nameof(InvokeAsync)}({identifier}): returning deserialized result of type {(result?.GetType().ToString() ?? "(null)")}: {result?.ToString()} ");
             return result;
         }
 

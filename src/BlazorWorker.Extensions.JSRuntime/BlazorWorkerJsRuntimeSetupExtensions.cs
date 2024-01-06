@@ -12,14 +12,5 @@ namespace BlazorWorker.Extensions.JSRuntime
             source.AddSingleton<IBlazorWorkerJSRuntimeSerializer, DefaultBlazorWorkerJSRuntimeSerializer>();
             return source;
         }
-
-        public static WorkerInitOptions AddBlazorWorkerJsRuntime(this WorkerInitOptions source)
-        {
-            source.AddAssemblyOf<Microsoft.JSInterop.IJSRuntime>()
-                  .AddAssemblyOf<BlazorWorker.Extensions.JSRuntime.BlazorWorkerJSRuntime>()
-                  .AddAssemblyOf<System.Text.Json.JsonElement>()
-                  .AddAssemblyOf<System.Text.Encodings.Web.TextEncoderSettings>();
-            return source;
-        }
     }
 }

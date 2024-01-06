@@ -54,7 +54,7 @@ namespace BlazorWorker.Extensions.JSRuntime
             static TrackerJsRuntime()
             {
                 var targetType = typeof(Microsoft.JSInterop.JSRuntime);
-                var name = nameof(DotNetObjectReferenceTracker.GetObjectReference);
+                var name = nameof(GetObjectReference);
                 var firstArgType = typeof(long);
                 var methodInfo = targetType.GetRuntimeMethods().FirstOrDefault(methodInfo =>
                     !methodInfo.IsPublic &&
