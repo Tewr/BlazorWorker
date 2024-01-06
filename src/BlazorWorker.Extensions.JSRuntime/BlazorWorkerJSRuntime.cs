@@ -2,12 +2,13 @@
 using Microsoft.JSInterop;
 using System;
 using System.Linq;
+using System.Runtime.InteropServices.JavaScript;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace BlazorWorker.Extensions.JSRuntime
 {
-    public class BlazorWorkerJSRuntime : IJSRuntime, IJSInProcessRuntime
+    public partial class BlazorWorkerJSRuntime : IJSRuntime, IJSInProcessRuntime
     {
         private static bool isJsInitialized;
 
@@ -20,7 +21,9 @@ namespace BlazorWorker.Extensions.JSRuntime
 
         public T Invoke<T>(string identifier, params object[] args)
         {
-            return JSInvokeService.Invoke<T>(identifier, args);
+            var resultString  = JSInvokeService.WorkerInvoke<T>(identifier, Serialize(args));
+
+            return this.Serializer.Deserialize<T>(resultString);
         }
 
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object[] args)
@@ -49,36 +52,36 @@ namespace BlazorWorker.Extensions.JSRuntime
             object[] args)
         {
             var serializedArgs = Serialize(args);
-            object resultObj;
+            string resultObj;
             
             try
             {
-                EnsureInitialized();
-
-                resultObj = await JSInvokeService.InvokeAsync(identifier,
-                    cancellationToken, serializedArgs, "BlazorWorkerJSRuntimeSerializer");
+                await EnsureInitialized();
+                
+                resultObj = await JSInvokeService.WorkerInvokeAsync<TValue>(identifier, serializedArgs);
             }
             catch (System.AggregateException e) when (e.InnerException is JSInvokeException)
             {
                 throw e.InnerException;
             }
-
+            cancellationToken.ThrowIfCancellationRequested();
 
             //Console.WriteLine($"{nameof(BlazorWorkerJSRuntime)}.{nameof(InvokeAsync)}({identifier}): deserializing result: {resultObj?.ToString()} ");
-            var result = Deserialize<TValue>(resultObj as string);
+            var result = Deserialize<TValue>(resultObj);
             //Console.WriteLine($"{nameof(BlazorWorkerJSRuntime)}.{nameof(InvokeAsync)}({identifier}): returning deserialized result of type {(result?.GetType().ToString() ?? "(null)")}: {result?.ToString()} ");
             return result;
         }
 
-        private static void EnsureInitialized()
+        private static async Task EnsureInitialized()
         {
             if (!isJsInitialized && !JSInvokeService.IsObjectDefined("BlazorWorkerJSRuntimeSerializer"))
             {
-                JSInvokeService.ImportLocalScripts("_content/Tewr.BlazorWorker.Extensions.JSRuntime/BlazorWorkerJSRuntime.js");
+                await JSInvokeService.ImportLocalScripts("_content/Tewr.BlazorWorker.Extensions.JSRuntime/BlazorWorkerJSRuntime.js");
                 isJsInitialized = true;
             }
         }
 
+        [JSExport]
         public static string InvokeMethod(string objectInstanceId, string argsString)
         {
 #if DEBUG

@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>BlazorWorker.Extensions.JSRuntime</name>
+    </assembly>
+    <members>
+        <member name="M:BlazorWorker.Extensions.JSRuntime.JSInvokeService.ImportLocalScripts(System.String[])">
+            <summary>
+            Imports locally hosted module scripts
+            </summary>
+            <param name="relativeUrls"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BlazorWorker.Extensions.JSRuntime.JSInvokeService.WorkerInvoke``1(System.String,System.String)">
+            <summary>
+            Invokes a method defined on the worker globalThis / self object
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="method"></param>
+            <param name="args">JSON serialized parameters</param>
+            <returns></returns>
+        </member>
+        <member name="M:BlazorWorker.Extensions.JSRuntime.JSInvokeService.WorkerInvokeAsync``1(System.String,System.String)">
+            <summary>
+            Asynchronically Invokes a method defined on the worker globalThis / self object
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="method"></param>
+            <param name="args">JSON serialized parameters</param>
+            <returns></returns>
+        </member>
+        <member name="M:BlazorWorker.Extensions.JSRuntime.JSInvokeService.PrivateImportLocalScripts(System.String[])">
+            <summary>
+            Prepending the specified <paramref name="relativeUrls"/> with the base path of the application, invokes the importScripts() method of the WorkerGlobalScope interface, which synchronously imports one or more scripts into the worker's scope.
+            </summary>
+            <param name="relativeUrls"></param>
+        </member>
+    </members>
+</doc>

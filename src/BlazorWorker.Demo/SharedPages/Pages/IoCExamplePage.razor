@@ -1,0 +1,123 @@
+﻿@using BlazorWorker.Demo.IoCExample
+<!--@using BlazorWorker.Extensions.JSRuntime-->
+@inject IWorkerFactory workerFactory
+
+<div class="row">
+    <div class="col-5 col-xs-12">
+        <h1>.NET Worker Thread Service with IoC</h1>
+
+        This page demonstrates IoC / dependency injection.
+        In this example, the class MyServiceStartup is a factory class for MyIocService.
+        The factory is implemented using ServiceCollection as an IoC Container.
+
+        <br /><br />
+        @foreach (var item in new string[] { "Persistant startup class", "Startup class disposed with service" })
+        {
+            <div>
+                <input type="radio" name="variant" id="@item" value="@item" @onchange="RadioSelection" checked=@(RadioValue.Equals(item,StringComparison.OrdinalIgnoreCase)) />
+                <label for="@item">@item</label>
+            </div>
+        }
+        <button disabled=@RunDisabled @onclick=OnClick class="btn btn-primary">Run test</button><br /><br />
+        <br />
+        <br />
+        <strong>Output:</strong>
+        <hr />
+<pre>
+            @output
+</pre>
+    </div>
+    <div class="col-7 col-xs-12">
+        <GithubSource RelativePath="Pages/IoCExamplePage.razor" />
+    </div>
+</div>
+@code {
+
+    string output = "";
+    IWorker worker;
+    IWorkerBackgroundService<MyServiceStartup> startupService;
+    string canDisposeWorker => worker == null ? null : "disabled";
+    string RunDisabled => Running ? "disabled" : null;
+    bool Running = false;
+    string RadioValue = "Persistant startup class";
+    void RadioSelection(ChangeEventArgs args)
+    {
+        RadioValue = args.Value.ToString();
+    }
+    public async Task OnClick(EventArgs _)
+    {
+        Running = true;
+        //output = "";
+        var rn = Environment.NewLine;
+        try
+        {
+
+            if (worker == null)
+            {
+                worker = await workerFactory.CreateAsync();
+            }
+
+            var sw = new System.Diagnostics.Stopwatch();
+            IWorkerBackgroundService<MyIocService> myIocService;
+            var persistedStartup = RadioValue == "Persistant startup class";
+
+            if (persistedStartup)
+            {
+
+                if (startupService == null)
+                {
+                    output = $"{rn}{LogDate()} Creating background service...";
+                    StateHasChanged();
+
+                    sw.Start();
+                    startupService = await worker.CreateBackgroundServiceAsync<MyServiceStartup>();
+
+                    output += $"{rn}{LogDate()} Background service created in {sw.ElapsedMilliseconds}ms";
+                    StateHasChanged();
+                }
+                output += $"{rn}{LogDate()} Resolving instance...";
+                myIocService = await startupService.CreateBackgroundServiceAsync(startup => startup.Resolve<MyIocService>());
+            }
+            else
+            {
+                output += $"{rn}{LogDate()} Resolving Startup & instance...";
+                myIocService = await worker.CreateBackgroundServiceUsingFactoryAsync<MyServiceStartup, MyIocService>(startup => startup.Resolve<MyIocService>());
+            }
+
+            await using (myIocService)
+            {
+                await myIocService.RegisterEventListenerAsync(nameof(MyIocService.FiveCalled),
+                       (object s, int five) =>
+                       {
+                           output += $"{rn}{LogDate()} OnFiveCalled: {five}";
+                           StateHasChanged();
+                       });
+                output += $"{rn}{LogDate()} Calling Five()...";
+                output += $"{rn}{LogDate()} Five() = {await myIocService.RunAsync(s => s.Five())}";
+            }
+
+            StateHasChanged();
+
+        }
+        catch (Exception e)
+        {
+            output += $"{rn}Error = {e}";
+        }
+        finally
+        {
+            Running = false;
+        }
+    }
+
+    public async Task OnDisposeWorker()
+    {
+        await worker.DisposeAsync();
+        worker = null;
+        startupService = null;
+    }
+
+    private string LogDate()
+    {
+        return DateTime.Now.ToString("HH:mm:ss:fff");
+    }
+}

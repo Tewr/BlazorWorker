@@ -78,6 +78,8 @@ window.BlazorWorker = function () {
         const getChildFromDotNotation = (member, root) =>
             member.split(".").reduce((m, prop) => Object.hasOwnProperty.call(m, prop) ? m[prop] : empty, root || self);
 
+
+
         //TODO: This call could/should be session cached. But will the built-in blazor fetch service worker override 
         // (PWA et al) do this already if configured ?
         fetch(`${initConf.appRoot}/${initConf.blazorBoot}`)
@@ -175,8 +177,24 @@ window.BlazorWorker = function () {
                 setModuleImports('BlazorWorker.js', {
                     PostMessage: (messagecontent) => {
                         self.postMessage(messagecontent);
+                    },
+
+                    ImportLocalScripts: async (urls) => {
+                        await self.importLocalScripts(urls);
+                    },
+
+                    IsObjectDefined: (workerScopeObject) => {
+                        return self.isObjectDefined(workerScopeObject);
                     }
                 });
+
+
+                self.BlazorWorker = {
+                    getChildFromDotNotation,
+                    getAssemblyExports,
+                    setModuleImports,
+                    empty
+                };
 
                 const getMethodFromMethodIdentifier = async function (methodIdentifier) {
                     const exports = await getAssemblyExports(methodIdentifier.assemblyName);
@@ -198,8 +216,17 @@ window.BlazorWorker = function () {
         const empty = {};
 
         // Import script from a path relative to approot
-        self.importLocalScripts = (...urls) => {
-            self.importScripts(urls.map(url => initConf.appRoot + (url.startsWith('/') ? '' : '/') + url));
+        self.importLocalScripts = async (urls) => {
+            // TODO: the following fails with error message --
+            // Failed to execute 'importScripts' on 'WorkerGlobalScope': Module scripts don't support importScripts()
+            // Possible workarounds: 1) use globalThis JsImport attribute 2) convert JSRuntime to module.
+            const mappedUrls = urls.map(url => initConf.appRoot + (url.startsWith('/') ? '' : '/') + url);
+            for (const url of mappedUrls) {
+                console.info(`BlazorWorker.importLocalScripts: import('${url}'')`);
+                await import(url);
+            }
+            
+            //self.importScripts();
         };
 
         self.isObjectDefined = (workerScopeObject) => {
