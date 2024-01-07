@@ -163,14 +163,7 @@ window.BlazorWorker = function () {
                 const { dotnet } = await import(`${initConf.appRoot}/${initConf.wasmRoot}/${dotnetjsfilename}`);
 
                 const { setModuleImports, getAssemblyExports } = await dotnet
-                    .withConfig({
-                        // https://github.com/dotnet/runtime/blob/955604c6620d0eaf9a10b4591449e377a6faa7d3/src/mono/browser/runtime/dotnet.d.ts#L20
-                        // as well as
-                        // https://github.com/dotnet/runtime/blob/955604c6620d0eaf9a10b4591449e377a6faa7d3/src/mono/browser/runtime/dotnet.d.ts#L97
-                        err: (e) => { console.error(`WORKER ${initConf.workerId}: ${(e || "(null)")}`) },
-                        out: (o) => { console.info(`WORKER ${initConf.workerId}: ${(o || "(null)")}`) }
-                    })
-                    .withDiagnosticTracing(false)
+                    .withDiagnosticTracing(initConf.debug)
                     .withEnvironmentVariables(initConf.envMap)
                     .create();
 
@@ -215,18 +208,12 @@ window.BlazorWorker = function () {
 
         const empty = {};
 
-        // Import script from a path relative to approot
+        // Import module script from a path relative to approot
         self.importLocalScripts = async (urls) => {
-            // TODO: the following fails with error message --
-            // Failed to execute 'importScripts' on 'WorkerGlobalScope': Module scripts don't support importScripts()
-            // Possible workarounds: 1) use globalThis JsImport attribute 2) convert JSRuntime to module.
             const mappedUrls = urls.map(url => initConf.appRoot + (url.startsWith('/') ? '' : '/') + url);
             for (const url of mappedUrls) {
-                console.info(`BlazorWorker.importLocalScripts: import('${url}'')`);
                 await import(url);
             }
-            
-            //self.importScripts();
         };
 
         self.isObjectDefined = (workerScopeObject) => {
@@ -245,9 +232,7 @@ window.BlazorWorker = function () {
         const initConf = {
             appRoot: appRoot,
             workerId:id,
-            //DependentAssemblyFilenames: initOptions.dependentAssemblyFilenames,
             runtimePreprocessorSymbols: initOptions.runtimePreprocessorSymbols || {},
-            //deploy_prefix: initOptions.deployPrefix,
             messageEndPoint: initOptions.messageEndPoint,
             initEndPoint: initOptions.initEndPoint,
             endInvokeCallBackEndpoint: initOptions.endInvokeCallBackEndpoint,
