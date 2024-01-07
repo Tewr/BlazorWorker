@@ -49,8 +49,11 @@
     <NoWarn>1701;1702;1591;CA1416</NoWarn>
   </PropertyGroup>
   
-  <ItemGroup>
+  <ItemGroup Condition="'$(Configuration)|$(Platform)'!='Nuget|AnyCPU'">
     <ProjectReference Include="..\BlazorWorker.WorkerCore\BlazorWorker.WorkerCore.csproj" />
   </ItemGroup>
-
+  <ItemGroup Condition="'$(Configuration)|$(Platform)'=='Nuget|AnyCPU'">
+    <PackageReference Include="Tewr.BlazorWorker.Core" Version="4.0.0" />
+  </ItemGroup>
+  
 </Project>
