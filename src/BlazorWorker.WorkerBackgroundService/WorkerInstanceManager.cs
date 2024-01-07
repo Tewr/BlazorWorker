@@ -3,13 +3,13 @@ using BlazorWorker.WorkerCore.SimpleInstanceService;
 using System;
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
-#if NET7_0_OR_GREATER
 using System.Runtime.InteropServices.JavaScript;
-#endif
+using System.Runtime.Versioning;
 using System.Threading.Tasks;
 
 namespace BlazorWorker.WorkerBackgroundService
 {
+    [SupportedOSPlatform("browser")]
     public partial class WorkerInstanceManager
     {
         private readonly ConcurrentDictionary<long, IEventWrapper> events =
@@ -44,9 +44,8 @@ namespace BlazorWorker.WorkerBackgroundService
 
             this.messageHandler = messageHandlerRegistry.GetRegistryForInstance(this);
         }
-#if NET7_0_OR_GREATER
+
         [JSExport]
-#endif
         public static void Init() {
             MessageService.Message += Instance.OnMessage;
             Instance.PostObject(new InitWorkerComplete());

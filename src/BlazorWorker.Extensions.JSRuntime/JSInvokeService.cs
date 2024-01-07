@@ -35,6 +35,11 @@ namespace BlazorWorker.Extensions.JSRuntime
 
         #region Generated methods
 
+        /// <summary>
+        /// Checks if the specified object path is defined using the self / globalThis object as root.
+        /// </summary>
+        /// <param name="objectPath"></param>
+        /// <returns></returns>
         [JSImport("IsObjectDefined", "BlazorWorker.js")]
         public static partial bool IsObjectDefined(string objectPath);
 

@@ -3,29 +3,67 @@ using Microsoft.JSInterop;
 using System;
 using System.Linq;
 using System.Runtime.InteropServices.JavaScript;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace BlazorWorker.Extensions.JSRuntime
 {
+    /// <summary>
+    /// IJSRuntime implementation for use in a worker process
+    /// </summary>
     public partial class BlazorWorkerJSRuntime : IJSRuntime, IJSInProcessRuntime
     {
         private static bool isJsInitialized;
 
+        /// <summary>
+        /// Serializer that will be used
+        /// </summary>
         public IBlazorWorkerJSRuntimeSerializer Serializer { get; set; }
 
+        /// <summary>
+        /// The serializer options to be used for the underlying serializer
+        /// </summary>
+        public JsonSerializerOptions SerializerOptions { get; }
+        
+        /// <summary>
+        /// Creates a new JSRuntime
+        /// </summary>
         public BlazorWorkerJSRuntime()
         {
-            this.Serializer = new DefaultBlazorWorkerJSRuntimeSerializer(this);
+
+            SerializerOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                Converters = {
+                    { new DotNetObjectReferenceJsonConverterFactory(this) }
+}
+            };
+
+            this.Serializer = new DefaultBlazorWorkerJSRuntimeSerializer(SerializerOptions);
         }
 
+        /// <summary>
+        /// Invokes a method defined on the worker globalThis (self) object
+        /// </summary>
+        /// <typeparam name="T">expected return type</typeparam>
+        /// <param name="identifier">js method name</param>
+        /// <param name="args">JSON serializable arguments to send to the js method</param>
+        /// <returns></returns>
         public T Invoke<T>(string identifier, params object[] args)
         {
-            var resultString  = JSInvokeService.WorkerInvoke<T>(identifier, Serialize(args));
+            var resultString = JSInvokeService.WorkerInvoke<T>(identifier, Serialize(args));
 
             return this.Serializer.Deserialize<T>(resultString);
         }
 
+        /// <summary>
+        /// Invokes a method defined on the worker globalThis (self) object asynchronically
+        /// </summary>
+        /// <typeparam name="TValue">expected return type</typeparam>
+        /// <param name="identifier">js method name</param>
+        /// <param name="args">JSON serializable arguments to send to the js method</param>
+        /// <returns></returns>
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object[] args)
         {
             return InvokeAsync<TValue>(identifier, CancellationToken.None, args ?? new object[] { });
@@ -53,17 +91,11 @@ namespace BlazorWorker.Extensions.JSRuntime
         {
             var serializedArgs = Serialize(args);
             string resultObj;
-            
-            try
-            {
-                await EnsureInitialized();
+
+            await EnsureInitialized();
                 
-                resultObj = await JSInvokeService.WorkerInvokeAsync<TValue>(identifier, serializedArgs);
-            }
-            catch (System.AggregateException e) when (e.InnerException is JSInvokeException)
-            {
-                throw e.InnerException;
-            }
+            resultObj = await JSInvokeService.WorkerInvokeAsync<TValue>(identifier, serializedArgs);
+            
             cancellationToken.ThrowIfCancellationRequested();
 
             var result = Deserialize<TValue>(resultObj);

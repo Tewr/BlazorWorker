@@ -9,6 +9,9 @@
         In this example, the class MyServiceStartup is a factory class for MyIocService.
         The factory is implemented using ServiceCollection as an IoC Container.
 
+        The factory also uses the extensions methods from BlazorWorker.Extensions.JSRuntime 
+        for using the specially crafted IJSRuntime that can be used with workers.
+
         <br /><br />
         @foreach (var item in new string[] { "Persistant startup class", "Startup class disposed with service" })
         {

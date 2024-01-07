@@ -7,15 +7,9 @@ namespace BlazorWorker.Extensions.JSRuntime
     {
         private readonly JsonSerializerOptions options;
 
-        public DefaultBlazorWorkerJSRuntimeSerializer(IJSRuntime jSRuntime)
+        public DefaultBlazorWorkerJSRuntimeSerializer(JsonSerializerOptions options)
         {
-            options = new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                Converters = {
-                    { new DotNetObjectReferenceJsonConverterFactory(jSRuntime) }
-                }
-            };
+            this.options = options;
         }
 
         public T Deserialize<T>(string serializedObject)

@@ -30,7 +30,7 @@ namespace BlazorWorker.BackgroundServiceFactory
             var proxy = new WorkerBackgroundServiceProxy<T>(webWorkerProxy, new WebWorkerOptions());
             if (workerInitOptions == null)
             {
-                workerInitOptions = new WorkerInitOptions().AddAssemblyOf<T>();
+                workerInitOptions = new WorkerInitOptions();
             }
 
             await proxy.InitAsync(workerInitOptions);
@@ -64,11 +64,7 @@ namespace BlazorWorker.BackgroundServiceFactory
             }
 
             var workerInitOptions = new WorkerInitOptions();
-            if (workerInitOptionsModifier == null)
-            {
-                workerInitOptions.AddAssemblyOf<TService>();
-            }
-            else
+            if (workerInitOptionsModifier != null)
             {
                 workerInitOptionsModifier(workerInitOptions);
             }
