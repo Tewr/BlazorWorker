@@ -2,7 +2,6 @@
 using Microsoft.JSInterop;
 using System;
 using System.Threading.Tasks;
-using TG.Blazor.IndexedDB;
 
 namespace BlazorWorker.Demo.IoCExample
 {
@@ -26,10 +25,10 @@ namespace BlazorWorker.Demo.IoCExample
 
         public async Task<int> Five()
         {
-            await this.WorkerMessageService.PostMessageAsync($"aaaaaaa");
             this.FiveCalled?.Invoke(this, FiveCalledCounter++);
             try
             {
+                Console.WriteLine($"MyIocService: Attempting JsRuntime InvokeAsync...");
                 var theNumberOfTheBeast = await this.JSRuntime.InvokeAsync<int>("eval",
                     "(function(){ console.log('Hello world invoke call from MyIocService'); return 666; })()");
                 

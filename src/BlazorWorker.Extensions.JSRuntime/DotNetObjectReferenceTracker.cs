@@ -26,7 +26,7 @@ namespace BlazorWorker.Extensions.JSRuntime
             return objectTracker.InternalGetObjectReference(dotNetObjectId);
         }
 
-        internal static long TrackObjectReference<T>(DotNetObjectReference<T> value) where T: class
+        internal static long TrackObjectReference<T>(DotNetObjectReference<T> value) where T : class
         {
             return objectTracker.InternalTrackObjectReference<T>(value);
         }
@@ -54,7 +54,7 @@ namespace BlazorWorker.Extensions.JSRuntime
             static TrackerJsRuntime()
             {
                 var targetType = typeof(Microsoft.JSInterop.JSRuntime);
-                var name = nameof(DotNetObjectReferenceTracker.GetObjectReference);
+                var name = nameof(GetObjectReference);
                 var firstArgType = typeof(long);
                 var methodInfo = targetType.GetRuntimeMethods().FirstOrDefault(methodInfo =>
                     !methodInfo.IsPublic &&
@@ -75,7 +75,7 @@ namespace BlazorWorker.Extensions.JSRuntime
                 return GetObjectReferenceMethod.Invoke(this, new object[] { dotNetObjectId });
             }
 
-            public long InternalTrackObjectReference<T>(DotNetObjectReference<T> value)  where T : class
+            public long InternalTrackObjectReference<T>(DotNetObjectReference<T> value) where T : class
             {
                 var method = TrackObjectReferenceDelegates
                     .GetDelegate<TrackObjectReferenceDelegate<T>, T, DotNetObjectReference<T>>
@@ -85,7 +85,7 @@ namespace BlazorWorker.Extensions.JSRuntime
             }
 
             #region Unsupported methods
-            
+
             protected override void BeginInvokeJS(long taskId, string identifier, string argsJson)
             {
                 throw new NotSupportedException();

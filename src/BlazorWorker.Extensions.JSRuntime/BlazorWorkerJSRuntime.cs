@@ -2,27 +2,68 @@
 using Microsoft.JSInterop;
 using System;
 using System.Linq;
+using System.Runtime.InteropServices.JavaScript;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace BlazorWorker.Extensions.JSRuntime
 {
-    public class BlazorWorkerJSRuntime : IJSRuntime, IJSInProcessRuntime
+    /// <summary>
+    /// IJSRuntime implementation for use in a worker process
+    /// </summary>
+    public partial class BlazorWorkerJSRuntime : IJSRuntime, IJSInProcessRuntime
     {
         private static bool isJsInitialized;
 
+        /// <summary>
+        /// Serializer that will be used
+        /// </summary>
         public IBlazorWorkerJSRuntimeSerializer Serializer { get; set; }
 
+        /// <summary>
+        /// The serializer options to be used for the underlying serializer
+        /// </summary>
+        public JsonSerializerOptions SerializerOptions { get; }
+        
+        /// <summary>
+        /// Creates a new JSRuntime
+        /// </summary>
         public BlazorWorkerJSRuntime()
         {
-            this.Serializer = new DefaultBlazorWorkerJSRuntimeSerializer(this);
+
+            SerializerOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                Converters = {
+                    { new DotNetObjectReferenceJsonConverterFactory(this) }
+}
+            };
+
+            this.Serializer = new DefaultBlazorWorkerJSRuntimeSerializer(SerializerOptions);
         }
 
+        /// <summary>
+        /// Invokes a method defined on the worker globalThis (self) object
+        /// </summary>
+        /// <typeparam name="T">expected return type</typeparam>
+        /// <param name="identifier">js method name</param>
+        /// <param name="args">JSON serializable arguments to send to the js method</param>
+        /// <returns></returns>
         public T Invoke<T>(string identifier, params object[] args)
         {
-            return JSInvokeService.Invoke<T>(identifier, args);
+            var resultString = JSInvokeService.WorkerInvoke<T>(identifier, Serialize(args));
+
+            return this.Serializer.Deserialize<T>(resultString);
         }
 
+        /// <summary>
+        /// Invokes a method defined on the worker globalThis (self) object asynchronically
+        /// </summary>
+        /// <typeparam name="TValue">expected return type</typeparam>
+        /// <param name="identifier">js method name</param>
+        /// <param name="args">JSON serializable arguments to send to the js method</param>
+        /// <returns></returns>
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object[] args)
         {
             return InvokeAsync<TValue>(identifier, CancellationToken.None, args ?? new object[] { });
@@ -49,36 +90,28 @@ namespace BlazorWorker.Extensions.JSRuntime
             object[] args)
         {
             var serializedArgs = Serialize(args);
-            object resultObj;
+            string resultObj;
+
+            await EnsureInitialized();
+                
+            resultObj = await JSInvokeService.WorkerInvokeAsync<TValue>(identifier, serializedArgs);
             
-            try
-            {
-                EnsureInitialized();
+            cancellationToken.ThrowIfCancellationRequested();
 
-                resultObj = await JSInvokeService.InvokeAsync(identifier,
-                    cancellationToken, serializedArgs, "BlazorWorkerJSRuntimeSerializer");
-            }
-            catch (System.AggregateException e) when (e.InnerException is JSInvokeException)
-            {
-                throw e.InnerException;
-            }
-
-
-            //Console.WriteLine($"{nameof(BlazorWorkerJSRuntime)}.{nameof(InvokeAsync)}({identifier}): deserializing result: {resultObj?.ToString()} ");
-            var result = Deserialize<TValue>(resultObj as string);
-            //Console.WriteLine($"{nameof(BlazorWorkerJSRuntime)}.{nameof(InvokeAsync)}({identifier}): returning deserialized result of type {(result?.GetType().ToString() ?? "(null)")}: {result?.ToString()} ");
+            var result = Deserialize<TValue>(resultObj);
             return result;
         }
 
-        private static void EnsureInitialized()
+        private static async Task EnsureInitialized()
         {
             if (!isJsInitialized && !JSInvokeService.IsObjectDefined("BlazorWorkerJSRuntimeSerializer"))
             {
-                JSInvokeService.ImportLocalScripts("_content/Tewr.BlazorWorker.Extensions.JSRuntime/BlazorWorkerJSRuntime.js");
+                await JSInvokeService.ImportLocalScripts("_content/Tewr.BlazorWorker.Extensions.JSRuntime/BlazorWorkerJSRuntime.js");
                 isJsInitialized = true;
             }
         }
 
+        [JSExport]
         public static string InvokeMethod(string objectInstanceId, string argsString)
         {
 #if DEBUG

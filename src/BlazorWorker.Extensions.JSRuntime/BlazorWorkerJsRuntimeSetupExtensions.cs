@@ -1,25 +1,28 @@
-﻿using BlazorWorker.Core;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
+using System;
+using System.Text.Json;
 
 namespace BlazorWorker.Extensions.JSRuntime
 {
     public static class BlazorWorkerJsRuntimeSetupExtensions
     {
-        public static IServiceCollection AddBlazorWorkerJsRuntime(this IServiceCollection source)
+        public static IServiceCollection AddBlazorWorkerJsRuntime(this IServiceCollection source, Action<JsonSerializerOptions> optionsModifier = null)
         {
-            source.AddSingleton<IJSRuntime, BlazorWorkerJSRuntime>();
-            source.AddSingleton<IBlazorWorkerJSRuntimeSerializer, DefaultBlazorWorkerJSRuntimeSerializer>();
+            source.AddSingleton(CreateBlazorWorkerJSRuntime(optionsModifier));
             return source;
         }
 
-        public static WorkerInitOptions AddBlazorWorkerJsRuntime(this WorkerInitOptions source)
-        {
-            source.AddAssemblyOf<Microsoft.JSInterop.IJSRuntime>()
-                  .AddAssemblyOf<BlazorWorker.Extensions.JSRuntime.BlazorWorkerJSRuntime>()
-                  .AddAssemblyOf<System.Text.Json.JsonElement>()
-                  .AddAssemblyOf<System.Text.Encodings.Web.TextEncoderSettings>();
-            return source;
+        private static Func<IServiceProvider, IJSRuntime> CreateBlazorWorkerJSRuntime(Action<JsonSerializerOptions> optionsModifier) {
+
+            var instance = new BlazorWorkerJSRuntime();
+
+            if (optionsModifier != null)
+            {
+                optionsModifier(instance.SerializerOptions);
+            }
+
+            return _ => instance;
         }
     }
 }

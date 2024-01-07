@@ -12,16 +12,12 @@ namespace BlazorWorker.BackgroundServiceFactory
     internal class WorkerBackgroundServiceProxy {
         private static long idSource;
         internal static readonly MethodIdentifier InitEndPoint;
-        //internal static readonly string EndInvokeCallBackEndpoint;
         public static long GetNextId() => ++idSource;
         static WorkerBackgroundServiceProxy()
         {
             var wim = typeof(WorkerInstanceManager);
             InitEndPoint =
                 MonoTypeHelper.GetStaticMethodId<WorkerInstanceManager>(nameof(WorkerInstanceManager.Init));
-            /*EndInvokeCallBackEndpoint =
-                MonoTypeHelper.GetStaticMethodId<JSInvokeService>(nameof(JSInvokeService.EndInvokeCallBack));
-            */
         }
 
     }

@@ -14,6 +14,10 @@
     <DocumentationFile>BlazorWorker.WorkerCore.xml</DocumentationFile>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
+  
+  <PropertyGroup>
+    <NoWarn>1701;1702;1591;CA1416</NoWarn>
+  </PropertyGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="LinkerConfig.xml">

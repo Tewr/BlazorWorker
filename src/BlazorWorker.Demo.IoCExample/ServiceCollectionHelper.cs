@@ -1,5 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.JSInterop;
 using System;
+using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
 
 namespace BlazorWorker.Demo.IoCExample
 {
@@ -11,7 +15,7 @@ namespace BlazorWorker.Demo.IoCExample
         {
             var serviceCollection = new ServiceCollection();
             configureMethod(serviceCollection);
-            return  serviceCollection.BuildServiceProvider();
+            return serviceCollection.BuildServiceProvider();
         }
     }
 }

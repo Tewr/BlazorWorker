@@ -9,13 +9,9 @@ namespace BlazorWorker.Core.SimpleInstanceService
     public class SimpleInstanceServiceProxy : ISimpleInstanceService
     {
         private readonly IWorker worker;
-        private readonly TaskRegister<DisposeResult> disposeResultRegister = 
-            new TaskRegister<DisposeResult>();
-        private readonly TaskRegister<InitInstanceResult> initInstanceRegister =
-            new TaskRegister<InitInstanceResult>();
+        private readonly TaskRegister<DisposeResult> disposeResultRegister = new();
+        private readonly TaskRegister<InitInstanceResult> initInstanceRegister = new();
         private TaskCompletionSource<InitServiceResult> initWorker;
-
-        private long callIdSource;
 
         public bool IsInitialized { get; internal set; }
 

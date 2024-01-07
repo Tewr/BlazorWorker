@@ -1,7 +1,9 @@
-﻿using BlazorWorker.Extensions.JSRuntime;
-using BlazorWorker.WorkerCore;
+﻿using BlazorWorker.WorkerCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.JSInterop;
 using System;
+
+using BlazorWorker.Extensions.JSRuntime;
 
 namespace BlazorWorker.Demo.IoCExample
 {

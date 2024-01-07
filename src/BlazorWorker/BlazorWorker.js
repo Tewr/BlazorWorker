@@ -78,6 +78,8 @@ window.BlazorWorker = function () {
         const getChildFromDotNotation = (member, root) =>
             member.split(".").reduce((m, prop) => Object.hasOwnProperty.call(m, prop) ? m[prop] : empty, root || self);
 
+
+
         //TODO: This call could/should be session cached. But will the built-in blazor fetch service worker override 
         // (PWA et al) do this already if configured ?
         fetch(`${initConf.appRoot}/${initConf.blazorBoot}`)
@@ -161,22 +163,31 @@ window.BlazorWorker = function () {
                 const { dotnet } = await import(`${initConf.appRoot}/${initConf.wasmRoot}/${dotnetjsfilename}`);
 
                 const { setModuleImports, getAssemblyExports } = await dotnet
-                    .withConfig({
-                        // https://github.com/dotnet/runtime/blob/955604c6620d0eaf9a10b4591449e377a6faa7d3/src/mono/browser/runtime/dotnet.d.ts#L20
-                        // as well as
-                        // https://github.com/dotnet/runtime/blob/955604c6620d0eaf9a10b4591449e377a6faa7d3/src/mono/browser/runtime/dotnet.d.ts#L97
-                        err: (e) => { console.error(`WORKER ${initConf.workerId}: ${(e || "(null)")}`) },
-                        out: (o) => { console.info(`WORKER ${initConf.workerId}: ${(o || "(null)")}`) }
-                    })
-                    .withDiagnosticTracing(false)
+                    .withDiagnosticTracing(initConf.debug)
                     .withEnvironmentVariables(initConf.envMap)
                     .create();
 
                 setModuleImports('BlazorWorker.js', {
                     PostMessage: (messagecontent) => {
                         self.postMessage(messagecontent);
+                    },
+
+                    ImportLocalScripts: async (urls) => {
+                        await self.importLocalScripts(urls);
+                    },
+
+                    IsObjectDefined: (workerScopeObject) => {
+                        return self.isObjectDefined(workerScopeObject);
                     }
                 });
+
+
+                self.BlazorWorker = {
+                    getChildFromDotNotation,
+                    getAssemblyExports,
+                    setModuleImports,
+                    empty
+                };
 
                 const getMethodFromMethodIdentifier = async function (methodIdentifier) {
                     const exports = await getAssemblyExports(methodIdentifier.assemblyName);
@@ -197,9 +208,12 @@ window.BlazorWorker = function () {
 
         const empty = {};
 
-        // Import script from a path relative to approot
-        self.importLocalScripts = (...urls) => {
-            self.importScripts(urls.map(url => initConf.appRoot + (url.startsWith('/') ? '' : '/') + url));
+        // Import module script from a path relative to approot
+        self.importLocalScripts = async (urls) => {
+            const mappedUrls = urls.map(url => initConf.appRoot + (url.startsWith('/') ? '' : '/') + url);
+            for (const url of mappedUrls) {
+                await import(url);
+            }
         };
 
         self.isObjectDefined = (workerScopeObject) => {
@@ -218,9 +232,7 @@ window.BlazorWorker = function () {
         const initConf = {
             appRoot: appRoot,
             workerId:id,
-            //DependentAssemblyFilenames: initOptions.dependentAssemblyFilenames,
             runtimePreprocessorSymbols: initOptions.runtimePreprocessorSymbols || {},
-            //deploy_prefix: initOptions.deployPrefix,
             messageEndPoint: initOptions.messageEndPoint,
             initEndPoint: initOptions.initEndPoint,
             endInvokeCallBackEndpoint: initOptions.endInvokeCallBackEndpoint,

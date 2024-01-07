@@ -64,12 +64,6 @@ namespace BlazorWorker.Core.CoreInstanceService
                 if (options == null)
                 {
                     options = new WorkerInitOptions();
-                    options.AddAssemblyOfType(t);
-                }
-
-                if (options.UseConventionalServiceAssembly)
-                {
-                    options.AddAssemblyOfType(t);
                 }
 
                 await this.simpleInstanceServiceProxy.InitializeAsync(

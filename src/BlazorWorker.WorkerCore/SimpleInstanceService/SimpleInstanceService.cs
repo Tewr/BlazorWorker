@@ -5,9 +5,11 @@ using System.Net.Http;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.JavaScript;
+using System.Runtime.Versioning;
 
 namespace BlazorWorker.WorkerCore.SimpleInstanceService
 {
+    [SupportedOSPlatform("browser")]
     public partial class SimpleInstanceService
     {
         
