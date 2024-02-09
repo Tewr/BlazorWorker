@@ -76,6 +76,7 @@ public class MyCPUIntensiveService {
 ```cs
 // .razor view
 @using BlazorWorker.BackgroundServiceFactory
+@using BlazorWorker.Core
 @inject IWorkerFactory workerFactory
 
 <button @onclick="OnClick">Test!</button>
