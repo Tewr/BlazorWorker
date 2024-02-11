@@ -67,6 +67,7 @@ Example (see the [demo project](src/BlazorWorker.Demo/Client/Pages) for a fully 
 // MyCPUIntensiveService.cs
 public class MyCPUIntensiveService {
   public int MyMethod(int parameter) {
+    int i = 1;
     while(i < 5000000) i += (i*parameter);
     return i;
   }
@@ -76,6 +77,7 @@ public class MyCPUIntensiveService {
 ```cs
 // .razor view
 @using BlazorWorker.BackgroundServiceFactory
+@using BlazorWorker.Core
 @inject IWorkerFactory workerFactory
 
 <button @onclick="OnClick">Test!</button>
