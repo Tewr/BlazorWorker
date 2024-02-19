@@ -32,7 +32,7 @@
         </member>
         <member name="M:BlazorWorker.BackgroundServiceFactory.WorkerInitExtension.UseCustomExpressionSerializer(BlazorWorker.Core.WorkerInitOptions,System.Type)">
             <summary>
-            Sets a custom ExpressionSerializer.
+            Sets a custom ExpressionSerializer type. Must implement <see cref="T:BlazorWorker.WorkerBackgroundService.IExpressionSerializer"/>..
             </summary>
             <param name="source"></param>
             <param name="expressionSerializerType">A type that implements <see cref="T:BlazorWorker.WorkerBackgroundService.IExpressionSerializer"/></param>

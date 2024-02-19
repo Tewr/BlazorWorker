@@ -83,12 +83,12 @@
             }
             if (backgroundService == null)
             {
-                
+
                 output += $"Starting BackgroundService...{rn}";
                 await this.InvokeAsync(StateHasChanged);
                 /* 
-                 * have a look here. This is the essence of this example.
-                 * */
+                * have a look here. This is the essence of this example.
+                * */
 
                 backgroundService = await worker.CreateBackgroundServiceAsync<ComplexService>(options 
                     => options.UseCustomExpressionSerializer(typeof(CustomSerializeLinqExpressionJsonSerializer)));
@@ -111,8 +111,9 @@
                 };
 
             var result = await backgroundService.RunAsync(service => service.ComplexCall(complexArgInstance));
-
+            var elapsed = sw.ElapsedMilliseconds;
             output += $"{rn}result: " + System.Text.Json.JsonSerializer.Serialize(result);
+            output += $"{rn}roundtrip to worker in {elapsed}ms";
         }
         catch (Exception e)
         {
@@ -121,7 +122,7 @@
         finally
         {
             Running = false;
-            output += $"{rn}Done."
+            output += $"{rn}Done.";
         }
     }
 
