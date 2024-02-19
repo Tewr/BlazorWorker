@@ -40,6 +40,11 @@ namespace BlazorWorker.WorkerBackgroundService
         {
             this.serializer = new DefaultMessageSerializer();
             this.options = new WebWorkerOptions();
+            var expressionSerializerType = Environment.GetEnvironmentVariable(WebWorkerOptions.ExpressionSerializerTypeEnvKey);
+            if (expressionSerializerType != null)
+            {
+                this.options.ExpressionSerializerType = Type.GetType(expressionSerializerType);
+            }
             this.simpleInstanceService = SimpleInstanceService.Instance;
 
             this.messageHandler = messageHandlerRegistry.GetRegistryForInstance(this);

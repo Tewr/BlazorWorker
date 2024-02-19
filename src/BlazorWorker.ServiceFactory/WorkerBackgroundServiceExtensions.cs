@@ -26,12 +26,19 @@ namespace BlazorWorker.BackgroundServiceFactory
             {
                 throw new ArgumentNullException(nameof(webWorkerProxy));
             }
-
-            var proxy = new WorkerBackgroundServiceProxy<T>(webWorkerProxy, new WebWorkerOptions());
             if (workerInitOptions == null)
             {
                 workerInitOptions = new WorkerInitOptions();
             }
+
+            var webWorkerOptions = new WebWorkerOptions();
+            if (workerInitOptions.EnvMap?.TryGetValue(WebWorkerOptions.ExpressionSerializerTypeEnvKey, out var serializerType) == true)
+            {
+                webWorkerOptions.ExpressionSerializerType = Type.GetType(serializerType);
+            }
+
+            var proxy = new WorkerBackgroundServiceProxy<T>(webWorkerProxy, webWorkerOptions);
+
 
             await proxy.InitAsync(workerInitOptions);
             return proxy;
@@ -68,7 +75,19 @@ namespace BlazorWorker.BackgroundServiceFactory
             {
                 workerInitOptionsModifier(workerInitOptions);
             }
-            var factoryProxy = new WorkerBackgroundServiceProxy<TFactory>(webWorkerProxy, new WebWorkerOptions());
+
+            if (workerInitOptions == null)
+            {
+                workerInitOptions = new WorkerInitOptions();
+            }
+
+            var webWorkerOptions = new WebWorkerOptions();
+            if (workerInitOptions.EnvMap?.TryGetValue(WebWorkerOptions.ExpressionSerializerTypeEnvKey, out var serializerType) == true)
+            {
+                webWorkerOptions.ExpressionSerializerType = Type.GetType(serializerType);
+            }
+
+            var factoryProxy = new WorkerBackgroundServiceProxy<TFactory>(webWorkerProxy, webWorkerOptions);
             await factoryProxy.InitAsync(workerInitOptions);
 
             var newProxy = await factoryProxy.InitFromFactoryAsync(factoryExpression);
