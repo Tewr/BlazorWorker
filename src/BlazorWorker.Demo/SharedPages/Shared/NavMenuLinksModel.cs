@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using BlazorWorker.Demo.SharedPages.Pages;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
 using System;
 using System.Collections.Generic;
@@ -34,6 +35,10 @@ namespace BlazorWorker.Demo.SharedPages.Shared
             {
                 new() { Icon = "document", Href="IndexedDB", Text = "IndexedDB" }
             },
+            {
+                new() { Icon = "document", Href="ComplexSerialization", Text = "ComplexSerialization" }
+            },
+            
             {
                 new() { Icon = "fork", Href="https://github.com/tewr/BlazorWorker", Text = "To the source!" }
             },

@@ -26,12 +26,16 @@ namespace BlazorWorker.BackgroundServiceFactory
             {
                 throw new ArgumentNullException(nameof(webWorkerProxy));
             }
-
-            var proxy = new WorkerBackgroundServiceProxy<T>(webWorkerProxy, new WebWorkerOptions());
             if (workerInitOptions == null)
             {
                 workerInitOptions = new WorkerInitOptions();
             }
+
+            var webWorkerOptions = new WebWorkerOptions();
+            webWorkerOptions.SetExpressionSerializerFromInitOptions(workerInitOptions);
+
+            var proxy = new WorkerBackgroundServiceProxy<T>(webWorkerProxy, webWorkerOptions);
+
 
             await proxy.InitAsync(workerInitOptions);
             return proxy;
@@ -68,12 +72,30 @@ namespace BlazorWorker.BackgroundServiceFactory
             {
                 workerInitOptionsModifier(workerInitOptions);
             }
-            var factoryProxy = new WorkerBackgroundServiceProxy<TFactory>(webWorkerProxy, new WebWorkerOptions());
+
+            if (workerInitOptions == null)
+            {
+                workerInitOptions = new WorkerInitOptions();
+            }
+
+            var webWorkerOptions = new WebWorkerOptions();
+            webWorkerOptions.SetExpressionSerializerFromInitOptions(workerInitOptions);
+            
+
+            var factoryProxy = new WorkerBackgroundServiceProxy<TFactory>(webWorkerProxy, webWorkerOptions);
             await factoryProxy.InitAsync(workerInitOptions);
 
             var newProxy = await factoryProxy.InitFromFactoryAsync(factoryExpression);
             newProxy.Disposables.Add(factoryProxy);
             return newProxy;
+        }
+
+        private static void SetExpressionSerializerFromInitOptions(this WebWorkerOptions target, WorkerInitOptions workerInitOptions)
+        {
+            if (workerInitOptions.EnvMap?.TryGetValue(WebWorkerOptions.ExpressionSerializerTypeEnvKey, out var serializerType) == true)
+            {
+                target.ExpressionSerializerType = Type.GetType(serializerType);
+            }
         }
 
         /// <summary>

@@ -13,12 +13,12 @@ namespace BlazorWorker.WorkerBackgroundService
     public partial class WorkerInstanceManager
     {
         private readonly ConcurrentDictionary<long, IEventWrapper> events =
-             new ConcurrentDictionary<long, IEventWrapper>();
+             new();
 
         private static readonly MessageHandlerRegistry<WorkerInstanceManager> messageHandlerRegistry
-            = new MessageHandlerRegistry<WorkerInstanceManager>(wim => wim.serializer);
+            = new(wim => wim.serializer);
 
-        public static readonly WorkerInstanceManager Instance = new WorkerInstanceManager();
+        public static readonly WorkerInstanceManager Instance = new();
 
         internal readonly ISerializer serializer;
         private readonly WebWorkerOptions options;
@@ -40,6 +40,12 @@ namespace BlazorWorker.WorkerBackgroundService
         {
             this.serializer = new DefaultMessageSerializer();
             this.options = new WebWorkerOptions();
+            var expressionSerializerType = Environment.GetEnvironmentVariable(WebWorkerOptions.ExpressionSerializerTypeEnvKey);
+            if (expressionSerializerType != null)
+            {
+                this.options.ExpressionSerializerType = Type.GetType(expressionSerializerType);
+            }
+            
             this.simpleInstanceService = SimpleInstanceService.Instance;
 
             this.messageHandler = messageHandlerRegistry.GetRegistryForInstance(this);
