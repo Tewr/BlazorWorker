@@ -32,10 +32,7 @@ namespace BlazorWorker.BackgroundServiceFactory
             }
 
             var webWorkerOptions = new WebWorkerOptions();
-            if (workerInitOptions.EnvMap?.TryGetValue(WebWorkerOptions.ExpressionSerializerTypeEnvKey, out var serializerType) == true)
-            {
-                webWorkerOptions.ExpressionSerializerType = Type.GetType(serializerType);
-            }
+            webWorkerOptions.SetExpressionSerializerFromInitOptions(workerInitOptions);
 
             var proxy = new WorkerBackgroundServiceProxy<T>(webWorkerProxy, webWorkerOptions);
 
@@ -82,10 +79,8 @@ namespace BlazorWorker.BackgroundServiceFactory
             }
 
             var webWorkerOptions = new WebWorkerOptions();
-            if (workerInitOptions.EnvMap?.TryGetValue(WebWorkerOptions.ExpressionSerializerTypeEnvKey, out var serializerType) == true)
-            {
-                webWorkerOptions.ExpressionSerializerType = Type.GetType(serializerType);
-            }
+            webWorkerOptions.SetExpressionSerializerFromInitOptions(workerInitOptions);
+            
 
             var factoryProxy = new WorkerBackgroundServiceProxy<TFactory>(webWorkerProxy, webWorkerOptions);
             await factoryProxy.InitAsync(workerInitOptions);
@@ -93,6 +88,14 @@ namespace BlazorWorker.BackgroundServiceFactory
             var newProxy = await factoryProxy.InitFromFactoryAsync(factoryExpression);
             newProxy.Disposables.Add(factoryProxy);
             return newProxy;
+        }
+
+        private static void SetExpressionSerializerFromInitOptions(this WebWorkerOptions target, WorkerInitOptions workerInitOptions)
+        {
+            if (workerInitOptions.EnvMap?.TryGetValue(WebWorkerOptions.ExpressionSerializerTypeEnvKey, out var serializerType) == true)
+            {
+                target.ExpressionSerializerType = Type.GetType(serializerType);
+            }
         }
 
         /// <summary>

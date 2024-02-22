@@ -7,7 +7,7 @@ using static BlazorWorker.Demo.SharedPages.Pages.ComplexSerialization;
 namespace BlazorWorker.Demo.SharedPages.Shared
 {
     /// <summary>
-    /// Custom expression Serializer using <see cref="Serialize.Linq.ExpressionSerializer"/> 
+    /// Example 1: Simple custom expression Serializer using <see cref="Serialize.Linq.ExpressionSerializer"/> 
     /// as base class, but explicitly adds complex types as known types.
     /// </summary>
     public class CustomSerializeLinqExpressionJsonSerializer : SerializeLinqExpressionJsonSerializerBase

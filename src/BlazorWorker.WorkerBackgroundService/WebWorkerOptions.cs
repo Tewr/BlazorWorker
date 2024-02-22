@@ -4,6 +4,9 @@ namespace BlazorWorker.WorkerBackgroundService
 {
     public class WebWorkerOptions
     {
+        /// <summary>
+        /// Name of environment variable to be used for transferring the serializer typename
+        /// </summary>
         public static readonly string ExpressionSerializerTypeEnvKey = "BLAZORWORKER_EXPRESSIONSERIALIZER";
 
         private ISerializer messageSerializer;

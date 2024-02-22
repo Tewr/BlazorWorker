@@ -14,7 +14,7 @@ namespace BlazorWorker.Core
         /// </summary>
         public WorkerInitOptions()
         {
-            DependentAssemblyFilenames = new string[] { };
+            DependentAssemblyFilenames = [];
 
 #if NETSTANDARD21
             DeployPrefix = "_framework/_bin";
@@ -49,7 +49,7 @@ namespace BlazorWorker.Core
         public string DeployPrefix { get; }
 
         /// <summary>
-        /// Specifieds the location of the wasm binary
+        /// Specifies the location of the wasm binary
         /// </summary>
         public string WasmRoot { get; }
 
@@ -70,7 +70,7 @@ namespace BlazorWorker.Core
         public MethodIdentifier MessageEndPoint { get; set; }
 
         /// <summary>
-        /// Mono-wasm-annotated endpoint for instanciating the worker. Experts only.
+        /// Mono-wasm-annotated endpoint for instantiating the worker. Experts only.
         /// </summary>
         public MethodIdentifier InitEndPoint { get; set; }
 
@@ -119,10 +119,6 @@ namespace BlazorWorker.Core
             return new WorkerInitOptions
             {
                 CallbackMethod = initOptions.CallbackMethod ?? this.CallbackMethod,
-                /*DependentAssemblyFilenames = this.DependentAssemblyFilenames
-                    .Concat(initOptions.DependentAssemblyFilenames)
-                    .Distinct()
-                    .ToArray(),*/
                 UseConventionalServiceAssembly = initOptions.UseConventionalServiceAssembly,
                 MessageEndPoint = initOptions.MessageEndPoint ?? this.MessageEndPoint,
                 InitEndPoint = initOptions.InitEndPoint ?? this.InitEndPoint,
@@ -139,7 +135,7 @@ namespace BlazorWorker.Core
     {
 
         /// <summary>
-        /// Adds the specified assembly filesnames as dependencies
+        /// Adds the specified assembly filenames as dependencies
         /// </summary>
         /// <param name="source"></param>
         /// <param name="dependentAssemblyFilenames"></param>
@@ -160,7 +156,6 @@ namespace BlazorWorker.Core
         [Obsolete("Manual dependency optimization is silently ignored in this version of BlazorWorker.")]
         public static WorkerInitOptions AddConventionalAssemblyOfService(this WorkerInitOptions source)
         {
-            source.UseConventionalServiceAssembly = true;
             return source;
         }
 
@@ -172,7 +167,7 @@ namespace BlazorWorker.Core
         [Obsolete("Manual dependency optimization is silently ignored in this version of BlazorWorker.")]
         public static WorkerInitOptions AddAssemblyOf<T>(this WorkerInitOptions source)
         {
-            return source.AddAssemblyOfType(typeof(T));
+            return source;
         }
 
         /// <summary>
@@ -184,12 +179,11 @@ namespace BlazorWorker.Core
         [Obsolete("Manual dependency optimization is silently ignored in this version of BlazorWorker.")]
         public static WorkerInitOptions AddAssemblyOfType(this WorkerInitOptions source, Type type)
         {
-            source.AddAssemblies($"{type.Assembly.GetName().Name}.dll");
             return source;
         }
 
         /// <summary>
-        /// Registers the neccessary dependencies for injecting or instanciating <see cref="System.Net.Http.HttpClient"/> in the background service.
+        /// Registers the necessary dependencies for injecting or instantiating <see cref="System.Net.Http.HttpClient"/> in the background service.
         /// </summary>
         /// <param name="source"></param>
         /// <returns></returns>
@@ -197,21 +191,6 @@ namespace BlazorWorker.Core
         [Obsolete("Manual dependency optimization is silently ignored in this version of BlazorWorker.")]
         public static WorkerInitOptions AddHttpClient(this WorkerInitOptions source)
         {
-#if NETSTANDARD21
-            source.AddAssemblies("System.Net.Http.dll", "System.Net.Http.WebAssemblyHttpHandler.dll");
-#endif
-
-#if NET5_0_OR_GREATER
-            source.AddAssemblies(
-                "System.Net.Http.dll", 
-                "System.Security.Cryptography.X509Certificates.dll",
-                "System.Net.Primitives.dll",
-                "System.Net.Requests.dll",
-                "System.Net.Security.dll",
-                "System.Net.dll",
-                "System.Diagnostics.Tracing.dll");
-#endif
-
             return source;
         }
 

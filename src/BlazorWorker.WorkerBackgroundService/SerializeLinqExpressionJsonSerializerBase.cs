@@ -4,6 +4,9 @@ using System.Linq.Expressions;
 
 namespace BlazorWorker.WorkerBackgroundService
 {
+    /// <summary>
+    /// Base class for adding known types to a serializer using <see cref="Serialize.Linq.Serializers.JsonSerializer"/>.
+    /// </summary>
     public abstract class SerializeLinqExpressionJsonSerializerBase : IExpressionSerializer
     {
         private ExpressionSerializer serializer;
@@ -11,7 +14,14 @@ namespace BlazorWorker.WorkerBackgroundService
         private ExpressionSerializer Serializer
             => this.serializer ?? (this.serializer = GetSerializer());
 
+        /// <summary>
+        /// Automatically adds known types as array types. If set to <c>true</c>, sets <see cref="AutoAddKnownTypesAsListTypes"/> to <c>false</c>.
+        /// </summary>
         public bool? AutoAddKnownTypesAsArrayTypes { get; set; }
+
+        /// <summary>
+        /// Automatically adds known types as list types. If set to <c>true</c>, sets <see cref="AutoAddKnownTypesAsArrayTypes"/> to <c>false</c>.
+        /// </summary>
         public bool? AutoAddKnownTypesAsListTypes { get; set; }
 
         public abstract Type[] GetKnownTypes();

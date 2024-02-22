@@ -54,6 +54,11 @@
             Unregisters the event corresponding to the specified <paramref name="handle"/>
             </summary>
         </member>
+        <member name="F:BlazorWorker.WorkerBackgroundService.WebWorkerOptions.ExpressionSerializerTypeEnvKey">
+            <summary>
+            Name of environment variable to be used for transferring the serializer typename
+            </summary>
+        </member>
         <member name="M:BlazorWorker.WorkerBackgroundService.WebWorkerOptions.ValidateExpressionSerializerType(System.Type)">
             <summary>
             Ensures that the provided type implements <see cref="T:BlazorWorker.WorkerBackgroundService.IExpressionSerializer"/>
