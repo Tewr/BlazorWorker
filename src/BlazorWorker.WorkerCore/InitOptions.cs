@@ -14,7 +14,7 @@ namespace BlazorWorker.Core
         /// </summary>
         public WorkerInitOptions()
         {
-            DependentAssemblyFilenames = [];
+            DependentAssemblyFilenames = Array.Empty<string>();
 
 #if NETSTANDARD21
             DeployPrefix = "_framework/_bin";

@@ -4,8 +4,8 @@
     <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
     <Nullable></Nullable>
     <Configurations>Debug;Release;Nuget</Configurations>
-    <Version>4.0.0</Version>
-    <AssemblyVersion>4.0.0.1</AssemblyVersion>
+    <Version>4.1.0</Version>
+    <AssemblyVersion>4.1.0.0</AssemblyVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -29,7 +29,7 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="Serialize.Linq" Version="3.0.148" />
+    <PackageReference Include="Serialize.Linq" Version="3.0.152" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)|$(Platform)'!='Nuget|AnyCPU'">

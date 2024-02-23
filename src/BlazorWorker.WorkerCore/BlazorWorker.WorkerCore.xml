@@ -26,7 +26,7 @@
         </member>
         <member name="P:BlazorWorker.Core.WorkerInitOptions.WasmRoot">
             <summary>
-            Specifieds the location of the wasm binary
+            Specifies the location of the wasm binary
             </summary>
         </member>
         <member name="P:BlazorWorker.Core.WorkerInitOptions.Debug">
@@ -46,7 +46,7 @@
         </member>
         <member name="P:BlazorWorker.Core.WorkerInitOptions.InitEndPoint">
             <summary>
-            Mono-wasm-annotated endpoint for instanciating the worker. Experts only.
+            Mono-wasm-annotated endpoint for instantiating the worker. Experts only.
             </summary>
         </member>
         <member name="P:BlazorWorker.Core.WorkerInitOptions.CallbackMethod">
@@ -85,7 +85,7 @@
         </member>
         <member name="M:BlazorWorker.Core.WorkerInitOptionsExtensions.AddAssemblies(BlazorWorker.Core.WorkerInitOptions,System.String[])">
             <summary>
-            Adds the specified assembly filesnames as dependencies
+            Adds the specified assembly filenames as dependencies
             </summary>
             <param name="source"></param>
             <param name="dependentAssemblyFilenames"></param>
@@ -115,7 +115,7 @@
         </member>
         <member name="M:BlazorWorker.Core.WorkerInitOptionsExtensions.AddHttpClient(BlazorWorker.Core.WorkerInitOptions)">
             <summary>
-            Registers the neccessary dependencies for injecting or instanciating <see cref="T:System.Net.Http.HttpClient"/> in the background service.
+            Registers the necessary dependencies for injecting or instantiating <see cref="T:System.Net.Http.HttpClient"/> in the background service.
             </summary>
             <param name="source"></param>
             <returns></returns>
