@@ -128,7 +128,6 @@ You may try to circument any problems relating to this by changing the default o
 ```cs
   var serviceInstance4 = await worker.CreateBackgroundServiceAsync<MyService>(
       options => options
-          .AddConventionalAssemblyOfService()
           // Allow custom cultures by setting this to zero
           .SetEnv("DOTNET_SYSTEM_GLOBALIZATION_PREDEFINED_CULTURES_ONLY", "0")
   );
