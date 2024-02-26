@@ -117,6 +117,8 @@ https://github.com/Tewr/BlazorWorker/blob/4c9f1320c22f90e4d6e954238ad9b1e0e3f627
 Or a fully custom implementation can be used, or if you want to change Serialize.Linq to some other library):
 https://github.com/Tewr/BlazorWorker/blob/4c9f1320c22f90e4d6e954238ad9b1e0e3f627ce/src/BlazorWorker.Demo/SharedPages/Shared/CustomExpressionSerializer.cs#L22-L45
 
+Special thanks to [@petertorocsik](https://github.com/petertorocsik) for a first idea implementation of this mechanism.
+
 ## More Culture!
 
 Since .net6.0, the runtime defaults to the invariant culture, and new cultures cannot be used or created by default. You [may](https://github.com/Tewr/BlazorWorker/issues/67) get the exception with the message "Only the invariant culture is supported in globalization-invariant mode", commonly when using third-party libraries that make use of any culture other than the invariant one.
