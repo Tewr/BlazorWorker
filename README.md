@@ -102,35 +102,20 @@ public class MyCPUIntensiveService {
 
 ```
 
+### BlazorWorker.BackgroundService: Configure serialization (starting v4.1.0)
 
-## Setup dependencies [DEPRECATED FROM 4.0.0 and onwards]
+Expressions are being serialized with [Serialize.Linq](https://www.nuget.org/packages/Serialize.Linq) by default before being sent over to the worker. Sometimes, when using structured data, particularily when using abstract classes, you may get an exception. The exception messsage may mention something like "Add any types not known statically to the list of known types - for example, by using the KnownTypeAttribute attribute or by adding them to the list of known types passed to DataContractSerializer.". You can follow the first advice by adding [KnownTypeAttribute](https://learn.microsoft.com/fr-fr/dotnet/api/system.runtime.serialization.knowntypeattribute?view=net-8.0) to some classes, but sometimes it wont be possible (maybe the classes aren't yours). 
 
-_While still technically available, these apis are not used by the library since version 4.0.0 and should be removed from your code. They will be completely reomved in a future release._
+To follow the second advice, "passing types to DataContractSerializer", you may configure serialization more in detail. BlazorWorker.BackgroundService uses a default implementation of [IExpressionSerializer](/blob/4c9f1320c22f90e4d6e954238ad9b1e0e3f627ce/src/BlazorWorker.WorkerBackgroundService/IExpressionSerializer.cs) to serialize expressions. You may provide a custom implementation, and pass the type of this class to [IWorkerInitOptions](/blob/4c9f1320c22f90e4d6e954238ad9b1e0e3f627ce/src/BlazorWorker.WorkerCore/InitOptions.cs).[UseCustomExpressionSerializer](/blob/4c9f1320c22f90e4d6e954238ad9b1e0e3f627ce/src/BlazorWorker.ServiceFactory/WorkerInitExtension.cs#L17) when initializing your service. The most common configuration will be to add some types to `AddKnownTypes`, so for that paricular scenario you can use a provided base class as shown below.
 
-By default, `worker.CreateBackgroundServiceAsync<MyService>()` will try to guess the name of the dll that `MyService` resides in (it is usually AssemblyNameOfMyService.dll).
+Setup your service like this:
+https://github.com/Tewr/BlazorWorker/blob/4c9f1320c22f90e4d6e954238ad9b1e0e3f627ce/src/BlazorWorker.Demo/SharedPages/Pages/ComplexSerialization.razor#L93-L94
 
-If your dll name does not match the name of the assembly, or if your service has additional dependencies, you must provide this information in `WorkerInitOptions`. If `WorkerInitOptions` is provided, the default options are no longer created, so you also have to provide the dll `MyService` resides in (even if it is in AssemblyNameOfMyService.dll). Examples:
+The custom serializer can look like this if you just want to use AddKnownTypes, by using the base class:
+https://github.com/Tewr/BlazorWorker/blob/4c9f1320c22f90e4d6e954238ad9b1e0e3f627ce/src/BlazorWorker.Demo/SharedPages/Shared/CustomExpressionSerializer.cs#L13-L17
 
-```cs
-  // Custom service dll, additional dependency, using dll names
-  var serviceInstance = await worker.CreateBackgroundServiceAsync<MyService>(
-      options => options.AddAssemblies("MyService.dll", "MyServiceDependency.dll")
-  );
-      
-  // Default service dll, additional dependency with dll deduced from assembly name of provided type
-  var serviceInstance2 = await worker.CreateBackgroundServiceAsync<MyService>(
-      options => options
-          .AddConventionalAssemblyOfService()
-          .AddAssemblyOf<TypeOfMyServiceDependency>()
-  );
-  
-  // In addition to default service dll, add HttpClient as Dependency (built-in dependency definition / helper)
-  var serviceInstance3 = await worker.CreateBackgroundServiceAsync<MyService>(
-      options => options
-          .AddConventionalAssemblyOfService()
-          .AddHttpClient()
-  );
-```
+Or a fully custom implementation can be used, or if you want to change Serialize.Linq to some other library):
+https://github.com/Tewr/BlazorWorker/blob/4c9f1320c22f90e4d6e954238ad9b1e0e3f627ce/src/BlazorWorker.Demo/SharedPages/Shared/CustomExpressionSerializer.cs#L22-L45
 
 ## More Culture!
 
