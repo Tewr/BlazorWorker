@@ -33,7 +33,7 @@ namespace BlazorWorker.Demo.SharedPages.Shared
                 new() { Icon = "transfer", Href="IoCExample", Text = "IoC / DI Example" }
             },
             {
-                new() { Icon = "document", Href="IndexedDB", Text = "IndexedDB" }
+                new() { Icon = "document", Href="IndexedDb", Text = "IndexedDB" }
             },
             {
                 new() { Icon = "document", Href="ComplexSerialization", Text = "ComplexSerialization" }
