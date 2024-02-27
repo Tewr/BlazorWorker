@@ -1,5 +1,5 @@
 window.BlazorWorker = function () {
-    
+
     const workers = {};
     const disposeWorker = function (workerId) {
 
@@ -14,212 +14,244 @@ window.BlazorWorker = function () {
     };
 
     const workerDef = function () {
-
         const initConf = JSON.parse('$initConf$');
-        const blobRoot = self.location.href.split("/").slice(0, -1).join("/");
-        const proxyLocation = { href: initConf.appRoot };
-        const fetchHandler = {
-            apply: function (target, thisArg, args) {
-                // replaces blob urls with appRoot urls. Mono will attempt to load dlls from self.location.href.
-                args[0] = args[0].replace(blobRoot, initConf.appRoot);
-                
-                if (initConf.runtimePreprocessorSymbols.NET8_0_OR_GREATER) {
-                    if (self.modifiedBlazorbootConfig && args[0].endsWith(initConf.blazorBoot)) {
 
-                        return Promise.race([new Response(JSON.stringify(self.modifiedBlazorbootConfig),
-                            { "status": 200, headers: { "Content-Type": "application/json" } })]);
-                    }
-                }
-                if (args[0].endsWith("mono-config.json")) {
-                    // TODO: Can this horrible hack be avoided by calling dotnet.withConfig ?
-                    // https://github.com/dotnet/runtime/blob/main/src/mono/wasm/runtime/dotnet.d.ts#L75C5-L75C15
-                    return Promise.race([new Response(JSON.stringify(self.blazorbootMonoConfig),
-                        { "status": 200, headers: { "Content-Type": "application/json" } })]);
-                }
+        const nonExistingDlls = [];
+        let blazorBootManifest = {
+            resources: { assembly: { "AssemblyName.dll": "sha256-<sha256>" } }
+        };
 
-                return target.apply(thisArg, args);
-            }
-        }
-        self.nativeFetch = fetch;
-        const proxyFetch = new Proxy(fetch, fetchHandler);
-        self.fetch = proxyFetch;
-        const handler = {
-            get: function (target, prop, pxy) {
-                if (prop == "location") {
-                    return proxyLocation;
-                }
-
-                if (prop == "fetch") {
-                    return proxyFetch;
-                }
-
-                return target[prop];
-                
-            }
-        }
-        self.window = new Proxy(self, handler);
-        let messageHandler;
-
+        let endInvokeCallBack;
         const onReady = () => {
+            endInvokeCallBack =
+                BINDING.bind_static_method(initConf.endInvokeCallBackEndpoint);
+            const messageHandler =
+                BINDING.bind_static_method(initConf.MessageEndPoint);
             // Future messages goes directly to the message handler
             self.onmessage = msg => {
                 messageHandler(msg.data);
             };
 
+            if (!initConf.InitEndPoint) {
+                return;
+            }
+
             try {
-                self.initMethod();
+                Module.mono_call_static_method(initConf.InitEndPoint, initConf.InitEndPoint.includes("SimpleInstanceService") ? [] : [JSON.stringify(initConf.customKnownTypeNames)]);
             } catch (e) {
-                console.error(`Init method ${JSON.stringify(initConf.initEndPoint)} failed`, e);
+                console.error(`Init method ${initConf.InitEndPoint} failed`, e);
                 throw e;
             }
         };
 
-        // reduce dot notation to last member of chain
-        const getChildFromDotNotation = (member, root) =>
-            member.split(".").reduce((m, prop) => Object.hasOwnProperty.call(m, prop) ? m[prop] : empty, root || self);
+        const onError = (err) => {
+            console.error(err);
+        };
 
+        function asyncLoad(url, reponseType) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                const arrayBufferType = 'arraybuffer';
+                xhr.open('GET', url, /* async: */ true);
+                xhr.responseType = reponseType || arrayBufferType;
+                xhr.onload = function xhr_onload() {
+                    if (xhr.status == 200 || xhr.status == 0 && xhr.response) {
+                        if (this.responseType === arrayBufferType) {
+                            const asm = new Uint8Array(xhr.response);
+                            resolve(asm);
+                        } else {
+                            resolve(xhr.response);
+                        }
+                    } else {
+                        reject(xhr);
+                    }
+                };
+                xhr.onerror = reject;
+                xhr.send(undefined);
+            });
+        }
 
+        var config = {};
+        var module = (self['Module'] || {});
+
+        const wasmBinaryFile = `${initConf.appRoot}/${initConf.wasmRoot}/dotnet.wasm`;
+        const suppressMessages = ['DEBUGGING ENABLED'];
+        const appBinDirName = 'appBinDir';
+
+        module.print = line => (suppressMessages.indexOf(line) < 0 && console.log(`WASM-WORKER: ${line}`));
+
+        module.printErr = line => {
+            console.error(`WASM-WORKER: ${line}`, arguments);
+        };
+        module.preRun = module.preRun || [];
+        module.postRun = module.postRun || [];
+        module.preloadPlugins = [];
+        module.locateFile = fileName => {
+            switch (fileName) {
+                case 'dotnet.wasm': return wasmBinaryFile;
+                default: return fileName;
+            }
+        };
+        module.onRuntimeInitialized = () => {
+            const envMap = initConf.envMap;
+            for (const key in envMap) {
+                if (Object.prototype.hasOwnProperty.call(envMap, key)) {
+                    MONO.mono_wasm_setenv(key, envMap[key]);
+                }
+            }
+        }
+
+        module.preRun.push(() => {
+            const mono_wasm_add_assembly = Module.cwrap('mono_wasm_add_assembly', null, [
+                'string',
+                'number',
+                'number',
+            ]);
+            mono_string_get_utf8 = Module.cwrap('mono_wasm_string_get_utf8', 'number', ['number']);
+
+            MONO.loaded_files = [];
+            var baseUrl = `${initConf.appRoot}/${initConf.deploy_prefix}`;
+
+            initConf.DependentAssemblyFilenames.forEach(url => {
+
+                if (!blazorBootManifest.resources.assembly.hasOwnProperty(url)) {
+                    //Do not attempt to load a dll which is not present anyway
+                    nonExistingDlls.push(url);
+                    return;
+                }
+
+                const runDependencyId = `blazorWorker:${url}`;
+                addRunDependency(runDependencyId);
+
+                asyncLoad(baseUrl + '/' + url).then(
+                    data => {
+
+                        const heapAddress = Module._malloc(data.length);
+                        const heapMemory = new Uint8Array(Module.HEAPU8.buffer, heapAddress, data.length);
+                        heapMemory.set(data);
+                        mono_wasm_add_assembly(url, heapAddress, data.length);
+                        MONO.loaded_files.push(url);
+                        removeRunDependency(runDependencyId);
+                    },
+                    errorInfo => {
+                        const isPdb404 = errorInfo instanceof XMLHttpRequest
+                            && errorInfo.status === 404
+                            && url.match(/\.pdb$/);
+                        if (!isPdb404) {
+                            onError(errorInfo);
+                        }
+                        removeRunDependency(runDependencyId);
+                    }
+                );
+            });
+        });
+
+        module.postRun.push(() => {
+
+            const load_runtime = Module.cwrap('mono_wasm_load_runtime', null, ['string', 'number']);
+            load_runtime(appBinDirName, 0);
+            MONO.mono_wasm_runtime_is_ready = true;
+
+            onReady();
+            if (initConf.debug && nonExistingDlls.length > 0) {
+                console.warn(`BlazorWorker: Module.postRun: ${nonExistingDlls.length} assemblies was specified as a dependency for the worker but was not present in the bootloader. This may be normal if trimmming is used. To remove this warning, either configure the linker not to trim the specified assemblies if they were removed in error, or conditionally remove the specified dependencies for builds that uses trimming. If trimming is not used, make sure that the assembly is included in the build.`, nonExistingDlls);
+            }
+        });
+
+        config.file_list = [];
+
+        global = globalThis;
+        self.Module = module;
 
         //TODO: This call could/should be session cached. But will the built-in blazor fetch service worker override 
         // (PWA et al) do this already if configured ?
-        fetch(`${initConf.appRoot}/${initConf.blazorBoot}`)
-            .then(async response => {
-                const blazorboot = await response.json();
-                /* START NET8_0_OR_GREATER */
-                if (initConf.runtimePreprocessorSymbols.NET8_0_OR_GREATER) {
-                    self.modifiedBlazorbootConfig = blazorboot;
-                    self.modifiedBlazorbootConfig.mainAssemblyName = "BlazorWorker.WorkerCore";
-                }
-                /* END NET8_0_OR_GREATER */
-                /* START NET7_0 */
-                if (initConf.runtimePreprocessorSymbols.NET7_0) {
-                    const blazorbootMonoConfig = {
-                        "mainAssemblyName": "BlazorWorker.WorkerCore.dll",
-                        "assemblyRootFolder": "_framework",
-                        "debugLevel": initConf.DebugLevel || -1,
-                        "assets":
-                            [...Object.keys(blazorboot.resources.assembly)
-                                .concat(Object.keys(blazorboot.resources.pdb || {}) || []).map(dllName => {
-                                    return {
-                                        "behavior": "assembly",
-                                        "name": dllName
-                                    };
-                                }),
-                            ...[
-                                {
-                                    "virtualPath": "runtimeconfig.bin",
-                                    "behavior": "vfs",
-                                    "name": "supportFiles/0_runtimeconfig.bin"
-                                },
-                                {
-                                    "virtualPath": "dotnet.js.symbols",
-                                    "behavior": "vfs",
-                                    "name": "supportFiles/1_dotnet.js.symbols"
-                                },
-                                {
-                                    "loadRemote": false,
-                                    "behavior": "icu",
-                                    "name": "icudt.dat"
-                                },
-                                {
-                                    "virtualPath": "/usr/share/zoneinfo/",
-                                    "behavior": "vfs",
-                                    "name": "dotnet.timezones.blat"
-                                },
-                                {
-                                    "behavior": "dotnetwasm",
-                                    "name": "_framework/dotnet.wasm"
-                                }
-                                ]],
-                        "remoteSources": [],
-                        "pthreadPoolSize": 0,
-                        "generatedFromBlazorBoot":true
-                    };
-
-                    self.blazorbootMonoConfig = blazorbootMonoConfig;
-                }
-                /* END NET7_0 */
-
+        asyncLoad(`${initConf.appRoot}/${initConf.blazorBoot}`, 'json')
+            .then(blazorboot => {
+                blazorBootManifest = blazorboot;
                 let dotnetjsfilename = '';
-                /* START NET7_0 */
-                if (initConf.runtimePreprocessorSymbols.NET7_0) {
-                    const runttimeSection = blazorboot.resources.runtime;
-                    for (var p in runttimeSection) {
-                        if (Object.prototype.hasOwnProperty.call(runttimeSection, p) && p.startsWith('dotnet.') && p.endsWith('.js')) {
-                            dotnetjsfilename = p;
-                        }
-                    }
-    
-                    if (dotnetjsfilename === '') {
-                        throw 'BlazorWorker: Unable to locate dotnetjs file in blazor boot config.';
+                const runttimeSection = blazorboot.resources.runtime;
+                for (var p in runttimeSection) {
+                    if (Object.prototype.hasOwnProperty.call(runttimeSection, p) && p.startsWith('dotnet.') && p.endsWith('.js')) {
+                        dotnetjsfilename = p;
                     }
                 }
-                /* END NET7_0 */
-                /* START NET8_0_OR_GREATER */
-                if (initConf.runtimePreprocessorSymbols.NET8_0_OR_GREATER) {
-                    dotnetjsfilename = "dotnet.js";
-                }
-                /* END NET8_0_OR_GREATER */
-                const { dotnet } = await import(`${initConf.appRoot}/${initConf.wasmRoot}/${dotnetjsfilename}`);
 
-                const { setModuleImports, getAssemblyExports } = await dotnet
-                    .withDiagnosticTracing(initConf.debug)
-                    .withEnvironmentVariables(initConf.envMap)
-                    .create();
-
-                setModuleImports('BlazorWorker.js', {
-                    PostMessage: (messagecontent) => {
-                        self.postMessage(messagecontent);
-                    },
-
-                    ImportLocalScripts: async (urls) => {
-                        await self.importLocalScripts(urls);
-                    },
-
-                    IsObjectDefined: (workerScopeObject) => {
-                        return self.isObjectDefined(workerScopeObject);
-                    }
-                });
-
-
-                self.BlazorWorker = {
-                    getChildFromDotNotation,
-                    getAssemblyExports,
-                    setModuleImports,
-                    empty
-                };
-
-                const getMethodFromMethodIdentifier = async function (methodIdentifier) {
-                    const exports = await getAssemblyExports(methodIdentifier.assemblyName);
-                    const method = getChildFromDotNotation(methodIdentifier.fullMethodName, exports);
-                    if (!method || method === empty || !(method instanceof Function)) {
-                        throw new Error(`Unable to find method '${methodIdentifier.fullMethodName}' in assembly '${methodIdentifier.assemblyName}}'. Are you missing a JSExport attribute?`);
-                    }
-
-                    return method;
+                if (dotnetjsfilename === '') {
+                    throw 'BlazorWorker: Unable to locate dotnetjs file in blazor boot config.';
                 }
 
-                messageHandler = await getMethodFromMethodIdentifier(initConf.messageEndPoint);
-                self.initMethod = await getMethodFromMethodIdentifier(initConf.initEndPoint);
- 
-                onReady();
-            
-            }, errorInfo => console.error("error loading blazorboot", errorInfo));
+                self.importScripts(`${initConf.appRoot}/${initConf.wasmRoot}/${dotnetjsfilename}`);
+
+            }, errorInfo => onError(errorInfo));
+
+        self.jsRuntimeSerializers = new Map();
+        self.jsRuntimeSerializers.set('nativejson', {
+            serialize: o => JSON.stringify(o),
+            deserialize: s => JSON.parse(s)
+        });
 
         const empty = {};
 
-        // Import module script from a path relative to approot
-        self.importLocalScripts = async (urls) => {
-            if (urls === undefined || urls === null) {
-                return;
+        // reduce dot notation to last member of chain
+        const getChildFromDotNotation = member =>
+            member.split(".").reduce((m, prop) => Object.hasOwnProperty.call(m, prop) ? m[prop] : empty, self);
+
+        // Async invocation with callback.
+        self.beginInvokeAsync = async function (serializerId, invokeId, method, isVoid, argsString) {
+
+            let result;
+            let isError = false;
+            let serializer = self.jsRuntimeSerializers.get(serializerId);
+            if (!serializer) {
+                result = `beginInvokeAsync: Unknown serializer with id '${serializerId}'`;
+                serializer = self.jsRuntimeSerializers.get('nativejson');
+                isError = true;
             }
-            if (!urls.map) {
-                urls = [urls]
+
+
+            const methodHandle = getChildFromDotNotation(method);
+
+            if (!isError && methodHandle === empty) {
+                result = `beginInvokeAsync: Method '${method}' not defined`;
+                isError = true;
             }
-            for (const url of urls) {
-                const urlToLoad = initConf.appRoot + (url.startsWith('/') ? '' : '/') + url;
-                await import(urlToLoad);
+
+            if (!isError) {
+
+                try {
+                    const argsArray = serializer.deserialize(argsString);
+                    result = await methodHandle(...argsArray);
+                }
+                catch (e) {
+                    result = `${e}\nJS Stacktrace:${(e.stack || new Error().stack)}`;
+                    isError = true;
+                }
             }
+
+            let resultString;
+            if (isVoid && !isError) {
+                resultString = null;
+            } else {
+                try {
+                    resultString = serializer.serialize(result);
+                } catch (e) {
+                    result = `${e}\nJS Stacktrace:${(e.stack || new Error().stack)}`;
+                    isError = true;
+                }
+            }
+
+            try {
+                endInvokeCallBack(invokeId, isError, resultString);
+            } catch (e) {
+
+                console.error(`BlazorWorker: beginInvokeAsync: Callback to ${initConf.endInvokeCallBackEndpoint} failed. Method: ${method}, args: ${argsString}`, e);
+                throw e;
+            }
+        };
+
+        // Import script from a path relative to approot
+        self.importLocalScripts = (...urls) => {
+            self.importScripts(urls.map(url => initConf.appRoot + (url.startsWith('/') ? '' : '/') + url));
         };
 
         self.isObjectDefined = (workerScopeObject) => {
@@ -227,34 +259,35 @@ window.BlazorWorker = function () {
         };
     };
 
-    const inlineWorker = `self.onmessage = ${workerDef}()`; 
+    const inlineWorker = `self.onmessage = ${workerDef}()`;
 
     const initWorker = function (id, callbackInstance, initOptions) {
         let appRoot = (document.getElementsByTagName('base')[0] || { href: window.location.origin }).href || "";
         if (appRoot.endsWith("/")) {
-            appRoot = appRoot.substring(0, appRoot.length - 1);
+            appRoot = appRoot.substr(0, appRoot.length - 1);
         }
-        
+
         const initConf = {
             appRoot: appRoot,
-            workerId:id,
-            runtimePreprocessorSymbols: initOptions.runtimePreprocessorSymbols || {},
-            messageEndPoint: initOptions.messageEndPoint,
-            initEndPoint: initOptions.initEndPoint,
+            DependentAssemblyFilenames: initOptions.dependentAssemblyFilenames,
+            deploy_prefix: initOptions.deployPrefix,
+            MessageEndPoint: initOptions.messageEndPoint,
+            InitEndPoint: initOptions.initEndPoint,
             endInvokeCallBackEndpoint: initOptions.endInvokeCallBackEndpoint,
             wasmRoot: initOptions.wasmRoot,
             blazorBoot: "_framework/blazor.boot.json",
             envMap: initOptions.envMap,
-            debug: initOptions.debug
+            debug: initOptions.debug,
+            customKnownTypeNames: initOptions.customKnownTypeNames
         };
-        
+
         // Initialize worker
         const renderedConfig = JSON.stringify(initConf);
         const renderedInlineWorker = inlineWorker.replace('$initConf$', renderedConfig);
         window.URL = window.URL || window.webkitURL;
         const blob = new Blob([renderedInlineWorker], { type: 'application/javascript' });
         const workerUrl = URL.createObjectURL(blob);
-        const worker = new Worker(workerUrl, { type: 'module'});
+        const worker = new Worker(workerUrl);
         workers[id] = {
             worker: worker,
             url: workerUrl
@@ -271,6 +304,8 @@ window.BlazorWorker = function () {
     const postMessage = function (workerId, message) {
         workers[workerId].worker.postMessage(message);
     };
+
+
 
     return {
         disposeWorker,

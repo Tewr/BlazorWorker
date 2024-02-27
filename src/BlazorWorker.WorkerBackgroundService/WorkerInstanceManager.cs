@@ -2,27 +2,25 @@
 using BlazorWorker.WorkerCore.SimpleInstanceService;
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Linq.Expressions;
-using System.Runtime.InteropServices.JavaScript;
-using System.Runtime.Versioning;
 using System.Threading.Tasks;
 
 namespace BlazorWorker.WorkerBackgroundService
 {
-    [SupportedOSPlatform("browser")]
     public partial class WorkerInstanceManager
     {
         private readonly ConcurrentDictionary<long, IEventWrapper> events =
-             new();
+             new ConcurrentDictionary<long, IEventWrapper>();
 
         private static readonly MessageHandlerRegistry<WorkerInstanceManager> messageHandlerRegistry
-            = new(wim => wim.serializer);
+            = new MessageHandlerRegistry<WorkerInstanceManager>(wim => wim.serializer);
 
-        public static readonly WorkerInstanceManager Instance = new();
+        public readonly static WorkerInstanceManager Instance = new WorkerInstanceManager();
 
         internal readonly ISerializer serializer;
-        private readonly WebWorkerOptions options;
-        
+        private WebWorkerOptions options;
+
         private readonly MessageHandler<WorkerInstanceManager> messageHandler;
         private readonly SimpleInstanceService simpleInstanceService;
 
@@ -39,20 +37,17 @@ namespace BlazorWorker.WorkerBackgroundService
         public WorkerInstanceManager()
         {
             this.serializer = new DefaultMessageSerializer();
-            this.options = new WebWorkerOptions();
-            var expressionSerializerType = Environment.GetEnvironmentVariable(WebWorkerOptions.ExpressionSerializerTypeEnvKey);
-            if (expressionSerializerType != null)
-            {
-                this.options.ExpressionSerializerType = Type.GetType(expressionSerializerType);
-            }
-            
             this.simpleInstanceService = SimpleInstanceService.Instance;
 
             this.messageHandler = messageHandlerRegistry.GetRegistryForInstance(this);
         }
 
-        [JSExport]
-        public static void Init() {
+        public static void Init(string customKnownTypeNames)
+        {
+            Instance.options = customKnownTypeNames == "null" ?
+                new WebWorkerOptions() :
+                new WebWorkerOptions(Instance.serializer.Deserialize<Type[]>(customKnownTypeNames).Select(type => type.AssemblyQualifiedName));
+
             MessageService.Message += Instance.OnMessage;
             Instance.PostObject(new InitWorkerComplete());
 #if DEBUG
@@ -101,7 +96,8 @@ namespace BlazorWorker.WorkerBackgroundService
             {
                 Task.Run(async () =>
                     await MethodCall(methodCallMessage))
-                    .ContinueWith(t => { 
+                    .ContinueWith(t =>
+                    {
                         if (t.IsFaulted)
                         {
                             handleError(t.Exception);
@@ -126,7 +122,8 @@ namespace BlazorWorker.WorkerBackgroundService
 
         private void UnRegisterEvent(UnRegisterEvent unregisterEventMessage)
         {
-            if (!events.TryRemove(unregisterEventMessage.EventHandleId, out var wrapper)) {
+            if (!events.TryRemove(unregisterEventMessage.EventHandleId, out var wrapper))
+            {
                 return;
             }
 
@@ -148,12 +145,12 @@ namespace BlazorWorker.WorkerBackgroundService
             {
                 throw new ArgumentException($"{nameof(RegisterEvent)}: Unable to load type '{registerEventMessage.EventHandlerTypeArg}' for event '{registerEventMessage.EventName}'");
             }
-            
+
             var wrapperType = typeof(EventHandlerWrapper<>).MakeGenericType(eventType);
-            
+
             var wrapper = (IEventWrapper)Activator.CreateInstance(wrapperType, this, registerEventMessage.InstanceId, registerEventMessage.EventHandleId);
 
-            var delegateMethod = Delegate.CreateDelegate(eventSignature.EventHandlerType, wrapper, nameof(EventHandlerWrapper<object>.OnEvent)); 
+            var delegateMethod = Delegate.CreateDelegate(eventSignature.EventHandlerType, wrapper, nameof(EventHandlerWrapper<object>.OnEvent));
             eventSignature.AddEventHandler(instance, delegateMethod);
             wrapper.Unregister = () => eventSignature.RemoveEventHandler(instance, delegateMethod);
             if (!events.TryAdd(wrapper.EventHandleId, wrapper))
@@ -170,11 +167,12 @@ namespace BlazorWorker.WorkerBackgroundService
                     Id = createInstanceInfo.InstanceId,
                     TypeName = createInstanceInfo.TypeName,
                     AssemblyName = createInstanceInfo.AssemblyName
-                }, IsInfrastructureMessage);            
-            
-            PostObject(new InitInstanceComplete() { 
-                CallId = createInstanceInfo.CallId, 
-                IsSuccess = initResult.IsSuccess, 
+                }, IsInfrastructureMessage);
+
+            PostObject(new InitInstanceComplete()
+            {
+                CallId = createInstanceInfo.CallId,
+                IsSuccess = initResult.IsSuccess,
                 Exception = initResult.Exception,
             });
         }
@@ -215,7 +213,8 @@ namespace BlazorWorker.WorkerBackgroundService
         public void DisposeInstance(DisposeInstance dispose)
         {
             var res = simpleInstanceService.DisposeInstance(
-                new DisposeInstanceRequest { 
+                new DisposeInstanceRequest
+                {
                     InstanceId = dispose.InstanceId,
                     CallId = dispose.CallId
                 });
@@ -231,16 +230,16 @@ namespace BlazorWorker.WorkerBackgroundService
         public async Task<object> MethodCall(MethodCallParams instanceMethodCallParams)
         {
             var instance = simpleInstanceService.instances[instanceMethodCallParams.InstanceId].Instance;
-            var lambda = this.options.ExpressionSerializer.Deserialize(instanceMethodCallParams.SerializedExpression) 
+            var lambda = this.options.ExpressionSerializer.Deserialize(instanceMethodCallParams.SerializedExpression)
                 as LambdaExpression;
             var dynamicDelegate = lambda.Compile();
             var result = dynamicDelegate.DynamicInvoke(instance);
-            
+
             if (!instanceMethodCallParams.AwaitResult)
             {
                 return result;
             }
-            
+
             var taskResult = result as Task;
             if (taskResult != null)
             {
