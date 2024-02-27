@@ -15,7 +15,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BlazorWorker.Extensions.JSRuntime\BlazorWorker.Extensions.JSRuntime.csproj" />
-    <ProjectReference Include="..\BlazorWorker.WorkerCore\BlazorWorker.WorkerCore.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='net8.0'">
