@@ -53,7 +53,7 @@
     <ProjectReference Include="..\BlazorWorker.WorkerCore\BlazorWorker.WorkerCore.csproj" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)|$(Platform)'=='Nuget|AnyCPU'">
-    <PackageReference Include="Tewr.BlazorWorker.Core" Version="4.0.0" />
+    <PackageReference Include="Tewr.BlazorWorker.Core" Version="4.1.2" />
   </ItemGroup>
   
 </Project>

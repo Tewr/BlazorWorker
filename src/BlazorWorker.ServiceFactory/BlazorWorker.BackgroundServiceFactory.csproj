@@ -11,8 +11,8 @@
     <Authors>Tewr</Authors>
     <Product>BlazorWorker</Product>
     <Configurations>Debug;Release;Nuget</Configurations>
-    <Version>4.1.1</Version>
-    <AssemblyVersion>4.1.1.0</AssemblyVersion>
+    <Version>4.1.2</Version>
+    <AssemblyVersion>4.1.2.0</AssemblyVersion>
     <PackageIcon>icon.png</PackageIcon>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
@@ -42,7 +42,7 @@
   </ItemGroup>
   
   <ItemGroup Condition="'$(Configuration)|$(Platform)'=='Nuget|AnyCPU'">
-    <PackageReference Include="Tewr.BlazorWorker.Core" Version="4.0.0" />
+    <PackageReference Include="Tewr.BlazorWorker.Core" Version="4.1.2" />
   </ItemGroup>
 
   <ItemGroup>

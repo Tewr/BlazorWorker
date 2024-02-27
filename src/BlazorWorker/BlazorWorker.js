@@ -209,16 +209,16 @@ window.BlazorWorker = function () {
         const empty = {};
 
         // Import module script from a path relative to approot
-        self.importLocalScripts = async (...urls) => {
+        self.importLocalScripts = async (urls) => {
             if (urls === undefined || urls === null) {
                 return;
             }
             if (!urls.map) {
                 urls = [urls]
             }
-            const mappedUrls = urls.map(url => initConf.appRoot + (url.startsWith('/') ? '' : '/') + url);
-            for (const url of mappedUrls) {
-                await import(url);
+            for (const url of urls) {
+                const urlToLoad = initConf.appRoot + (url.startsWith('/') ? '' : '/') + url;
+                await import(urlToLoad);
             }
         };
 
