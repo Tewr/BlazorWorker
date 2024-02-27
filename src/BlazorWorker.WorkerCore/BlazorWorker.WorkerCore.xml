@@ -133,5 +133,13 @@
             For more information see https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-environment-variables
             </remarks>
         </member>
+        <member name="M:BlazorWorker.Core.WorkerInitOptionsExtensions.AddCustomKnownTypes(BlazorWorker.Core.WorkerInitOptions,System.Type[])">
+            <summary>
+            Sets the AssemblyQualifiedName values from specified <paramref name="customKnownTypes"/> to <see cref="P:BlazorWorker.Core.WorkerInitOptions.CustomKnownTypeNames"/>.
+            </summary>
+            <param name="source"></param>
+            <param name="customKnownTypes"></param>
+            <returns></returns>
+        </member>
     </members>
 </doc>
