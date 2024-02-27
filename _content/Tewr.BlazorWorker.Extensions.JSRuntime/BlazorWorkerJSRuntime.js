@@ -1,7 +1,8 @@
 ﻿class DotNetObjectProxy {
     constructor(id) {
         this.__dotNetObject = id;
-        this.serializer = self.jsRuntimeSerializers.get('BlazorWorkerJSRuntimeSerializer');
+        this.serializer = self.jsRuntimeSerializer;
+        this.blazorWorkerJSRuntime = self.BlazorWorker.getAssemblyExports("BlazorWorker.Extensions.JSRuntime").BlazorWorkerJSRuntime;
     }
 
     invokeMethodAsync(methodName, ...methodArgs) {
@@ -11,7 +12,7 @@
                     methodName,
                     methodargs: methodArgs || []
                 });
-                var result = self.Module.mono_call_static_method("[BlazorWorker.Extensions.JSRuntime]BlazorWorker.Extensions.JSRuntime.BlazorWorkerJSRuntime:InvokeMethod", this.__dotNetObject, argsString);
+                var result = this.blazorWorkerJSRuntime.InvokeMethod(this.__dotNetObject, argsString);
                 resolve(result);
             } catch (e) {
                 reject(e);
@@ -23,11 +24,13 @@
 class BlazorWorkerJSRuntimeSerializer  {
     
     constructor() {
-        this.baseSerializer = self.jsRuntimeSerializers.get('nativejson');
+        this.baseSerializer = {
+            serialize: o => JSON.stringify(o),
+            deserialize: s => JSON.parse(s)
+        };
     }
 
     serialize = (o) => this.baseSerializer.serialize(o);
-    
 
     deserialize = (s) => {
         let deserializedObj = this.baseSerializer.deserialize(s);
@@ -56,4 +59,34 @@ class BlazorWorkerJSRuntimeSerializer  {
     }
 };
 
-self.jsRuntimeSerializers.set('BlazorWorkerJSRuntimeSerializer', new BlazorWorkerJSRuntimeSerializer());
+const serializer = new BlazorWorkerJSRuntimeSerializer();
+
+const workerInvokeAsync = async function (method, argsString) {
+    
+    const methodHandle = self.BlazorWorker.getChildFromDotNotation(method);
+
+    if (methodHandle === self.BlazorWorker.empty) {
+        throw new Error(`workerInvokeAsync: Method '${method}' not defined`);
+    }
+
+    const argsArray = serializer.deserialize(argsString);
+    const result = await methodHandle(...argsArray);
+    return serializer.serialize(result);
+}
+
+const workerInvoke = function (method, argsString) {
+    
+    const methodHandle = self.BlazorWorker.getChildFromDotNotation(method);
+    if (methodHandle === self.BlazorWorker.empty) {
+        throw new Error(`workerInvoke: Method '${method}' not defined`);
+    }
+
+    const argsArray = serializer.deserialize(argsString);
+    const result = methodHandle(...argsArray);
+    return serializer.serialize(result);
+}
+
+self.BlazorWorker.setModuleImports("BlazorWorkerJSRuntime.js", {
+    WorkerInvokeAsync: workerInvokeAsync,
+    WorkerInvoke: workerInvoke
+});
