@@ -1,6 +1,4 @@
 ﻿using Serialize.Linq.Serializers;
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace BlazorWorker.WorkerBackgroundService
@@ -8,17 +6,10 @@ namespace BlazorWorker.WorkerBackgroundService
     public class SerializeLinqExpressionSerializer : IExpressionSerializer
     {
         private readonly ExpressionSerializer serializer;
-
-        public SerializeLinqExpressionSerializer(IEnumerable<Type> customKnownTypes = null)
+        
+        public SerializeLinqExpressionSerializer()
         {
-            var jsonSerializer = new JsonSerializer();
-
-            if (customKnownTypes != null)
-            {
-                jsonSerializer.AddKnownTypes(customKnownTypes);
-            }
-
-            this.serializer = new ExpressionSerializer(jsonSerializer);
+            this.serializer = new ExpressionSerializer(new JsonSerializer());
         }
 
         public Expression Deserialize(string expressionString)

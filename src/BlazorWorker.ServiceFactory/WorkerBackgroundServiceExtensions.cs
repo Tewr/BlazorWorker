@@ -26,12 +26,16 @@ namespace BlazorWorker.BackgroundServiceFactory
             {
                 throw new ArgumentNullException(nameof(webWorkerProxy));
             }
-
-            var proxy = new WorkerBackgroundServiceProxy<T>(webWorkerProxy, CreateAndInitWebWorkerOptions(workerInitOptions));
             if (workerInitOptions == null)
             {
-                workerInitOptions = new WorkerInitOptions().AddAssemblyOf<T>();
+                workerInitOptions = new WorkerInitOptions();
             }
+
+            var webWorkerOptions = new WebWorkerOptions();
+            webWorkerOptions.SetExpressionSerializerFromInitOptions(workerInitOptions);
+
+            var proxy = new WorkerBackgroundServiceProxy<T>(webWorkerProxy, webWorkerOptions);
+
 
             await proxy.InitAsync(workerInitOptions);
             return proxy;
@@ -49,8 +53,8 @@ namespace BlazorWorker.BackgroundServiceFactory
         public static async Task<IWorkerBackgroundService<TService>> CreateBackgroundServiceUsingFactoryAsync<TFactory, TService>(
             this IWorker webWorkerProxy,
             Expression<Func<TFactory, TService>> factoryExpression,
-            Action<WorkerInitOptions> workerInitOptionsModifier = null)
-            where TFactory : class
+            Action<WorkerInitOptions> workerInitOptionsModifier = null) 
+            where TFactory : class 
             where TService : class
         {
             if (webWorkerProxy is null)
@@ -64,21 +68,34 @@ namespace BlazorWorker.BackgroundServiceFactory
             }
 
             var workerInitOptions = new WorkerInitOptions();
-            if (workerInitOptionsModifier == null)
-            {
-                workerInitOptions.AddAssemblyOf<TService>();
-            }
-            else
+            if (workerInitOptionsModifier != null)
             {
                 workerInitOptionsModifier(workerInitOptions);
             }
 
-            var factoryProxy = new WorkerBackgroundServiceProxy<TFactory>(webWorkerProxy, CreateAndInitWebWorkerOptions(workerInitOptions));
+            if (workerInitOptions == null)
+            {
+                workerInitOptions = new WorkerInitOptions();
+            }
+
+            var webWorkerOptions = new WebWorkerOptions();
+            webWorkerOptions.SetExpressionSerializerFromInitOptions(workerInitOptions);
+            
+
+            var factoryProxy = new WorkerBackgroundServiceProxy<TFactory>(webWorkerProxy, webWorkerOptions);
             await factoryProxy.InitAsync(workerInitOptions);
 
             var newProxy = await factoryProxy.InitFromFactoryAsync(factoryExpression);
             newProxy.Disposables.Add(factoryProxy);
             return newProxy;
+        }
+
+        private static void SetExpressionSerializerFromInitOptions(this WebWorkerOptions target, WorkerInitOptions workerInitOptions)
+        {
+            if (workerInitOptions.EnvMap?.TryGetValue(WebWorkerOptions.ExpressionSerializerTypeEnvKey, out var serializerType) == true)
+            {
+                target.ExpressionSerializerType = Type.GetType(serializerType);
+            }
         }
 
         /// <summary>
@@ -112,11 +129,6 @@ namespace BlazorWorker.BackgroundServiceFactory
 
             return await webWorkerProxy.InitFromFactoryAsync(factoryExpression);
         }
-
-        private static WebWorkerOptions CreateAndInitWebWorkerOptions(WorkerInitOptions workerInitOptions) =>
-            workerInitOptions?.CustomKnownTypeNames is null ?
-                new WebWorkerOptions() :
-                new WebWorkerOptions(workerInitOptions.CustomKnownTypeNames);
     }
 }
 

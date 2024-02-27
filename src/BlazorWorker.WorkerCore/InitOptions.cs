@@ -103,19 +103,14 @@ namespace BlazorWorker.Core
         /// Defaults to a single entry: DOTNET_SYSTEM_GLOBALIZATION_INVARIANT = '1'.
         /// For more information see https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-environment-variables
         /// </remarks>
-        public Dictionary<string, string> EnvMap { get; set; }
-            = new Dictionary<string, string>() {
+        public Dictionary<string, string> EnvMap { get; set; } 
+            = new Dictionary<string, string>() { 
                 { "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1" },
             };
 
-        ///// <summary>
-        ///// Specifies custom, known type names to register types to serializer instead of using the KnownTypeAttribute.
-        ///// </summary>
-        public string[] CustomKnownTypeNames { get; set; }
-
         public WorkerInitOptions MergeWith(WorkerInitOptions initOptions)
         {
-            var newEnvMap = new Dictionary<string, string>(this.EnvMap);
+            var newEnvMap = new Dictionary<string , string>(this.EnvMap);
             if (initOptions.EnvMap != null)
             {
                 foreach (var entry in initOptions.EnvMap)
@@ -130,8 +125,7 @@ namespace BlazorWorker.Core
                 MessageEndPoint = initOptions.MessageEndPoint ?? this.MessageEndPoint,
                 InitEndPoint = initOptions.InitEndPoint ?? this.InitEndPoint,
                 EndInvokeCallBackEndpoint = initOptions.EndInvokeCallBackEndpoint ?? this.EndInvokeCallBackEndpoint,
-                EnvMap = newEnvMap,
-                CustomKnownTypeNames = initOptions.CustomKnownTypeNames
+                EnvMap = newEnvMap
             };
         }
     }
@@ -215,18 +209,6 @@ namespace BlazorWorker.Core
         public static WorkerInitOptions SetEnv(this WorkerInitOptions source, string environmentVariableName, string value)
         {
             source.EnvMap[environmentVariableName] = value;
-            return source;
-        }
-
-        /// <summary>
-        /// Sets the AssemblyQualifiedName values from specified <paramref name="customKnownTypes"/> to <see cref="WorkerInitOptions.CustomKnownTypeNames"/>.
-        /// </summary>
-        /// <param name="source"></param>
-        /// <param name="customKnownTypes"></param>
-        /// <returns></returns>
-        public static WorkerInitOptions AddCustomKnownTypes(this WorkerInitOptions source, Type[] customKnownTypes)
-        {
-            source.CustomKnownTypeNames = customKnownTypes.Select(type => type.AssemblyQualifiedName).Distinct().ToArray();
             return source;
         }
     }

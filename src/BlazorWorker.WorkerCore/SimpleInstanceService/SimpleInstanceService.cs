@@ -4,16 +4,18 @@ using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices.JavaScript;
+using System.Runtime.Versioning;
 
 namespace BlazorWorker.WorkerCore.SimpleInstanceService
 {
-    //If the name changes, you must also change this class name parameter in the BlazorWorker.js file
-    public class SimpleInstanceService
+    [SupportedOSPlatform("browser")]
+    public partial class SimpleInstanceService
     {
-
+        
         public static readonly SimpleInstanceService Instance = new SimpleInstanceService();
         public readonly Dictionary<long, InstanceWrapper> instances = new Dictionary<long, InstanceWrapper>();
-
+        
         public static readonly string MessagePrefix = $"{typeof(SimpleInstanceService).FullName}::";
         public static readonly string InitServiceResultMessagePrefix = $"{nameof(InitServiceResult)}::";
         public static readonly string InitInstanceMessagePrefix = $"{nameof(InitInstance)}::";
@@ -36,6 +38,7 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
             AppDomain.CurrentDomain.AssemblyResolve += LogFailedAssemblyResolve;
         }
 
+        [JSExport]
         public static void Init()
         {
             Instance.InnerInit();
@@ -54,7 +57,7 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
                 return;
             }
 
-            if (InitInstanceRequest.CanDeserialize(rawMessage))
+            if (InitInstanceRequest.CanDeserialize(rawMessage)) 
             {
                 InitInstance(rawMessage);
                 return;
@@ -79,13 +82,13 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
             MessageService.PostMessage(result.Serialize());
         }
 
-        public InitInstanceResult InitInstance(InitInstanceRequest initInstanceRequest,
+        public InitInstanceResult InitInstance(InitInstanceRequest initInstanceRequest, 
             IsInfrastructureMessage handler = null)
         {
             var InstanceWrapper = new InstanceWrapper();
             var result = InitInstance(
-                initInstanceRequest.CallId,
-                initInstanceRequest.TypeName,
+                initInstanceRequest.CallId, 
+                initInstanceRequest.TypeName, 
                 initInstanceRequest.AssemblyName,
                 () => (IWorkerMessageService)(InstanceWrapper.Services = new InjectableMessageService(IsInfrastructureMessage(handler))));
 
@@ -110,8 +113,7 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
 
         public DisposeResult DisposeInstance(DisposeInstanceRequest request)
         {
-            if (!instances.TryGetValue(request.InstanceId, out var instanceWrapper))
-            {
+            if (!instances.TryGetValue(request.InstanceId, out var instanceWrapper)) {
                 return new DisposeResult
                 {
                     CallId = request.CallId,
@@ -125,8 +127,7 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
                 instanceWrapper.Dispose();
 
                 instances.Remove(request.InstanceId);
-                return new DisposeResult
-                {
+                return new DisposeResult { 
                     InstanceId = request.InstanceId,
                     CallId = request.CallId,
                     IsSuccess = true
@@ -143,7 +144,7 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
                     ExceptionMessage = e.Message,
                     FullExceptionString = e.ToString()
                 };
-            }
+            }   
         }
 
         private class SimpleServiceCollection : Dictionary<string, Func<object>>
@@ -208,7 +209,7 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
                                         .GetParameters()
                                         .Select(parameter => services.GetFactory(parameter.ParameterType).Invoke())
                                         .ToArray();
-
+                
                 var instance = constructorInfo.Invoke(serviceInstances);
 
                 return new InitInstanceResult
@@ -234,11 +235,12 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
 
         private static Assembly LogFailedAssemblyResolve(object sender, ResolveEventArgs args)
         {
-            Console.Error.WriteLine($"{typeof(SimpleInstanceService).FullName}: '{args.RequestingAssembly}' is requesting missing assembly '{args.Name}'). See https://github.com/Tewr/BlazorWorker#setup-dependencies for common solutions to this problem.");
+            Console.WriteLine($"{typeof(SimpleInstanceService).FullName}: '{args.RequestingAssembly}' is requesting missing assembly '{args.Name}'). See https://github.com/Tewr/BlazorWorker#setup-dependencies for common solutions to this problem.");
+            //Console.Error.WriteLine($"{typeof(SimpleInstanceService).FullName}: '{args.RequestingAssembly}' is requesting missing assembly '{args.Name}'). See https://github.com/Tewr/BlazorWorker#setup-dependencies for common solutions to this problem.");
 
-            //return null;
+            return null;
             // Nobody really cares about this exception for now, it can't be caught.
-            throw new InvalidOperationException($"{typeof(SimpleInstanceService).FullName}: '{args.RequestingAssembly}' is requesting missing assembly '{args.Name}')");
+            //throw new InvalidOperationException($"{typeof(SimpleInstanceService).FullName}: '{args.RequestingAssembly}' is requesting missing assembly '{args.Name}')");
         }
     }
 }
