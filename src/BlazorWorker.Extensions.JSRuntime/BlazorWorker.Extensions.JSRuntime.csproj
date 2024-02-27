@@ -11,8 +11,8 @@
     <PackageTags>WebWorker Worker Process Threading Multithreading Blazor Isolation</PackageTags>
     <PackageId>Tewr.BlazorWorker.Extensions.JSRuntime</PackageId>
     <Configurations>Debug;Release;Nuget</Configurations>
-    <Version>4.0.0</Version>
-    <AssemblyVersion>4.0.0.1</AssemblyVersion>
+    <Version>4.1.2</Version>
+    <AssemblyVersion>4.1.2.0</AssemblyVersion>
     <DocumentationFile>BlazorWorker.Extensions.JSRuntime.xml</DocumentationFile>
     <PackageIcon>icon.png</PackageIcon>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
