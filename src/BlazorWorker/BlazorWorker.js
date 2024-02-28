@@ -271,7 +271,7 @@ window.BlazorWorker = function () {
                     console.debug(`BlazorWorker.js:worker[${id}]->jsDirect`, initOptions.callbackMethod, ev.data.jsData);
                 }
 
-                var event = new CustomEvent("blazorworker_jsdirect",
+                var event = new CustomEvent("blazorworker:jsdirect",
                     { detail: { workerId: id, data: ev.data.jsData } }
                 );
                 window.dispatchEvent(event);

@@ -40,19 +40,20 @@ namespace BlazorWorker.Demo.Shared
 
                 Log("Execute: Creating script on main js...");
 
-                // this could (should) be defined in a javascript file included in your app
+                // This javascript snippet could (should) be defined in a javascript file included in your app using a script tag.
+                // Defined here just so that the example comprises as few files as possible.
                 var myJavascript = @"
 const output = document.getElementById('jsDirectOutputElement');
-output.innerText += `\nSetting up event listener on window for event blazorworker_jsdirect.`;
+output.innerText += `\nSetting up event listener on window for event blazorworker:jsdirect.`;
 
-window.addEventListener('blazorworker_jsdirect', function(e) {
+window.addEventListener('blazorworker:jsdirect', function(e) {
     if (e.detail.workerId === " + this.workerId + @") {
-        console.log('blazorworker_jsdirect handler!', {data: e.detail.data});
+        console.log('blazorworker:jsdirect handler!', { detail: e.detail });
         
-        output.innerText += `\nblazorworker_jsdirect handler detail data: '${e.detail.data}'`;
+        output.innerText += `\nblazorworker:jsdirect listener. workerId: ${e.detail.workerId}. data: '${e.detail.data}'`;
     }
     else {
-        console.log('blazorworker_jsdirect handler for some other worker', { workerId: e.detail.workerId, data: e.detail.data});
+        console.log('blazorworker:jsdirect handler for some other worker not handled by this', { workerId: e.detail.workerId, data: e.detail.data});
     }
 });
 ";
