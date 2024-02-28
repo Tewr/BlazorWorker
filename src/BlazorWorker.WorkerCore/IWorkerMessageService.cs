@@ -8,5 +8,7 @@ namespace BlazorWorker.WorkerCore
         event EventHandler<string> IncomingMessage;
 
         Task PostMessageAsync(string message);
+
+        Task PostMessageJsDirectAsync(string message);
     }
 }

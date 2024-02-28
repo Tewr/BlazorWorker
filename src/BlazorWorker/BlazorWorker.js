@@ -172,6 +172,10 @@ window.BlazorWorker = function () {
                         self.postMessage(messagecontent);
                     },
 
+                    PostMessageJsDirect: (messagecontent) => {
+                        self.postMessage({ isJsDirect: true, jsData: messagecontent });
+                    },
+
                     ImportLocalScripts: async (urls) => {
                         await self.importLocalScripts(urls);
                     },
@@ -237,7 +241,7 @@ window.BlazorWorker = function () {
         
         const initConf = {
             appRoot: appRoot,
-            workerId:id,
+            workerId: id,
             runtimePreprocessorSymbols: initOptions.runtimePreprocessorSymbols || {},
             messageEndPoint: initOptions.messageEndPoint,
             initEndPoint: initOptions.initEndPoint,
@@ -261,6 +265,20 @@ window.BlazorWorker = function () {
         };
 
         worker.onmessage = function (ev) {
+
+            if (ev.data.isJsDirect) {
+                if (initOptions.debug) {
+                    console.debug(`BlazorWorker.js:worker[${id}]->jsDirect`, initOptions.callbackMethod, ev.data.jsData);
+                }
+
+                var event = new CustomEvent("blazorworker_jsdirect",
+                    { detail: { workerId: id, data: ev.data.jsData } }
+                );
+                window.dispatchEvent(event);
+
+                return;
+            }
+
             if (initOptions.debug) {
                 console.debug(`BlazorWorker.js:worker[${id}]->blazor`, initOptions.callbackMethod, ev.data);
             }

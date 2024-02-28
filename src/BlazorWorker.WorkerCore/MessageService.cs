@@ -26,6 +26,9 @@ namespace BlazorWorker.WorkerCore
 
         [JSImport("PostMessage", "BlazorWorker.js")]
         public static partial void PostMessage(string message);
+
+        [JSImport("PostMessageJsDirect", "BlazorWorker.js")]
+        public static partial void PostMessageJsDirect(string message);
     }
 }
 #else
