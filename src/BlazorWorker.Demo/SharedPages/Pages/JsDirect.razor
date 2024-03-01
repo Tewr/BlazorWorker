@@ -2,6 +2,7 @@
 
 <div class="row">
     <div class="col-9 col-xs-12">
+        <script src="_content/BlazorWorker.Demo.SharedPages/JsDirectExample.js"></script>
         <h1>JSDirect Calls</h1>
 
         Demonstrates how to receive messages from a dotnet worker on the main/ui js thread directly.
@@ -16,17 +17,15 @@
                 <strong>JsDirect.razor Output:</strong>
 
                 <hr />
-<pre>
-@output
-</pre>
+                <pre>@output</pre>
             </div>
             <div class="col-6 col-xs-12">
                 <strong>Main js Output:</strong>
                 <hr />
-<pre id="jsDirectOutputElement">
-</pre>
+                <pre id="jsDirectOutputElement" style="text-wrap: pretty"></pre>
             </div>
         </div>
+        
     </div>
     <div class="col-3 col-xs-12">
         <GithubSource RelativePath="Pages/JsDirect.razor" />
