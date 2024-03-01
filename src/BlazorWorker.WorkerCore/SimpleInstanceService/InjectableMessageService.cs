@@ -41,5 +41,12 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
 #endif
             MessageService.PostMessage(message);
         }
+
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+        public async Task PostMessageJsDirectAsync(string message)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        {
+            MessageService.PostMessageJsDirect(message);
+        }
     }
 }

@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
     <Configurations>Debug;Release;Nuget</Configurations>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -10,7 +11,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\BlazorWorker.ServiceFactory\BlazorWorker.BackgroundServiceFactory.csproj" />
+    <ProjectReference Include="..\..\BlazorWorker.WorkerBackgroundService\BlazorWorker.WorkerBackgroundService.csproj" />
     <ProjectReference Include="..\..\BlazorWorker.WorkerCore\BlazorWorker.WorkerCore.csproj" />
+    <ProjectReference Include="..\..\BlazorWorker\BlazorWorker.Core.csproj" />
   </ItemGroup>
 
 </Project>

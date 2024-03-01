@@ -72,6 +72,13 @@ namespace BlazorWorker.Core
             await jsRuntime.InvokeVoidAsync("BlazorWorker.postMessage", this.Identifier, message);
         }
 
+        public async Task PostMessageJsDirectAsync(string message)
+        {
+            throw new NotSupportedException("JsDirect calls are only supported in the direction from worker to main js");
+        }
+
+
+
         public long Identifier { get; }
     }
 }
