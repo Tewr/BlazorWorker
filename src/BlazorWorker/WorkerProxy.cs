@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace BlazorWorker.Core
 {
     [DependencyHint(typeof(MessageService))]
-    public partial class WorkerProxy : IWorker
+    public class WorkerProxy : IWorker
     {
         private readonly IJSRuntime jsRuntime;
         private readonly ScriptLoader scriptLoader;
