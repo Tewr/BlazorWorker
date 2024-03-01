@@ -4,6 +4,25 @@
         <name>BlazorWorker.WorkerCore</name>
     </assembly>
     <members>
+        <member name="E:BlazorWorker.WorkerCore.IWorkerMessageService.IncomingMessage">
+            <summary>
+            Events for incoming messages to the current context
+            </summary>
+        </member>
+        <member name="M:BlazorWorker.WorkerCore.IWorkerMessageService.PostMessageAsync(System.String)">
+            <summary>
+            Post a message to the context this message service belongs to
+            </summary>
+            <param name="message"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BlazorWorker.WorkerCore.IWorkerMessageService.PostMessageJsDirectAsync(System.String)">
+            <summary>
+            Post a message that can be read directly on the main js thread using the "blazorworker:jsdirect" event on the window object
+            </summary>
+            <param name="message"></param>
+            <returns></returns>
+        </member>
         <member name="T:BlazorWorker.WorkerCore.MessageService">
             <summary>
             Simple static message service that runs in the worker thread.
