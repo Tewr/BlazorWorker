@@ -52,17 +52,6 @@
             var sw = new System.Diagnostics.Stopwatch();
             IWorkerBackgroundService<MyIndexDBService> myIocIndexedDbService;
 
-
-            var serviceCollectionDependencies = new string[] {
-                    "Microsoft.Extensions.DependencyInjection.Abstractions.dll"
-#if NET5_0_OR_GREATER
-                    ,"System.Diagnostics.Tracing.dll"
-#endif
-#if NET6_0_OR_GREATER
-                    ,"Microsoft.Extensions.DependencyInjection.dll"
-#endif
-                };
-
             if (startupService == null)
             {
                 output = $"{rn}{LogDate()} Creating background service Startup class...";

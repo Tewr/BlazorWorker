@@ -1,6 +1,7 @@
 ﻿using BlazorWorker.WorkerCore;
 using Microsoft.JSInterop;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices.JavaScript;
 using System.Text.Json;
@@ -122,11 +123,50 @@ namespace BlazorWorker.Extensions.JSRuntime
                 var obj = DotNetObjectReferenceTracker.GetObjectReference(long.Parse(objectInstanceId));
                 var serializer = DotNetObjectReferenceTracker.GetCallbackJSRuntime(obj).Serializer;
                 var callBackArgs = serializer.Deserialize<CallBackArgs>(argsString);
-                var method = obj.GetType().GetMethod(
-                    callBackArgs.Method, 
-                    callBackArgs.MethodArgs.Select(arg => arg.GetType()).ToArray());
+#if DEBUG
+                var callBackArgsStr = serializer.Serialize(callBackArgs);
+                Console.WriteLine($"{nameof(BlazorWorkerJSRuntime)}.{nameof(InvokeMethod)}: ({nameof(CallBackArgs)}) {callBackArgsStr}");
+#endif
 
-                var resultObj = method.Invoke(obj, callBackArgs.MethodArgs);
+                var underlyingObject = obj.GetType().GetProperty("Value").GetValue(obj);
+                var underlyingObjectType = underlyingObject.GetType();
+                var methodCandidates = underlyingObjectType.GetMethods().Where(m => m.Name == callBackArgs.MethodName);
+                var methodArgsList = callBackArgs.MethodArgs.Cast<JsonElement>().ToList();
+                var typedMethodsArgsList = new List<object>();
+                System.Reflection.MethodInfo method = null;
+                var exceptions = new List<Exception>();
+                foreach (var methodCandidate in methodCandidates)
+                {
+                    try
+                    {
+                        var candidateParams = methodCandidate.GetParameters().ToList();
+                        if (methodArgsList.Count > candidateParams.Count)
+                        {
+                            // Too many arguments is not allowed
+                            continue;
+                        }
+
+                        var candidateTypedMethodsArgsList =
+                            candidateParams.Select((p, i) => methodArgsList[i].Deserialize(p.ParameterType)).ToList();
+
+                        method = methodCandidate;
+                        typedMethodsArgsList = candidateTypedMethodsArgsList;
+                    }
+                    catch (Exception e)
+                    {
+                        exceptions.Add(e);
+                        // Swallow exceptions. method will remain null
+                    }
+                }
+
+                if (method == null)
+                {
+                    var availableMethods = string.Join(", ", methodCandidates.Select(m => $"{m.Name}({string.Join(",", m.GetParameters().Select(p => p.ParameterType))})"));
+                    throw new MissingMethodException($"Unable to find a method on {underlyingObjectType.FullName} " +
+                        $"corresponding to {callBackArgs.MethodName}({argsString}). " +
+                        $"Available methods with matching name: {availableMethods}", new AggregateException(exceptions));
+                }
+                var resultObj = method.Invoke(underlyingObject, typedMethodsArgsList.ToArray());
                 if (resultObj is null)
                 {
                     return null;
@@ -136,13 +176,13 @@ namespace BlazorWorker.Extensions.JSRuntime
             }
             catch (Exception e)
             {
-                Console.Error.WriteLine($"{nameof(BlazorWorkerJSRuntime)}.{nameof(InvokeMethod)}({objectInstanceId}, {argsString}) error: {e.ToString()}");
+                Console.Error.WriteLine($"{nameof(BlazorWorkerJSRuntime)}.{nameof(InvokeMethod)}({objectInstanceId}, {argsString}) error: {e}");
                 throw;
             }
         }
 
         public class CallBackArgs { 
-            public string Method { get; set; }
+            public string MethodName { get; set; }
             public object[] MethodArgs { get; set; }
         }
     }

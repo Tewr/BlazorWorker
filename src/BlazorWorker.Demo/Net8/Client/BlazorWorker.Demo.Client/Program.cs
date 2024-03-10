@@ -14,5 +14,6 @@ builder.Services.AddWorkerFactory();
 builder.Services.AddIndexedDbDemoPersonConfig();
 
 builder.Services.AddTransient<JsDirectExample>();
+builder.Services.AddTransient<JsInteractionsExample>();
 
 await builder.Build().RunAsync();

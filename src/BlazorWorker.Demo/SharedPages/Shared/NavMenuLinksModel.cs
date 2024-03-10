@@ -42,6 +42,9 @@ namespace BlazorWorker.Demo.SharedPages.Shared
                 new() { Icon = "document", Href="JsDirect", Text = "JsDirect" }
             },
             {
+                new() { Icon = "document", Href="JsInteractions", Text = "JsInteractions" }
+            },
+            {
                 new() { Icon = "fork", Href="https://github.com/tewr/BlazorWorker", Text = "To the source!" }
             },
             {

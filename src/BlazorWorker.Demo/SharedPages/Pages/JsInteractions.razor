@@ -1,12 +1,13 @@
-﻿@inject JsDirectExample jsDirectExample
+﻿@inject JsInteractionsExample jsDirectExample
 
-<script src="_content/BlazorWorker.Demo.SharedPages/JsDirectExample.js"></script>
 <div class="row">
     <div class="col-9 col-xs-12">
-        <h1>JSDirect Calls</h1>
+        <h1>Interacting with Js Calls</h1>
 
-        Demonstrates how to receive messages from a dotnet worker on the main/ui js thread directly.
-        Also demonstrates putting most of the logic in a separate class (JsDirectExample)
+        Demonstrates how to call to js from a worker using IJsRuntime, 
+        and how call back directly to a dotnet instance.
+
+
         <br />
         <br />
         <button disabled=@RunDisabled @onclick=OnClick class="btn btn-primary">Run test</button><br /><br />
@@ -14,15 +15,15 @@
         <br />
         <div class="row">
             <div class="col-6 col-xs-12">
-                <strong>JsDirect.razor Output:</strong>
+                <strong>JsInteractions.razor Output:</strong>
 
                 <hr />
-                <pre>@output</pre>
+                <pre style="text-wrap: pretty">@output</pre>
             </div>
             <div class="col-6 col-xs-12">
-                <strong>Main js Output:</strong>
+                <strong>Worker dotnet Output:</strong>
                 <hr />
-                <pre id="jsDirectOutputElement" style="text-wrap: pretty"></pre>
+                <pre style="text-wrap: pretty">@workeroutput</pre>
             </div>
         </div>
         
@@ -33,13 +34,16 @@
 </div>
 @code {
     string output;
+    string workeroutput;
     string RunDisabled => Running ? "disabled" : null;
     bool Running = false;
 
     protected override void OnInitialized()
     {
         jsDirectExample.LogHandler += (s, e) => log(e);
+        jsDirectExample.WorkerLogHandler += (s, e) => workerlog(e);
         output = "";
+        workeroutput = "";
         base.OnInitialized();
     }
 
@@ -62,6 +66,12 @@
 
     void log(string logStr){
         output += $"{Environment.NewLine}{LogDate()} {logStr}";
+        StateHasChanged();
+    }
+
+    void workerlog(string logStr)
+    {
+        workeroutput += $"{Environment.NewLine}{LogDate()} {logStr}";
         StateHasChanged();
     }
 
