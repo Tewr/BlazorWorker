@@ -1,11 +1,10 @@
-﻿using BlazorWorker.Core;
+﻿using BlazorWorker.BackgroundServiceFactory;
+using BlazorWorker.Core;
+using BlazorWorker.WorkerBackgroundService;
 using BlazorWorker.WorkerCore;
+using Microsoft.JSInterop;
 using System;
 using System.Threading.Tasks;
-using BlazorWorker.BackgroundServiceFactory;
-using Microsoft.JSInterop;
-using BlazorWorker.WorkerBackgroundService;
-using System.Runtime.InteropServices.JavaScript;
 
 namespace BlazorWorker.Demo.Shared
 {

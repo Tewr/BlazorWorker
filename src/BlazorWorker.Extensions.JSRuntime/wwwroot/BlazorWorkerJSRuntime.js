@@ -1,16 +1,25 @@
-﻿class DotNetObjectProxy {
+﻿class BlazorWorkerBaseSerializer {
+    serialize(o) { return JSON.stringify(o); }
+    deserialize(s) {return JSON.parse(s); }
+}
+
+class DotNetObjectProxy {
     constructor(id) {
-        this.__dotNetObject = id;
-        this.serializer = self.jsRuntimeSerializer;
-        this.blazorWorkerJSRuntime = self.BlazorWorker.getAssemblyExports("BlazorWorker.Extensions.JSRuntime").BlazorWorkerJSRuntime;
+        this.__dotNetObject = `${id}`;
+        this.serializer = self.jsRuntimeSerializer || new BlazorWorkerBaseSerializer();
     }
 
-    invokeMethodAsync(methodName, ...methodArgs) {
-        return new Promise((resolve, reject) => {
+    async invokeMethodAsync(methodName, ...methodArgs) {
+        if (this.blazorWorkerJSRuntime === undefined) {
+            const exports = await self.BlazorWorker.getAssemblyExports("BlazorWorker.Extensions.JSRuntime");
+            this.blazorWorkerJSRuntime = exports.BlazorWorker.Extensions.JSRuntime.BlazorWorkerJSRuntime;
+        }
+
+        return await new Promise((resolve, reject) => {
             try {
                 const argsString = this.serializer.serialize({
                     methodName,
-                    methodargs: methodArgs || []
+                    methodArgs : methodArgs || []
                 });
                 var result = this.blazorWorkerJSRuntime.InvokeMethod(this.__dotNetObject, argsString);
                 resolve(result);
@@ -24,10 +33,7 @@
 class BlazorWorkerJSRuntimeSerializer  {
     
     constructor() {
-        this.baseSerializer = {
-            serialize: o => JSON.stringify(o),
-            deserialize: s => JSON.parse(s)
-        };
+        this.baseSerializer = new BlazorWorkerBaseSerializer();
     }
 
     serialize = (o) => this.baseSerializer.serialize(o);

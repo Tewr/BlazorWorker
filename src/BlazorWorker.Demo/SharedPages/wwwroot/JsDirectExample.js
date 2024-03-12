@@ -1,4 +1,5 @@
-﻿function setupJsDirectForWorker(myWorkerId) {
+﻿// This 'classic' script will run on the main thread and cirectly receieve message from the worker
+function setupJsDirectForWorker(myWorkerId) {
     const currtime = () => [new Date()].map(d => `${d.toTimeString().split(" ")[0]}:${d.getMilliseconds()}`)[0];
     const output = document.getElementById('jsDirectOutputElement');
     output.innerText += `\n${currtime()} Setting up event listener.`;
