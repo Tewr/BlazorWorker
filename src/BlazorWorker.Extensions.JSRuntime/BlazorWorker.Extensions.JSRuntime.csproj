@@ -16,7 +16,7 @@
     <DocumentationFile>BlazorWorker.Extensions.JSRuntime.xml</DocumentationFile>
     <PackageIcon>icon.png</PackageIcon>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <PackageReleaseNotes>.Net6 Support</PackageReleaseNotes>
+    <PackageReleaseNotes>Fix a bug related to .net instance callback from worker thread js</PackageReleaseNotes>
   </PropertyGroup>
   
   <ItemGroup>
