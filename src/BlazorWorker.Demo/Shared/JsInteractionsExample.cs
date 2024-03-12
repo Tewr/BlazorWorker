@@ -5,7 +5,6 @@ using BlazorWorker.WorkerBackgroundService;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 using System;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.JavaScript;
 using System.Threading.Tasks;
 
@@ -48,7 +47,7 @@ namespace BlazorWorker.Demo.Shared
                 Log("Execute: Service Created.");
             }
 
-            Log("Execute: Calling ExecuteJsDirect on worker...");
+            Log($"Execute: Calling ExecuteJsInteractionWithCallback on worker...");
             await service.RunAsync(s => s.ExecuteJsInteractionWithCallback());
             Log("Execute: Done");
         }
