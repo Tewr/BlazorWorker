@@ -11,7 +11,9 @@
 
         public bool IsException { get; set; }
 
-        public System.Exception Exception { get; set; }
+        public string ExceptionString { get; set; }
+
+        public string ExceptionMessage { get; set; }
 
         public long CallId { get; set; }
     }

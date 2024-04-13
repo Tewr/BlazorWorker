@@ -2,6 +2,8 @@
 using BlazorWorker.WorkerCore.SimpleInstanceService;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.InteropServices.JavaScript;
 using System.Runtime.Versioning;
@@ -85,7 +87,6 @@ namespace BlazorWorker.WorkerBackgroundService
 
         private void HandleMethodCall(MethodCallParams methodCallMessage)
         {
-
             void handleError(Exception e)
             {
                 PostObject(
@@ -93,7 +94,8 @@ namespace BlazorWorker.WorkerBackgroundService
                 {
                     CallId = methodCallMessage.CallId,
                     IsException = true,
-                    Exception = e
+                    ExceptionMessage = e.Message,
+                    ExceptionString = e.ToString()
                 });
             }
 
