@@ -4,6 +4,7 @@ using BlazorWorker.WorkerCore;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
@@ -22,7 +23,7 @@ namespace BlazorWorker.BackgroundServiceFactory
 
     }
 
-    internal class WorkerBackgroundServiceProxy<T> : IWorkerBackgroundService<T> where T : class
+    internal partial class WorkerBackgroundServiceProxy<T> : IWorkerBackgroundService<T> where T : class
     {
         private readonly IWorker worker;
         private readonly WebWorkerOptions options;
@@ -219,10 +220,17 @@ namespace BlazorWorker.BackgroundServiceFactory
             {
                 return;
             }
-            
-            taskCompletionSource.SetResult(message); 
+            if (message.IsException)
+            {
+                taskCompletionSource.SetException(new BackgroundServiceWorkerException(this.worker.Identifier, message.ExceptionMessage, message.ExceptionString));
+            }
+            else
+            {
+                taskCompletionSource.SetResult(message);
+            }
         }
 
+      
         private void OnEventRaised(EventRaised message)
         {
             if (message.InstanceId != this.instanceId)
@@ -388,10 +396,7 @@ namespace BlazorWorker.BackgroundServiceFactory
             await this.worker.PostMessageAsync(methodCall);
 
             var returnMessage = await taskCompletionSource.Task;
-            if (returnMessage.IsException)
-            {
-                throw new AggregateException($"Worker exception: {returnMessage.Exception.Message}",  returnMessage.Exception);
-            }
+
             if (string.IsNullOrEmpty(returnMessage.ResultPayload))
             {
                 return default;
