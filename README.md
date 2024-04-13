@@ -17,14 +17,14 @@ This library is useful for
 
 Web workers, simply speaking, is a new process in the browser with a built-in message bus. 
 
-To people coming from the .NET world, an analogy for what this library does is calling [Process.Start](https://docs.microsoft.com/en-us/dotnet/api/system.diagnostics.process.start) to start a new .NET process, and expose a message bus to communicate with it.
+To people coming from the .NET world, an analogy for what this library does is calling [Process.Start](https://docs.microsoft.com/en-us/dotnet/api/system.diagnostics.process.start) to start a new .NET process, and expose a message bus to communicate with it. 
 
 The library comes in two flavours, one built on top of the other:
-- BlazorWorker.BackgroundService: A high-level API that hides the complexity of messaging
+- BlazorWorker.BackgroundService: A high-level expressions-based API that hides the complexity of messaging
 - BlazorWorker.Core: A low-level API to communicate with a new .NET process in a web worker
 
 ### Net 5 & 6 Support
-.netstandard2, .net5 and .net6 can be used as targets with BlazorWorker version v3.x, but new features will not be developed for these targets dues to the breaking changes in .net7.
+.netstandard2, .net5 and .net6 can be used as targets with BlazorWorker version v3.x, but new features will not be developed for these targets due to the breaking changes in .net7.
 
 ### Net 7 & 8 Support
 .net7 & .net8 targets can be used from [release v4.0.0](https://github.com/Tewr/BlazorWorker/releases/tag/v4.0.0) and higher versions.
@@ -58,7 +58,7 @@ And then in a `.razor` View:
 ## BlazorWorker.BackgroundService
 A high-level API that abstracts the complexity of messaging by exposing a strongly typed interface with [Expressions](https://docs.microsoft.com/en-us/dotnet/api/system.linq.expressions.expression). Mimics [Task.Run](https://docs.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.run) as closely as possible to enable multi-threading.
 
-The starting point of a BlazorWorker is a service class that must be defined by the caller. The public methods that you expose in your service can then be called from the IWorkerBackgroundService interface. If you declare a public [event](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/event) on your service, it can be used to call back into blazor during a method execution (useful for progress reporting).
+The starting point of a BlazorWorker in this context is a service class that must be defined by the caller. The methods that you expose in your service can then be called from the `IWorkerBackgroundService` interface. Methods and method paramters must be `public`, or the expression serializer will throw an exception. If you declare a public [event](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/event) on your service, it can be used to call back into blazor during a method execution (useful for progress reporting). 
 
 Each worker process can contain multiple service classes, but each single worker can work with only one thread. For multiple concurrent threads, you must create a new worker for each (see the [Multithreading example]( https://tewr.github.io/BlazorWorker/BackgroundServiceMulti) for a way of organizing this.
 
@@ -117,7 +117,7 @@ https://github.com/Tewr/BlazorWorker/blob/4c9f1320c22f90e4d6e954238ad9b1e0e3f627
 Or a fully custom implementation can be used, or if you want to change Serialize.Linq to some other library):
 https://github.com/Tewr/BlazorWorker/blob/4c9f1320c22f90e4d6e954238ad9b1e0e3f627ce/src/BlazorWorker.Demo/SharedPages/Shared/CustomExpressionSerializer.cs#L22-L45
 
-Special thanks to [@petertorocsik](https://github.com/petertorocsik) for a first idea implementation of this mechanism.
+Special thanks to [@petertorocsik](https://github.com/petertorocsik) for a first idea and implementation of this mechanism.
 
 ## More Culture!
 
