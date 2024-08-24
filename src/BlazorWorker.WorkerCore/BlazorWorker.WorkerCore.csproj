@@ -13,7 +13,7 @@
 
   <PropertyGroup>
     <DocumentationFile>BlazorWorker.WorkerCore.xml</DocumentationFile>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
   </PropertyGroup>
   
   <PropertyGroup>
