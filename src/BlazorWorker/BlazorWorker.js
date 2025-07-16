@@ -24,11 +24,9 @@ window.BlazorWorker = function () {
                 // replaces blob urls with appRoot urls. Mono will attempt to load dlls from self.location.href.
                 var originalUrl = args[0];
                 args[0] = originalUrl.replace(blobRoot, initConf.appRoot);
-                console.debug("Blazorworker fetchhandler", { originalUrl, newUrl: args[0] });
                 if (initConf.runtimePreprocessorSymbols.NET8_0_OR_GREATER) {
                     if (self.modifiedBlazorbootConfig && args[0].endsWith(initConf.blazorBoot)) {
                         
-                        self.fetch = self.nativeFetch;
                         return Promise.race([new Response(JSON.stringify(self.modifiedBlazorbootConfig),
                             { "status": 200, headers: { "Content-Type": "application/json" } })]);
                     }
@@ -163,20 +161,14 @@ window.BlazorWorker = function () {
                     dotnetjsfilename = "dotnet.js";
                 }
                 /* END NET8_0_OR_GREATER */
-                console.debug("::::IMPORTING DOTNET");
+                
                 const { dotnet } = await import(`${initConf.appRoot}/${initConf.wasmRoot}/${dotnetjsfilename}`);
-                console.debug("::::STARTING DOTNET");
+                
 
                 const { setModuleImports, getAssemblyExports } = await dotnet
-                    /*.withConfig({
-                        maxParallelDownloads: 5,
-                    })*/
                     .withDiagnosticTracing(initConf.debug)
                     .withEnvironmentVariables(initConf.envMap)
                     .create();
-
-                // This point is very rareley reached in .net9
-                console.debug("::::DOTNET STARTED");
 
                 setModuleImports('BlazorWorker.js', {
                     PostMessage: (messagecontent) => {
@@ -196,6 +188,8 @@ window.BlazorWorker = function () {
                     }
                 });
 
+                // Restore the fetch handler to the native fetch, so that the Blazor runtime can use it.
+                self.fetch = self.nativeFetch;
 
                 self.BlazorWorker = {
                     getChildFromDotNotation,
