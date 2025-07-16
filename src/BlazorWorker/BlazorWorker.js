@@ -21,11 +21,10 @@ window.BlazorWorker = function () {
         const fetchHandler = {
             apply: function (target, thisArg, args) {
                 // replaces blob urls with appRoot urls. Mono will attempt to load dlls from self.location.href.
-                args[0] = args[0].replace(blobRoot, initConf.appRoot);
                 
+                args[0] = args[0].replace(blobRoot, initConf.appRoot);
                 if (initConf.runtimePreprocessorSymbols.NET8_0_OR_GREATER) {
                     if (self.modifiedBlazorbootConfig && args[0].endsWith(initConf.blazorBoot)) {
-
                         return Promise.race([new Response(JSON.stringify(self.modifiedBlazorbootConfig),
                             { "status": 200, headers: { "Content-Type": "application/json" } })]);
                     }
@@ -185,6 +184,8 @@ window.BlazorWorker = function () {
                     }
                 });
 
+                // Restore the fetch handler to the native fetch for non-invasive future fetch calls
+                self.fetch = self.nativeFetch;
 
                 self.BlazorWorker = {
                     getChildFromDotNotation,

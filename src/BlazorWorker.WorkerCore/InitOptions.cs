@@ -42,7 +42,12 @@ namespace BlazorWorker.Core
 #if NET8_0_OR_GREATER
             RuntimePreprocessorSymbols.Add("NET8_0_OR_GREATER", true);
 #endif
-
+#if NET9_0
+            RuntimePreprocessorSymbols.Add("NET9_0", true);
+#endif
+#if NET9_0_OR_GREATER
+            RuntimePreprocessorSymbols.Add("NET9_0_OR_GREATER", true);
+#endif
         }
 
         /// <summary>
