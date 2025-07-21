@@ -69,8 +69,8 @@ a, .btn-link {
 .loading-progress {
     position: relative;
     display: block;
-    width: 8rem;
-    height: 8rem;
+    width: 16rem;
+    height: 16rem;
     margin: 20vh auto 1rem auto;
 }
 

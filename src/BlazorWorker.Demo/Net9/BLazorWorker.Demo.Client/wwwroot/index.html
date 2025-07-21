@@ -14,9 +14,6 @@
 
 <body>
     <div id="app">
-        <div style="margin: 100px auto; width: 500px; height: 120px; text-align: center; ">
-            <img src="loading-icon.svg" width="97" height="88" />
-        </div>
         <svg class="loading-progress">
             <circle r="40%" cx="50%" cy="50%" />
             <circle r="40%" cx="50%" cy="50%" />
@@ -31,6 +28,31 @@
     </div>
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="_content/TG.Blazor.IndexedDB/indexedDb.Blazor.js"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const app = document.getElementById('app');
+            const svg = app.querySelector('.loading-progress');
+
+            if (!svg) return;
+
+            // Get position and size of SVG
+            const rect = svg.getBoundingClientRect();
+
+            // Create the image element
+            const img = document.createElement('img');
+            img.src = 'loading-icon.svg';
+            img.width = 97;
+            img.height = 88;
+            img.style.position = 'absolute';
+            img.style.left = rect.left + window.scrollX + rect.width / 2 - 97 / 2 + 'px';
+            img.style.top = rect.top + window.scrollY + rect.height / 2 - 88 / 2  + 'px';
+            img.style.pointerEvents = 'none';
+            img.style.zIndex = '9999';
+
+            // Add it to the body
+            document.getElementById("app").appendChild(img);
+        });
+    </script>
 </body>
 
 </html>
