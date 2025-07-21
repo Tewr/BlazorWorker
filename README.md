@@ -30,7 +30,7 @@ The library comes in two flavours, one built on top of the other:
 .net7 & .net8 targets can be used from [release v4.0.0](https://github.com/Tewr/BlazorWorker/releases/tag/v4.0.0) and higher versions.
 
 ### Net 9 Support
-.net9 support is very flaky due to instability in startup procedure. [Progress tracked here.](https://github.com/Tewr/BlazorWorker/issues/111)
+.net9 started out as very flaky due to instability in startup procedure, but is functional since at least 16/07/2025. Possibly due to changes in browser. [Some more information here](https://github.com/dotnet/runtime/issues/108253).
 
 ### Native framework multithreading
 Multi-threading enthusiasts should closely monitor [this tracking issue](https://github.com/dotnet/runtime/issues/68162) in the dotnet runtime repo, which promises threading support in ~~.net 7~~ ~~.net8~~ ~~[.net9](https://github.com/dotnet/aspnetcore/issues/17730#issuecomment-2059602250)~~ .net10, projected for nov 2025.
