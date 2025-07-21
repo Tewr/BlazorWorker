@@ -65,12 +65,9 @@
 
                 backgroundService = worker.CreateCoreInstanceService();
 
-                handle = await backgroundService.CreateInstance<CoreMathsService>(/*options =>
-                    options.AddConventionalAssemblyOfService()
-#if NET5_0_OR_GREATER
-                        .AddAssemblies("System.Text.RegularExpressions.dll")
-#endif
-                        */);
+                handle = await backgroundService.CreateInstance<CoreMathsService>(options =>
+                    options.EnvMap["DOTNET_SYSTEM_GLOBALIZATION_INVARIANT"] = "0" // CSV message format needs globalization support in trimmed scenarios
+                );
 
                 output += $"{rn}{LogDate()} Background service created.";
                 StateHasChanged();
