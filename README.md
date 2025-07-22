@@ -126,7 +126,7 @@ Special thanks to [@petertorocsik](https://github.com/petertorocsik) for a first
 
 Since .net6.0, the runtime defaults to the invariant culture, and new cultures cannot be used or created by default. You [may](https://github.com/Tewr/BlazorWorker/issues/67) get the exception with the message "Only the invariant culture is supported in globalization-invariant mode", commonly when using third-party libraries that make use of any culture other than the invariant one.
 
-You may try to circument any problems relating to this by changing the default options.
+You may try to circument any problems relating to this by changing the options. 
 
 ```cs
   var serviceInstance4 = await worker.CreateBackgroundServiceAsync<MyService>(
@@ -136,8 +136,9 @@ You may try to circument any problems relating to this by changing the default o
   );
 ```
 
-Read more [here](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-environment-variables#dotnet_system_globalization_) on culture options.
+Since v5.0.0, the environment variable `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT` defaults to 0, due to some changes in behaviour in net9 compared to previous framework versions.
 
+Read more [here](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-environment-variables#dotnet_system_globalization_) on culture options.
 
 ## Injectable services
 The nominal use case is that the Service class specifies a parameterless constructor.
