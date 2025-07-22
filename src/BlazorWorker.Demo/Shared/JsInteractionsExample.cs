@@ -119,7 +119,9 @@ namespace BlazorWorker.Demo.Shared
             selfRef?.Dispose();
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public async ValueTask DisposeAsync()
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             this.Dispose();
         }

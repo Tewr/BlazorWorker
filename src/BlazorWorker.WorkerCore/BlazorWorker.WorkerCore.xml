@@ -53,11 +53,6 @@
             Outputs additional debug information to the console
             </summary>
         </member>
-        <member name="P:BlazorWorker.Core.WorkerInitOptions.DependentAssemblyFilenames">
-            <summary>
-            Specifies a list of assembly files names (dlls) that should be loaded when initializing the worker.
-            </summary>
-        </member>
         <member name="P:BlazorWorker.Core.WorkerInitOptions.MessageEndPoint">
             <summary>
             Mono-wasm-annotated endpoint for sending messages to the worker. Experts only.
@@ -71,11 +66,6 @@
         <member name="P:BlazorWorker.Core.WorkerInitOptions.CallbackMethod">
             <summary>
             Unique blazor identifier for handling callbacks. As referenced by JSInvokableAttribute. Experts only.
-            </summary>
-        </member>
-        <member name="P:BlazorWorker.Core.WorkerInitOptions.UseConventionalServiceAssembly">
-            <summary>
-            If set to true, deducts the name of the assembly containing the service using the service type assembly name + dll extension as file name, and adds it as a dependency.
             </summary>
         </member>
         <member name="P:BlazorWorker.Core.WorkerInitOptions.EndInvokeCallBackEndpoint">
@@ -93,7 +83,7 @@
             Sets environment variables in the target worker. 
             </summary>
             <remarks>
-            Defaults to a single entry: DOTNET_SYSTEM_GLOBALIZATION_INVARIANT = '1'.
+            Defaults to a single entry: DOTNET_SYSTEM_GLOBALIZATION_INVARIANT = '0'.
             For more information see https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-environment-variables
             </remarks>
         </member>
@@ -101,44 +91,6 @@
             <summary>
             Contains convenience extensions for <see cref="T:BlazorWorker.Core.WorkerInitOptions"/>
             </summary>
-        </member>
-        <member name="M:BlazorWorker.Core.WorkerInitOptionsExtensions.AddAssemblies(BlazorWorker.Core.WorkerInitOptions,System.String[])">
-            <summary>
-            Adds the specified assembly filenames as dependencies
-            </summary>
-            <param name="source"></param>
-            <param name="dependentAssemblyFilenames"></param>
-            <returns></returns>
-        </member>
-        <member name="M:BlazorWorker.Core.WorkerInitOptionsExtensions.AddConventionalAssemblyOfService(BlazorWorker.Core.WorkerInitOptions)">
-            <summary>
-            Deducts the name of the assembly containing the service using the the service type assembly name with dll extension as file name, and adds it as a dependency.
-            </summary>
-            <param name="source"></param>
-            <returns></returns>
-        </member>
-        <member name="M:BlazorWorker.Core.WorkerInitOptionsExtensions.AddAssemblyOf``1(BlazorWorker.Core.WorkerInitOptions)">
-            <summary>
-            Deducts the name of the assembly containing the specified <typeparamref name="T"/> using the assembly name with dll extension as file name, and adds it as a dependency.
-            </summary>
-            <param name="source"></param>
-            <returns></returns>
-        </member>
-        <member name="M:BlazorWorker.Core.WorkerInitOptionsExtensions.AddAssemblyOfType(BlazorWorker.Core.WorkerInitOptions,System.Type)">
-            <summary>
-            Deducts the name of the assembly containing the specified <paramref name="type"/> using the assembly name with dll extension as file name, and adds it as a dependency.
-            </summary>
-            <param name="source"></param>
-            <param name="type"></param>
-            <returns></returns>
-        </member>
-        <member name="M:BlazorWorker.Core.WorkerInitOptionsExtensions.AddHttpClient(BlazorWorker.Core.WorkerInitOptions)">
-            <summary>
-            Registers the necessary dependencies for injecting or instantiating <see cref="T:System.Net.Http.HttpClient"/> in the background service.
-            </summary>
-            <param name="source"></param>
-            <returns></returns>
-            <remarks>When this method has been called, <see cref="T:System.Net.Http.HttpClient"/> can be used inside the service either by instanciating it or by injection into the constructor.</remarks>
         </member>
         <member name="M:BlazorWorker.Core.WorkerInitOptionsExtensions.SetEnv(BlazorWorker.Core.WorkerInitOptions,System.String,System.String)">
             <summary>

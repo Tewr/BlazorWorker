@@ -110,7 +110,9 @@
         catch (Exception e)
         {
             output += $"{rn}Error = {e}";
+#pragma warning disable CS4014 // Call not awaited
             InvokeAsync(StateHasChanged);
+#pragma warning restore CS4014 // Call not awaited
         }
         finally
         {

@@ -51,9 +51,6 @@ namespace BlazorWorker.Core
                 this.Identifier, 
                 thisReference,
                 new WorkerInitOptions {
-
-                    DependentAssemblyFilenames = 
-                       WorkerProxyDependencies.DependentAssemblyFilenames,
                     CallbackMethod = nameof(OnMessage),
                     MessageEndPoint = messageMethod
                }.MergeWith(initOptions));
@@ -72,7 +69,9 @@ namespace BlazorWorker.Core
             await jsRuntime.InvokeVoidAsync("BlazorWorker.postMessage", this.Identifier, message);
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public async Task PostMessageJsDirectAsync(string message)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             throw new NotSupportedException("JsDirect calls are only supported in the direction from worker to main js");
         }
