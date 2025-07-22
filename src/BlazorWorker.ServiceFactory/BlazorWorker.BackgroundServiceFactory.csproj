@@ -35,7 +35,7 @@
   
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="Serialize.Linq" Version="3.0.152" />
+    <PackageReference Include="Serialize.Linq" Version="4.0.167" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)|$(Platform)'!='Nuget|AnyCPU'">
