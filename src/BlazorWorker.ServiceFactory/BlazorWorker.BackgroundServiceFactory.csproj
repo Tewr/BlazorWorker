@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>net7.0;net8.0;net9.0</TargetFrameworks>
     <PackageId>Tewr.BlazorWorker.BackgroundService</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>Use dotnet Web Workers Threads in Blazor</Description>
@@ -11,8 +11,8 @@
     <Authors>Tewr</Authors>
     <Product>BlazorWorker</Product>
     <Configurations>Debug;Release;Nuget</Configurations>
-    <Version>4.1.2</Version>
-    <AssemblyVersion>4.1.2.0</AssemblyVersion>
+    <Version>5.0.0</Version>
+    <AssemblyVersion>5.0.0</AssemblyVersion>
     <PackageIcon>icon.png</PackageIcon>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
@@ -29,9 +29,13 @@
     <PackageReference Include="Microsoft.JSInterop" Version="8.0.0" />
   </ItemGroup>
   
+  <ItemGroup Condition="'$(TargetFramework)'=='net9.0'">
+    <PackageReference Include="Microsoft.JSInterop" Version="9.0.7" />
+  </ItemGroup>
+  
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="Serialize.Linq" Version="3.0.152" />
+    <PackageReference Include="Serialize.Linq" Version="4.0.167" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)|$(Platform)'!='Nuget|AnyCPU'">
@@ -42,7 +46,7 @@
   </ItemGroup>
   
   <ItemGroup Condition="'$(Configuration)|$(Platform)'=='Nuget|AnyCPU'">
-    <PackageReference Include="Tewr.BlazorWorker.Core" Version="4.1.2" />
+    <PackageReference Include="Tewr.BlazorWorker.Core" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
