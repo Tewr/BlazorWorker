@@ -38,6 +38,11 @@
             Creates a new instance of WorkerInitOptions
             </summary>
         </member>
+        <member name="P:BlazorWorker.Core.WorkerInitOptions.AppRoot">
+            <summary>
+            Set's the path to the wwwroot directory
+            </summary>
+        </member>
         <member name="P:BlazorWorker.Core.WorkerInitOptions.DeployPrefix">
             <summary>
             Specifies the location of binaries

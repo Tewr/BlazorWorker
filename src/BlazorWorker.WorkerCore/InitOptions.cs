@@ -47,6 +47,11 @@ namespace BlazorWorker.Core
         }
 
         /// <summary>
+        /// Set's the path to the wwwroot directory
+        /// </summary>
+        public string AppRoot { get; set; }
+
+        /// <summary>
         /// Specifies the location of binaries
         /// </summary>
         public string DeployPrefix { get; }
@@ -87,14 +92,14 @@ namespace BlazorWorker.Core
         public Dictionary<string, bool> RuntimePreprocessorSymbols { get; set; }
 
         /// <summary>
-        /// Sets environment variables in the target worker. 
+        /// Sets environment variables in the target worker.
         /// </summary>
         /// <remarks>
         /// Defaults to a single entry: DOTNET_SYSTEM_GLOBALIZATION_INVARIANT = '0'.
         /// For more information see https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-environment-variables
         /// </remarks>
-        public Dictionary<string, string> EnvMap { get; set; } 
-            = new Dictionary<string, string>() { 
+        public Dictionary<string, string> EnvMap { get; set; }
+            = new Dictionary<string, string>() {
                 { "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "0" },
             };
 
@@ -110,6 +115,7 @@ namespace BlazorWorker.Core
             }
             return new WorkerInitOptions
             {
+                AppRoot = initOptions.AppRoot ?? this.AppRoot,
                 CallbackMethod = initOptions.CallbackMethod ?? this.CallbackMethod,
                 MessageEndPoint = initOptions.MessageEndPoint ?? this.MessageEndPoint,
                 InitEndPoint = initOptions.InitEndPoint ?? this.InitEndPoint,
