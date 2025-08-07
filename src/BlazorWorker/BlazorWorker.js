@@ -235,7 +235,12 @@ window.BlazorWorker = function () {
     const inlineWorker = `self.onmessage = ${workerDef}()`; 
 
     const initWorker = function (id, callbackInstance, initOptions) {
-        let appRoot = (document.getElementsByTagName('base')[0] || { href: window.location.origin }).href || "";
+        let appRoot = initOptions.appRoot;
+
+        if (!appRoot) {
+            appRoot = (document.getElementsByTagName('base')[0] || { href: window.location.origin }).href || "";
+        }
+
         if (appRoot.endsWith("/")) {
             appRoot = appRoot.substring(0, appRoot.length - 1);
         }
