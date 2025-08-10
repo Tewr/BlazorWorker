@@ -52,8 +52,8 @@ namespace BlazorWorker.Core
         /// <remarks>
         /// This is used to resolve url's to the binaries needed to start the process. 
         /// You normally don't need to set this property. 
-        /// Resolve to <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLBaseElement/href"> base.href</a> if a base tag is present in the FOM of the hosting application, 
-        /// or else to <a href="https://developer.mozilla.org/en-US/docs/Web/API/Location/origin"> window.location.origin</a>.
+        /// If not set, resolves to <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLBaseElement/href"> base.href</a> if a base tag is present in the DOM of the hosting application, 
+        /// or falls back to <a href="https://developer.mozilla.org/en-US/docs/Web/API/Location/origin"> window.location.origin</a>.
         /// </remarks>
         public string AppRoot { get; set; }
 
