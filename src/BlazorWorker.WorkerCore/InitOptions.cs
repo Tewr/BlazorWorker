@@ -47,8 +47,14 @@ namespace BlazorWorker.Core
         }
 
         /// <summary>
-        /// Set's the path to the wwwroot directory
+        /// Sets the root url of the application that starts the worker.
         /// </summary>
+        /// <remarks>
+        /// This is used to resolve url's to the binaries needed to start the process. 
+        /// You normally don't need to set this property. 
+        /// Resolve to <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLBaseElement/href"> base.href</a> if a base tag is present in the FOM of the hosting application, 
+        /// or else to <a href="https://developer.mozilla.org/en-US/docs/Web/API/Location/origin"> window.location.origin</a>.
+        /// </remarks>
         public string AppRoot { get; set; }
 
         /// <summary>
