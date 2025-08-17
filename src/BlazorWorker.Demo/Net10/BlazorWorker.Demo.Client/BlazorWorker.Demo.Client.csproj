@@ -6,6 +6,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!-- Not sure why this is needed as the VS UI seems to communicate having at least defined NET10_0, 
+    but may be a preview thing.
+    <DefineConstants>$(DefineConstants);NET10_0_OR_GREATER;NET10_0</DefineConstants>
+    -->
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.0-preview.6.25358.103" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.0-preview.6.25358.103" PrivateAssets="all" />
