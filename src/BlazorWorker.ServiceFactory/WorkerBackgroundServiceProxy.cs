@@ -119,17 +119,9 @@ namespace BlazorWorker.BackgroundServiceFactory
                 {
                     this.initWorkerTask = new TaskCompletionSource<bool>();
 
-                    if (workerInitOptions.UseConventionalServiceAssembly)
-                    {
-                        workerInitOptions.AddAssemblyOf<T>();
-                    }
-
-                await this.worker.InitAsync(new WorkerInitOptions {
-                    DependentAssemblyFilenames = 
-                        WorkerBackgroundServiceDependencies.DependentAssemblyFilenames,
-                    InitEndPoint = WorkerBackgroundServiceProxy.InitEndPoint,
-                    //EndInvokeCallBackEndpoint = WorkerBackgroundServiceProxy.EndInvokeCallBackEndpoint
-                }.MergeWith(workerInitOptions));
+                    await this.worker.InitAsync(new WorkerInitOptions {
+                        InitEndPoint = WorkerBackgroundServiceProxy.InitEndPoint,
+                        }.MergeWith(workerInitOptions));
 
                     this.worker.IncomingMessage += OnMessage;
 
@@ -302,7 +294,7 @@ namespace BlazorWorker.BackgroundServiceFactory
             return await InvokeAsyncInternal<TResult>(action);
         }
 
-        public async Task RunAsync<TResult>(Expression<Func<T, Task>> action)
+        public async Task RunAsync(Expression<Func<T, Task>> action)
         {
             await InvokeAsyncInternal<object>(action, new InvokeOptions { AwaitResult = true });
         }
@@ -445,7 +437,7 @@ namespace BlazorWorker.BackgroundServiceFactory
 
         private class InvokeOptions
         {
-            public static readonly InvokeOptions Default = new InvokeOptions();
+            public static readonly InvokeOptions Default = new();
 
             public bool AwaitResult { get; set; }
         }

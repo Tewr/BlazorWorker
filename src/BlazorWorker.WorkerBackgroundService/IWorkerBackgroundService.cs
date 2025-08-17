@@ -41,11 +41,11 @@ namespace BlazorWorker.WorkerBackgroundService
         Task<TResult> RunAsync<TResult>(Expression<Func<T, Task<TResult>>> function);
 
         /// <summary>
-        /// Queues the specified awaitable work to run on the underlying worker, awaits the result, and returns a <see cref="Task"/> object that represents that work.
+        /// Queues the specified awaitable work to run on the underlying worker, awaits the execution, and returns a <see cref="Task"/> object that represents that work.
         /// </summary>
         /// <param name="function"></param>
         /// <returns></returns>
-        Task RunAsync<TResult>(Expression<Func<T, Task>> function);
+        Task RunAsync(Expression<Func<T, Task>> function);
 
         /// <summary>
         /// Returns the message service used by the underlying worker.

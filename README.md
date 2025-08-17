@@ -20,8 +20,8 @@ Web workers, simply speaking, is a new process in the browser with a built-in me
 To people coming from the .NET world, an analogy for what this library does is calling [Process.Start](https://docs.microsoft.com/en-us/dotnet/api/system.diagnostics.process.start) to start a new .NET process, and expose a message bus to communicate with it. 
 
 The library comes in two flavours, one built on top of the other:
-- BlazorWorker.BackgroundService: A high-level expressions-based API that hides the complexity of messaging
-- BlazorWorker.Core: A low-level API to communicate with a new .NET process in a web worker
+- [![NuGet](https://img.shields.io/nuget/dt/Tewr.BlazorWorker.BackgroundService.svg?label=Tewr.BlazorWorker.BackgroundService)](https://www.nuget.org/packages/Tewr.BlazorWorker.BackgroundService) - A high-level expressions-based API that hides the complexity of messaging, using strongly typed service definitions. Recommended for long-running tasks without too much back and forth.
+- [![NuGet](https://img.shields.io/nuget/dt/Tewr.BlazorWorker.Core.svg?label=Tewr.BlazorWorker.Core)](https://www.nuget.org/packages/Tewr.BlazorWorker.Core) - A low-level API to communicate with a new .NET process in a web worker. Uses plain strings for communication. Recommended for chatty high-performance communication.
 
 ### Net 5 & 6 Support
 .netstandard2, .net5 and .net6 can be used as targets with BlazorWorker version v3.x, but new features will not be developed for these targets due to the breaking changes in .net7.
@@ -39,7 +39,7 @@ Multi-threading enthusiasts should closely monitor [this tracking issue](https:/
 
 
 
-## Installation
+## Tewr.BlazorWorker.BackgroundService Installation
 Nuget package:
 ```
 Install-Package Tewr.BlazorWorker.BackgroundService
@@ -58,7 +58,7 @@ And then in a `.razor` View:
 @inject IWorkerFactory workerFactory
 ```
 
-## BlazorWorker.BackgroundService
+## Tewr.BlazorWorker.BackgroundService Notes
 A high-level API that abstracts the complexity of messaging by exposing a strongly typed interface with [Expressions](https://docs.microsoft.com/en-us/dotnet/api/system.linq.expressions.expression). Mimics [Task.Run](https://docs.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.run) as closely as possible to enable multi-threading.
 
 The starting point of a BlazorWorker in this context is a service class that must be defined by the caller. The methods that you expose in your service can then be called from the `IWorkerBackgroundService` interface. Methods and method parameters must be `public`, or the expression serializer will throw an exception. If you declare a public [event](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/event) on your service, it can be used to call back into blazor during a method execution (useful for progress reporting). 
@@ -105,9 +105,9 @@ public class MyCPUIntensiveService {
 
 ```
 
-### BlazorWorker.BackgroundService: Configure serialization (starting v4.1.0)
+### Tewr.BlazorWorker.BackgroundService: Configure serialization (starting v4.1.0)
 
-Expressions are being serialized with [Serialize.Linq](https://www.nuget.org/packages/Serialize.Linq) by default before being sent over to the worker. Sometimes, when using structured data, particularily when using abstract classes, you may get an exception. The exception messsage may mention something like "Add any types not known statically to the list of known types - for example, by using the KnownTypeAttribute attribute or by adding them to the list of known types passed to DataContractSerializer.". You can follow the first advice by adding [KnownTypeAttribute](https://learn.microsoft.com/fr-fr/dotnet/api/system.runtime.serialization.knowntypeattribute?view=net-8.0) to some classes, but sometimes it wont be possible (maybe the classes aren't yours). 
+Expressions are being serialized with [Serialize.Linq](https://www.nuget.org/packages/Serialize.Linq) by default before being sent over to the worker. Sometimes, when using structured data, particularily when using abstract classes, you may get an exception. The exception message may mention something like "Add any types not known statically to the list of known types - for example, by using the KnownTypeAttribute attribute or by adding them to the list of known types passed to DataContractSerializer.". You can follow the first advice by adding [KnownTypeAttribute](https://learn.microsoft.com/fr-fr/dotnet/api/system.runtime.serialization.knowntypeattribute?view=net-8.0) to some classes, but sometimes it wont be possible (maybe the classes aren't yours). 
 
 To follow the second advice, "passing types to DataContractSerializer", you may configure serialization more in detail. BlazorWorker.BackgroundService uses a default implementation of [IExpressionSerializer](https://github.com/Tewr/BlazorWorker/blob/61bb7bf3453761cfcaebd56d49acc752c127ce40/src/BlazorWorker.WorkerBackgroundService/IExpressionSerializer.cs#) to serialize expressions. You may provide a custom implementation, and pass the type of this class to [IWorkerInitOptions](/blob/4c9f1320c22f90e4d6e954238ad9b1e0e3f627ce/src/BlazorWorker.WorkerCore/InitOptions.cs).[UseCustomExpressionSerializer](/blob/4c9f1320c22f90e4d6e954238ad9b1e0e3f627ce/src/BlazorWorker.ServiceFactory/WorkerInitExtension.cs#L17) when initializing your service. The most common configuration will be to add some types to `AddKnownTypes`, so for that paricular scenario you can use a provided base class as shown below.
 
@@ -126,7 +126,7 @@ Special thanks to [@petertorocsik](https://github.com/petertorocsik) for a first
 
 Since .net6.0, the runtime defaults to the invariant culture, and new cultures cannot be used or created by default. You [may](https://github.com/Tewr/BlazorWorker/issues/67) get the exception with the message "Only the invariant culture is supported in globalization-invariant mode", commonly when using third-party libraries that make use of any culture other than the invariant one.
 
-You may try to circument any problems relating to this by changing the default options.
+You may try to circument any problems relating to this by changing the options. 
 
 ```cs
   var serviceInstance4 = await worker.CreateBackgroundServiceAsync<MyService>(
@@ -136,8 +136,9 @@ You may try to circument any problems relating to this by changing the default o
   );
 ```
 
-Read more [here](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-environment-variables#dotnet_system_globalization_) on culture options.
+Since v5.0.0, the environment variable `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT` defaults to 0, due to some changes in behaviour in net9 compared to previous framework versions.
 
+Read more [here](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-environment-variables#dotnet_system_globalization_) on culture options.
 
 ## Injectable services
 The nominal use case is that the Service class specifies a parameterless constructor.
@@ -152,10 +153,25 @@ These are the only services that will be injected. Any other custom dependencies
 For an example of a full-fledged IOC Setup using <code>Microsoft.Extensions.DependencyInjection</code> see the <a href="src/BlazorWorker.Demo/SharedPages/Pages/IoCExamplePage.razor">IOC example</a>.
 
 
-## Core package
+## Tewr.BlazorWorker.Core package
 [![NuGet](https://img.shields.io/nuget/dt/Tewr.BlazorWorker.Core.svg?label=Tewr.BlazorWorker.Core)](https://www.nuget.org/packages/Tewr.BlazorWorker.Core)
 
-The Core package does not provide any serialization. This is useful for scenarios with simple API's (smaller download size), or for building a custom high-level API. See the <a href="src/BlazorWorker.Demo/SharedPages/Pages/CoreExample.razor">Core example</a> for a use case.
+The Core package does not provide any serialization. This is useful for scenarios with simple API's (smaller download size), or for building a custom high-level API. For "chatty" implementations, the Core package will have far superior speed compared to  Tewr.BlazorWorker.BackgroundService. 
+
+But then again you will have to interpret messages yourself both at ui thread and worker process. See the <a href="src/BlazorWorker.Demo/SharedPages/Pages/CoreExample.razor">Core example</a> for a use case.
+
+Extract from the Core example: Create a service on the worker
+https://github.com/Tewr/BlazorWorker/blob/5e87bbfda1449f705970933ce2bdc74743e7f01d/src/BlazorWorker.Demo/SharedPages/Pages/CoreExample.razor#L68
+
+Send a plain message
+https://github.com/Tewr/BlazorWorker/blob/5e87bbfda1449f705970933ce2bdc74743e7f01d/src/BlazorWorker.Demo/SharedPages/Pages/CoreExample.razor#L77
+
+In your worker service class, inject `IWorkerMessageService` and subscribe to the `IncomingMessage` event
+https://github.com/Tewr/BlazorWorker/blob/5e87bbfda1449f705970933ce2bdc74743e7f01d/src/BlazorWorker.Demo/Shared/CoreMathsService.cs#L18-L21
+
+Interpret the message and use `IWorkerMessageService.PostMessageAsync` to send a response.
+https://github.com/Tewr/BlazorWorker/blob/5e87bbfda1449f705970933ce2bdc74743e7f01d/src/BlazorWorker.Demo/Shared/CoreMathsService.cs#L26-L38
+
 
 ## Extensions.JSRuntime package
 [![NuGet](https://img.shields.io/nuget/dt/Tewr.BlazorWorker.Extensions.JSRuntime.svg?label=Tewr.BlazorWorker.Extensions.JSRuntime)](https://www.nuget.org/packages/Tewr.BlazorWorker.Extensions.JSRuntime)
