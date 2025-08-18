@@ -33,6 +33,12 @@
             Options for initializing the worker.
             </summary>
         </member>
+        <member name="P:BlazorWorker.Core.WorkerInitOptions.DefaultRuntimePreprocessorSymbols">
+            <summary>
+            Default Runtime-version specific preprocessor symbols that are available at runtime.
+            </summary>
+            <remarks>https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/preprocessor-directives</remarks>
+        </member>
         <member name="M:BlazorWorker.Core.WorkerInitOptions.#ctor">
             <summary>
             Creates a new instance of WorkerInitOptions
@@ -86,8 +92,9 @@
         </member>
         <member name="P:BlazorWorker.Core.WorkerInitOptions.RuntimePreprocessorSymbols">
             <summary>
-            https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/preprocessor-directives
+            Runtime-version specific preprocessor symbols that are available at runtime for the worker script.
             </summary>
+            <remarks>https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/preprocessor-directives</remarks>
         </member>
         <member name="P:BlazorWorker.Core.WorkerInitOptions.EnvMap">
             <summary>
