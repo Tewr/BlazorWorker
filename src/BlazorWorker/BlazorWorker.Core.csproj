@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net7.0;net8.0;net9.0</TargetFrameworks>
+    <TargetFrameworks>net7.0;net8.0;net9.0;net10.0</TargetFrameworks>
     <Authors>Tor Knutsson (Tewr)</Authors>
     <Product>BlazorWorker</Product>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -41,7 +41,11 @@
     <PackageReference Include="Microsoft.JSInterop" Version="9.0.7" />
   </ItemGroup>
 
-  
+  <ItemGroup Condition="'$(TargetFramework)'=='net10.0'">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.7" />
+    <PackageReference Include="Microsoft.JSInterop" Version="9.0.7" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\BlazorWorker.WorkerCore\BlazorWorker.WorkerCore.csproj">
       <PrivateAssets>all</PrivateAssets>

@@ -10,6 +10,43 @@ namespace BlazorWorker.Core
     public class WorkerInitOptions
     {
         /// <summary>
+        /// Default Runtime-version specific preprocessor symbols that are available at runtime.
+        /// </summary>
+        /// <remarks>https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/preprocessor-directives</remarks>
+        public static IReadOnlyDictionary<string, bool> DefaultRuntimePreprocessorSymbols 
+            => _staticRuntimePreprocessorSymbols;
+
+        private static readonly Dictionary<string, bool> _staticRuntimePreprocessorSymbols;
+
+        static WorkerInitOptions()
+        {
+            _staticRuntimePreprocessorSymbols = new();
+#if NET7_0
+            _staticRuntimePreprocessorSymbols.Add("NET7_0", true);
+#endif
+#if NET7_0_OR_GREATER
+            _staticRuntimePreprocessorSymbols.Add("NET7_0_OR_GREATER", true);
+#endif
+#if NET8_0
+            _staticRuntimePreprocessorSymbols.Add("NET8_0", true);
+#endif
+#if NET8_0_OR_GREATER
+            _staticRuntimePreprocessorSymbols.Add("NET8_0_OR_GREATER", true);
+#endif
+#if NET9_0
+            _staticRuntimePreprocessorSymbols.Add("NET9_0", true);
+#endif
+#if NET9_0_OR_GREATER
+            _staticRuntimePreprocessorSymbols.Add("NET9_0_OR_GREATER", true);
+#endif
+#if NET10_0
+            _staticRuntimePreprocessorSymbols.Add("NET10_0", true);
+#endif
+#if NET10_0_OR_GREATER
+            _staticRuntimePreprocessorSymbols.Add("NET10_0_OR_GREATER", true);
+#endif
+        }
+        /// <summary>
         /// Creates a new instance of WorkerInitOptions
         /// </summary>
         public WorkerInitOptions()
@@ -25,25 +62,7 @@ namespace BlazorWorker.Core
 #if DEBUG
             Debug = true;
 #endif
-            RuntimePreprocessorSymbols = new();
-#if NET7_0
-            RuntimePreprocessorSymbols.Add("NET7_0", true);
-#endif
-#if NET7_0_OR_GREATER
-            RuntimePreprocessorSymbols.Add("NET7_0_OR_GREATER", true);
-#endif
-#if NET8_0
-            RuntimePreprocessorSymbols.Add("NET8_0", true);
-#endif
-#if NET8_0_OR_GREATER
-            RuntimePreprocessorSymbols.Add("NET8_0_OR_GREATER", true);
-#endif
-#if NET9_0
-            RuntimePreprocessorSymbols.Add("NET9_0", true);
-#endif
-#if NET9_0_OR_GREATER
-            RuntimePreprocessorSymbols.Add("NET9_0_OR_GREATER", true);
-#endif
+            RuntimePreprocessorSymbols = DefaultRuntimePreprocessorSymbols.ToDictionary(k => k.Key, v => v.Value);
         }
 
         /// <summary>
@@ -93,8 +112,9 @@ namespace BlazorWorker.Core
         public string EndInvokeCallBackEndpoint { get; set; }
 
         /// <summary>
-        /// https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/preprocessor-directives
+        /// Runtime-version specific preprocessor symbols that are available at runtime for the worker script.
         /// </summary>
+        /// <remarks>https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/preprocessor-directives</remarks>
         public Dictionary<string, bool> RuntimePreprocessorSymbols { get; set; }
 
         /// <summary>

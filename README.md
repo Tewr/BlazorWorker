@@ -26,18 +26,13 @@ The library comes in two flavours, one built on top of the other:
 ### Net 5 & 6 Support
 .netstandard2, .net5 and .net6 can be used as targets with BlazorWorker version v3.x, but new features will not be developed for these targets due to the breaking changes in .net7.
 
-### Net 7 & 8 Support
-.net7 & .net8 targets can be used from [release v4.0.0](https://github.com/Tewr/BlazorWorker/releases/tag/v4.0.0) and higher versions.
-
-### Net 9 Support
-.net9 started out as very flaky due to instability in startup procedure, but is functional since at least 16/07/2025. Possibly due to changes in browser. [Some more information here](https://github.com/dotnet/runtime/issues/108253).
+### Net 7, 8, 9, 10 Support
+.net7 targets and newer can be used from [release v4.0.0](https://github.com/Tewr/BlazorWorker/releases/tag/v4.0.0) and higher versions.
 
 ### Native framework multithreading
-Multi-threading enthusiasts should closely monitor [this tracking issue](https://github.com/dotnet/runtime/issues/68162) in the dotnet runtime repo, which promises threading support in ~~.net 7~~ ~~.net8~~ ~~[.net9](https://github.com/dotnet/aspnetcore/issues/17730#issuecomment-2059602250)~~ .net10, projected for nov 2025.
+Multi-threading enthusiasts should closely monitor [this tracking issue](https://github.com/dotnet/aspnetcore/issues/17730) in the dotnet runtime repo, which promises threading support in ~~.net 7~~ ~~.net8~~ ~~.net9~~ ~~.net10~~ .net11, projected for nov 2026.
 
-.net7-rc2 has an experimental multithreading api, read about it [here](https://devblogs.microsoft.com/dotnet/asp-net-core-updates-in-dotnet-7-rc-2/#webassembly-multithreading-experimental)
-
-
+Since .net7-rc2 there is an experimental multithreading api, read about it [here](https://devblogs.microsoft.com/dotnet/asp-net-core-updates-in-dotnet-7-rc-2/#webassembly-multithreading-experimental)
 
 ## Tewr.BlazorWorker.BackgroundService Installation
 Nuget package:

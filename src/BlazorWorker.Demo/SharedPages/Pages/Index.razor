@@ -5,7 +5,8 @@
         <h1>Simple .NET Worker Thread</h1>
 
         Welcome to your new threaded app.
-
+        <br /><br />
+        Specific Runtime Build: @Runtime
         <br /><br />
         Pi estimation demo. Specify number of iterations.<br />
         <input type="text" @bind="piIterations" placeholder="estimation iterations" /><br />
@@ -35,6 +36,11 @@
     string canDisposeService => backgroundService == null ? "disabled" : null;
     string RunDisabled => Running ? "disabled" : null;
     bool Running = false;
+
+    string Runtime = WorkerInitOptions.DefaultRuntimePreprocessorSymbols.ContainsKey("NET7_0") ? "NET7_0" :
+        WorkerInitOptions.DefaultRuntimePreprocessorSymbols.ContainsKey("NET8_0") ? "NET8_0" :
+        WorkerInitOptions.DefaultRuntimePreprocessorSymbols.ContainsKey("NET9_0") ? "NET9_0" :
+        WorkerInitOptions.DefaultRuntimePreprocessorSymbols.ContainsKey("NET10_0") ? "NET10_0" : "(unknown)";
 
     public async Task OnClick(EventArgs _)
     {

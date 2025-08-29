@@ -79,86 +79,114 @@ window.BlazorWorker = function () {
 
 
 
-        //TODO: This call could/should be session cached. But will the built-in blazor fetch service worker override 
+        //TODO: This call could/should be session cached. But will the built-in blazor fetch service worker override
         // (PWA et al) do this already if configured ?
-        fetch(`${initConf.appRoot}/${initConf.blazorBoot}`)
-            .then(async response => {
-                const blazorboot = await response.json();
-                /* START NET8_0_OR_GREATER */
-                if (initConf.runtimePreprocessorSymbols.NET8_0_OR_GREATER) {
-                    self.modifiedBlazorbootConfig = blazorboot;
-                    self.modifiedBlazorbootConfig.mainAssemblyName = "BlazorWorker.WorkerCore";
-                }
-                /* END NET8_0_OR_GREATER */
-                /* START NET7_0 */
-                if (initConf.runtimePreprocessorSymbols.NET7_0) {
-                    const blazorbootMonoConfig = {
-                        "mainAssemblyName": "BlazorWorker.WorkerCore.dll",
-                        "assemblyRootFolder": "_framework",
-                        "debugLevel": initConf.DebugLevel || -1,
-                        "assets":
-                            [...Object.keys(blazorboot.resources.assembly)
-                                .concat(Object.keys(blazorboot.resources.pdb || {}) || []).map(dllName => {
-                                    return {
-                                        "behavior": "assembly",
-                                        "name": dllName
-                                    };
-                                }),
-                            ...[
-                                {
-                                    "virtualPath": "runtimeconfig.bin",
-                                    "behavior": "vfs",
-                                    "name": "supportFiles/0_runtimeconfig.bin"
-                                },
-                                {
-                                    "virtualPath": "dotnet.js.symbols",
-                                    "behavior": "vfs",
-                                    "name": "supportFiles/1_dotnet.js.symbols"
-                                },
-                                {
-                                    "loadRemote": false,
-                                    "behavior": "icu",
-                                    "name": "icudt.dat"
-                                },
-                                {
-                                    "virtualPath": "/usr/share/zoneinfo/",
-                                    "behavior": "vfs",
-                                    "name": "dotnet.timezones.blat"
-                                },
-                                {
-                                    "behavior": "dotnetwasm",
-                                    "name": "_framework/dotnet.wasm"
-                                }
+        let blazorBootPromise;
+        if (initConf.runtimePreprocessorSymbols.NET7_0_OR_GREATER &&
+            !initConf.runtimePreprocessorSymbols.NET10_0_OR_GREATER) {
+
+            blazorBootPromise =
+                fetch(`${initConf.appRoot}/${initConf.blazorBoot}`)
+                .then(async response => {
+                    const blazorboot = await response.json();
+                    /* START NET8_0_OR_GREATER */
+                    if (initConf.runtimePreprocessorSymbols.NET8_0_OR_GREATER) {
+                        self.modifiedBlazorbootConfig = blazorboot;
+                        self.modifiedBlazorbootConfig.mainAssemblyName = "BlazorWorker.WorkerCore";
+                    }
+                    /* END NET8_0_OR_GREATER */
+                    /* START NET7_0 */
+                    if (initConf.runtimePreprocessorSymbols.NET7_0) {
+                        const blazorbootMonoConfig = {
+                            "mainAssemblyName": "BlazorWorker.WorkerCore.dll",
+                            "assemblyRootFolder": "_framework",
+                            "debugLevel": initConf.DebugLevel || -1,
+                            "assets":
+                                [...Object.keys(blazorboot.resources.assembly)
+                                    .concat(Object.keys(blazorboot.resources.pdb || {}) || []).map(dllName => {
+                                        return {
+                                            "behavior": "assembly",
+                                            "name": dllName
+                                        };
+                                    }),
+                                ...[
+                                    {
+                                        "virtualPath": "runtimeconfig.bin",
+                                        "behavior": "vfs",
+                                        "name": "supportFiles/0_runtimeconfig.bin"
+                                    },
+                                    {
+                                        "virtualPath": "dotnet.js.symbols",
+                                        "behavior": "vfs",
+                                        "name": "supportFiles/1_dotnet.js.symbols"
+                                    },
+                                    {
+                                        "loadRemote": false,
+                                        "behavior": "icu",
+                                        "name": "icudt.dat"
+                                    },
+                                    {
+                                        "virtualPath": "/usr/share/zoneinfo/",
+                                        "behavior": "vfs",
+                                        "name": "dotnet.timezones.blat"
+                                    },
+                                    {
+                                        "behavior": "dotnetwasm",
+                                        "name": "_framework/dotnet.wasm"
+                                    }
                                 ]],
-                        "remoteSources": [],
-                        "pthreadPoolSize": 0,
-                        "generatedFromBlazorBoot":true
-                    };
+                            "remoteSources": [],
+                            "pthreadPoolSize": 0,
+                            "generatedFromBlazorBoot": true
+                        };
 
-                    self.blazorbootMonoConfig = blazorbootMonoConfig;
-                }
-                /* END NET7_0 */
+                        self.blazorbootMonoConfig = blazorbootMonoConfig;
+                    }
+                    /* END NET7_0 */
 
-                let dotnetjsfilename = '';
-                /* START NET7_0 */
-                if (initConf.runtimePreprocessorSymbols.NET7_0) {
-                    const runttimeSection = blazorboot.resources.runtime;
-                    for (var p in runttimeSection) {
-                        if (Object.prototype.hasOwnProperty.call(runttimeSection, p) && p.startsWith('dotnet.') && p.endsWith('.js')) {
-                            dotnetjsfilename = p;
+                    let dotnetjsfilename = '';
+                    /* START NET7_0 */
+                    if (initConf.runtimePreprocessorSymbols.NET7_0) {
+                        const runttimeSection = blazorboot.resources.runtime;
+                        for (var p in runttimeSection) {
+                            if (Object.prototype.hasOwnProperty.call(runttimeSection, p) && p.startsWith('dotnet.') && p.endsWith('.js')) {
+                                dotnetjsfilename = p;
+                            }
+                        }
+
+                        if (dotnetjsfilename === '') {
+                            throw 'BlazorWorker: Unable to locate dotnetjs file in blazor boot config.';
                         }
                     }
-    
-                    if (dotnetjsfilename === '') {
-                        throw 'BlazorWorker: Unable to locate dotnetjs file in blazor boot config.';
+                    /* END NET7_0 */
+                    /* START NET8_0_OR_GREATER */
+                    if (initConf.runtimePreprocessorSymbols.NET8_0_OR_GREATER) {
+                        dotnetjsfilename = "dotnet.js";
                     }
-                }
-                /* END NET7_0 */
-                /* START NET8_0_OR_GREATER */
-                if (initConf.runtimePreprocessorSymbols.NET8_0_OR_GREATER) {
-                    dotnetjsfilename = "dotnet.js";
-                }
-                /* END NET8_0_OR_GREATER */
+                    /* END NET8_0_OR_GREATER */
+
+                    return dotnetjsfilename;
+                }, errorInfo => console.error("error loading blazorboot", errorInfo));
+        }
+
+        /* START NET10_0_OR_GREATER */
+        if (initConf.runtimePreprocessorSymbols.NET10_0_OR_GREATER) {
+            // NET10 no longer needs to load the boot config in advance (actually it no longer exists), and no modification is needed.
+            // This may actually be the case for NET8 as well? Might be related to that we never call Run() since net8, so mainAssembly 
+            // config modification is not needed.
+            blazorBootPromise = Promise.resolve("dotnet.js");
+        }
+        /* END NET10_0_OR_GREATER */
+
+        if (!blazorBootPromise) {
+            const errorMessage = 'BlazorWorker: Cannot determine boot method: Was likely unable to determine dotnet version.';
+            console.error(errorMessage, { initConf })
+            throw 'BlazorWorker: Cannot determine boot method: Was likely unable to determine dotnet version.';
+        }
+
+        blazorBootPromise.then(
+            async (dotnetjsfilename) => {
+                
                 const { dotnet } = await import(`${initConf.appRoot}/${initConf.wasmRoot}/${dotnetjsfilename}`);
 
                 const { setModuleImports, getAssemblyExports } = await dotnet
@@ -206,10 +234,10 @@ window.BlazorWorker = function () {
 
                 messageHandler = await getMethodFromMethodIdentifier(initConf.messageEndPoint);
                 self.initMethod = await getMethodFromMethodIdentifier(initConf.initEndPoint);
- 
+
                 onReady();
-            
-            }, errorInfo => console.error("error loading blazorboot", errorInfo));
+
+            });
 
         const empty = {};
 
@@ -231,6 +259,8 @@ window.BlazorWorker = function () {
             return getChildFromDotNotation(workerScopeObject) !== empty;
         };
     };
+
+    /* END workerDef */
 
     const inlineWorker = `self.onmessage = ${workerDef}()`; 
 
