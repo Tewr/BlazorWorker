@@ -93,6 +93,30 @@ window.BlazorWorker = function () {
                     if (initConf.runtimePreprocessorSymbols.NET8_0_OR_GREATER) {
                         self.modifiedBlazorbootConfig = blazorboot;
                         self.modifiedBlazorbootConfig.mainAssemblyName = "BlazorWorker.WorkerCore";
+
+                        if (initConf.pruneBlazorBootConfig) {
+                            for (const path of initConf.pruneBlazorBootConfig) {
+                                let parts = path.split('.');
+                                const lastPart = parts.splice(parts.length - 1)[0];
+
+                                let currentObject = self.modifiedBlazorbootConfig;
+
+                                for (const part of parts) {
+                                    currentObject = currentObject[part];
+
+                                    if (currentObject === undefined) {
+                                        break;
+                                    }
+                                }
+
+                                if (!currentObject || !currentObject[lastPart]) {
+                                    console.warn(`Could not interpret the pruneBlazorBootConfig path ${path}`);
+                                }
+                                else {
+                                    delete currentObject[lastPart];
+                                }
+                            }
+                        }
                     }
                     /* END NET8_0_OR_GREATER */
                     /* START NET7_0 */
@@ -284,6 +308,7 @@ window.BlazorWorker = function () {
             endInvokeCallBackEndpoint: initOptions.endInvokeCallBackEndpoint,
             wasmRoot: initOptions.wasmRoot,
             blazorBoot: "_framework/blazor.boot.json",
+            pruneBlazorBootConfig: initOptions.pruneBlazorBootConfig,
             envMap: initOptions.envMap,
             debug: initOptions.debug
         };
