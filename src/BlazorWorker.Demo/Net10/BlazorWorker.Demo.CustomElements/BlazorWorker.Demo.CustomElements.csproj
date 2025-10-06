@@ -13,9 +13,8 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.0-rc.1.25451.107" PrivateAssets="all" />
   </ItemGroup>
 
-    <ItemGroup>
-    <ProjectReference Include="..\..\..\BlazorWorker.ServiceFactory\BlazorWorker.BackgroundServiceFactory.csproj" />
-    <ProjectReference Include="..\..\Shared\BlazorWorker.Demo.Shared.csproj" />
+  <ItemGroup>
+    <ProjectReference Include="..\..\SharedPages\BlazorWorker.Demo.SharedPages.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,10 +1,15 @@
-﻿@implements IAsyncDisposable
+﻿@using System.Diagnostics
+@implements IAsyncDisposable
 
 @inject IWorkerFactory workerFactory
 
 <div class="row">
 	<div class="col-5 col-xs-12">
-		<h1>Simple .NET Worker Thread</h1>
+		<h1>Simple .NET Worker Thread CustomElement</h1>
+		<br /><br />
+
+
+		Specific Runtime Build: @Runtime
 		<br /><br />
 
 		Pi estimation demo. Specify number of iterations.<br />
@@ -40,12 +45,17 @@
 	private int piProgress = 0;
 	private bool pruneLibraryInitializers = true;
 
-	private IWorker? worker;
-	private IWorkerBackgroundService<MathsService>? backgroundService;
-	private string? output;
+	private IWorker worker;
+	private IWorkerBackgroundService<MathsService> backgroundService;
+	private string output;
 
-	private string? RunDisabled => Running ? "disabled" : null;
+	private string RunDisabled => Running ? "disabled" : null;
 	private bool Running = false;
+
+	string Runtime = WorkerInitOptions.DefaultRuntimePreprocessorSymbols.ContainsKey("NET7_0") ? "NET7_0" :
+		WorkerInitOptions.DefaultRuntimePreprocessorSymbols.ContainsKey("NET8_0") ? "NET8_0" :
+		WorkerInitOptions.DefaultRuntimePreprocessorSymbols.ContainsKey("NET9_0") ? "NET9_0" :
+		WorkerInitOptions.DefaultRuntimePreprocessorSymbols.ContainsKey("NET10_0") ? "NET10_0" : "(unknown)";
 
 	private async Task Run()
 	{
@@ -72,7 +82,7 @@
 
 			});
 
-			await backgroundService.RegisterEventListenerAsync(nameof(MathsService.Pi), (object? s, PiProgress eventInfo) =>
+			await backgroundService.RegisterEventListenerAsync(nameof(MathsService.Pi), (object s, PiProgress eventInfo) =>
 			{
 				piProgress = eventInfo.Progress;
 				StateHasChanged();
