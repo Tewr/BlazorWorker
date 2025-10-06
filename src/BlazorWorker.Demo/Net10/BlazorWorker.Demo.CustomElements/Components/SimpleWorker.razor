@@ -1,0 +1,125 @@
+﻿@implements IAsyncDisposable
+
+@inject IWorkerFactory workerFactory
+
+<div class="row">
+	<div class="col-5 col-xs-12">
+		<h1>Simple .NET Worker Thread</h1>
+		<br /><br />
+
+		Pi estimation demo. Specify number of iterations.<br />
+
+		<input type="text" @bind="piIterations" placeholder="estimation iterations" /><br />
+
+		<label>
+			Prune Library Initializers
+			<InputCheckbox @bind-Value="pruneLibraryInitializers" />
+		</label>
+		<br /><br />
+
+		<progress max=@piIterations value="@piProgress" />
+		<br /><br />
+
+		<button disabled=@RunDisabled @onclick=Run class="btn btn-primary">
+			Run test
+		</button>
+		<br /><br />
+
+		<strong>Output:</strong>
+		<hr />
+
+		<pre>
+        @output
+        </pre>
+	</div>
+</div>
+@code {
+	private static readonly string[] libraryInitializerPrunePaths = ["resources.libraryInitializers", "resources.modulesAfterRuntimeReady"];
+
+	private int piIterations = 5_000_000;
+	private int piProgress = 0;
+	private bool pruneLibraryInitializers = true;
+
+	private IWorker? worker;
+	private IWorkerBackgroundService<MathsService>? backgroundService;
+	private string? output;
+
+	private string? RunDisabled => Running ? "disabled" : null;
+	private bool Running = false;
+
+	private async Task Run()
+	{
+		Running = true;
+		output = "";
+		await DisposeWorker();
+
+
+		var rn = Environment.NewLine;
+		try
+		{
+
+			worker = await workerFactory.CreateAsync();
+
+			var sw = new Stopwatch();
+
+			output = $"{rn}{LogDate()} Creating background service...";
+			StateHasChanged();
+
+			sw.Start();
+			backgroundService = await worker.CreateBackgroundServiceAsync<MathsService>(options =>
+			{
+				options.PruneBlazorBootConfig = pruneLibraryInitializers ? libraryInitializerPrunePaths : [];
+
+			});
+
+			await backgroundService.RegisterEventListenerAsync(nameof(MathsService.Pi), (object? s, PiProgress eventInfo) =>
+			{
+				piProgress = eventInfo.Progress;
+				StateHasChanged();
+			});
+			sw.Stop();
+
+			output += $"{rn}{LogDate()} Background service created in {sw.ElapsedMilliseconds}ms";
+			StateHasChanged();
+
+			// We cannot pass piIterations directly, as it would create a reference to the current class
+			// which is difficult to serialize over process borders
+			// local variables are fine though
+			var localParamValue = piIterations;
+
+			output += $"{rn}{LogDate()} Calling EstimatePI({piIterations})...";
+			var result = await backgroundService.RunAsync(s => s.EstimatePI(localParamValue));
+
+			output += $"{rn}{LogDate()} EstimatePI({piIterations}) = {result}";
+			StateHasChanged();
+
+		}
+		catch (Exception e)
+		{
+			output = $"{rn}Error = {e}";
+		}
+		finally
+		{
+			Running = false;
+		}
+	}
+
+	private async Task DisposeWorker()
+	{
+		if (backgroundService is not null)
+		{
+			await backgroundService.DisposeAsync();
+			backgroundService = null;
+		}
+
+		if (worker is not null)
+		{
+			await worker.DisposeAsync();
+			worker = null;
+		}
+	}
+
+	public async ValueTask DisposeAsync() => await DisposeWorker();
+
+	private static string LogDate() => DateTime.Now.ToString("HH:mm:ss:fff");
+}
