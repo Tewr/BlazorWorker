@@ -77,7 +77,35 @@ window.BlazorWorker = function () {
         const getChildFromDotNotation = (member, root) =>
             member.split(".").reduce((m, prop) => Object.hasOwnProperty.call(m, prop) ? m[prop] : empty, root || self);
 
+        function patchBlazorBootConfig(blazorBootConfig) {
+            blazorBootConfig.mainAssemblyName = "BlazorWorker.WorkerCore";
 
+            for (const path of initConf.pruneBlazorBootConfig) {
+                let parts = path.split('.');
+                const lastPart = parts.splice(parts.length - 1)[0];
+
+                let currentObject = blazorBootConfig;
+
+                for (const part of parts) {
+                    currentObject = currentObject[part];
+
+                    if (currentObject === undefined) {
+                        break;
+                    }
+                }
+
+                if (!currentObject || !currentObject[lastPart]) {
+                    console.warn(`Could not interpret the pruneBlazorBootConfig path ${path}`);
+                }
+                else {
+                    delete currentObject[lastPart];
+                }
+            }
+        }
+
+        function getDotnetJsPath(dotnetJsFilename) {
+            return `${initConf.appRoot}/${initConf.wasmRoot}/${dotnetJsFilename}`;
+        }
 
         //TODO: This call could/should be session cached. But will the built-in blazor fetch service worker override
         // (PWA et al) do this already if configured ?
@@ -189,16 +217,44 @@ window.BlazorWorker = function () {
                     }
                     /* END NET8_0_OR_GREATER */
 
-                    return dotnetjsfilename;
+                    return getDotnetJsPath(d);
                 }, errorInfo => console.error("error loading blazorboot", errorInfo));
         }
 
         /* START NET10_0_OR_GREATER */
         if (initConf.runtimePreprocessorSymbols.NET10_0_OR_GREATER) {
             // NET10 no longer needs to load the boot config in advance (actually it no longer exists), and no modification is needed.
-            // This may actually be the case for NET8 as well? Might be related to that we never call Run() since net8, so mainAssembly 
-            // config modification is not needed.
-            blazorBootPromise = Promise.resolve("dotnet.js");
+            // This may actually be the case for NET8 as well? Might be related to that we never call Run() since net8, so mainAssembly
+
+            if (!(initConf.pruneBlazorBootConfig)?.length) {
+                // We dont need to patch anything here
+                blazorBootPromise = Promise.resolve(getDotnetJsPath('dotnet.js'));
+            }
+            else {
+                blazorBootPromise = fetch(getDotnetJsPath('dotnet.js')).then(async response => {
+                    const dotNetJsContent = await response.text();
+
+                    const blazorBootFromDotnetJsRegex = /\/\*json-start\*\/([\w\W]*?)\/\*json-end\*\//;
+                    const match = dotNetJsContent.match(blazorBootFromDotnetJsRegex);
+
+                    if (!match) {
+                        throw new Error("Could not find embedded blazor boot config in dotnet.js");
+                    }
+
+                    let bootConfig = JSON.parse(match[1]);
+                    patchBlazorBootConfig(bootConfig);
+
+                    const patchedJs = dotNetJsContent.replace(
+                        blazorBootFromDotnetJsRegex,
+                        `/*json-start*/${JSON.stringify(bootConfig)}/*json-end*/`
+                    );
+
+                    const blob = new Blob([patchedJs], { type: "application/javascript" });
+                    const url = URL.createObjectURL(blob);
+
+                    return url;
+                });
+            }
         }
         /* END NET10_0_OR_GREATER */
 
@@ -209,9 +265,8 @@ window.BlazorWorker = function () {
         }
 
         blazorBootPromise.then(
-            async (dotnetjsfilename) => {
-                
-                const { dotnet } = await import(`${initConf.appRoot}/${initConf.wasmRoot}/${dotnetjsfilename}`);
+            async (dotnetJsPath) => {
+                const { dotnet } = await import(dotnetJsPath);
 
                 const { setModuleImports, getAssemblyExports } = await dotnet
                     .withDiagnosticTracing(initConf.debug)
