@@ -1,5 +1,5 @@
 window.BlazorWorker = function () {
-    
+
     const workers = {};
     const disposeWorker = function (workerId) {
 
@@ -21,7 +21,7 @@ window.BlazorWorker = function () {
         const fetchHandler = {
             apply: function (target, thisArg, args) {
                 // replaces blob urls with appRoot urls. Mono will attempt to load dlls from self.location.href.
-                
+
                 args[0] = args[0].replace(blobRoot, initConf.appRoot);
                 if (initConf.runtimePreprocessorSymbols.NET8_0_OR_GREATER) {
                     if (self.modifiedBlazorbootConfig && args[0].endsWith(initConf.blazorBoot)) {
@@ -53,7 +53,7 @@ window.BlazorWorker = function () {
                 }
 
                 return target[prop];
-                
+
             }
         }
         self.window = new Proxy(self, handler);
@@ -77,9 +77,7 @@ window.BlazorWorker = function () {
         const getChildFromDotNotation = (member, root) =>
             member.split(".").reduce((m, prop) => Object.hasOwnProperty.call(m, prop) ? m[prop] : empty, root || self);
 
-        function patchBlazorBootConfig(blazorBootConfig) {
-            blazorBootConfig.mainAssemblyName = "BlazorWorker.WorkerCore";
-
+        function pruneBlazorBootConfig(blazorBootConfig) {
             for (const path of initConf.pruneBlazorBootConfig) {
                 let parts = path.split('.');
                 const lastPart = parts.splice(parts.length - 1)[0];
@@ -122,29 +120,7 @@ window.BlazorWorker = function () {
                         self.modifiedBlazorbootConfig = blazorboot;
                         self.modifiedBlazorbootConfig.mainAssemblyName = "BlazorWorker.WorkerCore";
 
-                        if (initConf.pruneBlazorBootConfig) {
-                            for (const path of initConf.pruneBlazorBootConfig) {
-                                let parts = path.split('.');
-                                const lastPart = parts.splice(parts.length - 1)[0];
-
-                                let currentObject = self.modifiedBlazorbootConfig;
-
-                                for (const part of parts) {
-                                    currentObject = currentObject[part];
-
-                                    if (currentObject === undefined) {
-                                        break;
-                                    }
-                                }
-
-                                if (!currentObject || !currentObject[lastPart]) {
-                                    console.warn(`Could not interpret the pruneBlazorBootConfig path ${path}`);
-                                }
-                                else {
-                                    delete currentObject[lastPart];
-                                }
-                            }
-                        }
+                        pruneBlazorBootConfig(self.modifiedBlazorbootConfig);
                     }
                     /* END NET8_0_OR_GREATER */
                     /* START NET7_0 */
@@ -217,7 +193,7 @@ window.BlazorWorker = function () {
                     }
                     /* END NET8_0_OR_GREATER */
 
-                    return getDotnetJsPath(d);
+                    return getDotnetJsPath(dotnetjsfilename);
                 }, errorInfo => console.error("error loading blazorboot", errorInfo));
         }
 
@@ -243,7 +219,7 @@ window.BlazorWorker = function () {
                     }
 
                     let bootConfig = JSON.parse(match[1]);
-                    patchBlazorBootConfig(bootConfig);
+                    pruneBlazorBootConfig(bootConfig);
 
                     let patchedJs = dotNetJsContent.replace(
                         blazorBootFromDotnetJsRegex,
@@ -345,7 +321,7 @@ window.BlazorWorker = function () {
 
     /* END workerDef */
 
-    const inlineWorker = `self.onmessage = ${workerDef}()`; 
+    const inlineWorker = `self.onmessage = ${workerDef}()`;
 
     const initWorker = function (id, callbackInstance, initOptions) {
         let appRoot = initOptions.appRoot;
@@ -357,7 +333,7 @@ window.BlazorWorker = function () {
         if (appRoot.endsWith("/")) {
             appRoot = appRoot.substring(0, appRoot.length - 1);
         }
-        
+
         const initConf = {
             appRoot: appRoot,
             workerId: id,
@@ -371,7 +347,7 @@ window.BlazorWorker = function () {
             envMap: initOptions.envMap,
             debug: initOptions.debug
         };
-        
+
         // Initialize worker
         const renderedConfig = JSON.stringify(initConf);
         const renderedInlineWorker = inlineWorker.replace('$initConf$', renderedConfig);
