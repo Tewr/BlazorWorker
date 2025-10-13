@@ -225,13 +225,14 @@ window.BlazorWorker = function () {
         if (initConf.runtimePreprocessorSymbols.NET10_0_OR_GREATER) {
             // NET10 no longer needs to load the boot config in advance (actually it no longer exists), and no modification is needed.
             // This may actually be the case for NET8 as well? Might be related to that we never call Run() since net8, so mainAssembly
+            const dotnetJsPath = getDotnetJsPath('dotnet.js');
 
             if (!(initConf.pruneBlazorBootConfig)?.length) {
                 // We dont need to patch anything here
-                blazorBootPromise = Promise.resolve(getDotnetJsPath('dotnet.js'));
+                blazorBootPromise = Promise.resolve(dotnetJsPath);
             }
             else {
-                blazorBootPromise = fetch(getDotnetJsPath('dotnet.js')).then(async response => {
+                blazorBootPromise = fetch(dotnetJsPath).then(async response => {
                     const dotNetJsContent = await response.text();
 
                     const blazorBootFromDotnetJsRegex = /\/\*json-start\*\/([\w\W]*?)\/\*json-end\*\//;
@@ -244,10 +245,13 @@ window.BlazorWorker = function () {
                     let bootConfig = JSON.parse(match[1]);
                     patchBlazorBootConfig(bootConfig);
 
-                    const patchedJs = dotNetJsContent.replace(
+                    let patchedJs = dotNetJsContent.replace(
                         blazorBootFromDotnetJsRegex,
                         `/*json-start*/${JSON.stringify(bootConfig)}/*json-end*/`
                     );
+
+                    // import.meta.url is used to get the scriptDirectory which shouldn't point to a blob
+                    patchedJs = patchedJs.replace(/import\.meta\.url/, `'${dotnetJsPath}'`);
 
                     const blob = new Blob([patchedJs], { type: "application/javascript" });
                     const url = URL.createObjectURL(blob);
