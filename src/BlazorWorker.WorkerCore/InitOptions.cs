@@ -92,6 +92,15 @@ namespace BlazorWorker.Core
         public bool Debug { get; set; }
 
         /// <summary>
+        /// Removes given sections (described by a path, separated with '.') from the blazor.boot.json provided to the web worker. Experts only.
+        /// </summary>
+        /// <remarks>
+        /// The following removes the libraryInitializers section.<br />
+        /// <code>["resources.libraryInitializers"]</code>
+        /// </remarks>
+        public string[] PruneBlazorBootConfig { get; set; }
+
+        /// <summary>
         /// Mono-wasm-annotated endpoint for sending messages to the worker. Experts only.
         /// </summary>
         public MethodIdentifier MessageEndPoint { get; set; }
@@ -139,6 +148,12 @@ namespace BlazorWorker.Core
                     newEnvMap[entry.Key] = entry.Value;
                 }
             }
+
+            var pruneBlazorBootConfig = this.PruneBlazorBootConfig ?? Array.Empty<string>();
+            pruneBlazorBootConfig = pruneBlazorBootConfig
+                .Concat(initOptions.PruneBlazorBootConfig ?? Array.Empty<string>())
+                .Distinct().ToArray();
+
             return new WorkerInitOptions
             {
                 AppRoot = initOptions.AppRoot ?? this.AppRoot,
@@ -146,7 +161,8 @@ namespace BlazorWorker.Core
                 MessageEndPoint = initOptions.MessageEndPoint ?? this.MessageEndPoint,
                 InitEndPoint = initOptions.InitEndPoint ?? this.InitEndPoint,
                 EndInvokeCallBackEndpoint = initOptions.EndInvokeCallBackEndpoint ?? this.EndInvokeCallBackEndpoint,
-                EnvMap = newEnvMap
+                PruneBlazorBootConfig = pruneBlazorBootConfig,
+                EnvMap = newEnvMap,
             };
         }
     }

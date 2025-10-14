@@ -54,6 +54,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Net10", "Net10", "{02EA681E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorWorker.Demo.Client", "BlazorWorker.Demo\Net10\BlazorWorker.Demo.Client\BlazorWorker.Demo.Client.csproj", "{F3AB3C9F-A442-E8C3-80EF-AFD2F1BEEA10}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorWorker.Demo.CustomElements", "BlazorWorker.Demo\Net10\BlazorWorker.Demo.CustomElements\BlazorWorker.Demo.CustomElements.csproj", "{906A2128-CEDB-436A-BB7A-C55F1F4AC24F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorWorker.Demo.CustomElements", "BlazorWorker.Demo\Net9\BlazorWorker.Demo.CustomElements\BlazorWorker.Demo.CustomElements.csproj", "{E692DF9F-0456-A597-BADD-B584BE0E243B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -132,6 +136,18 @@ Global
 		{F3AB3C9F-A442-E8C3-80EF-AFD2F1BEEA10}.Nuget|Any CPU.Build.0 = Debug|Any CPU
 		{F3AB3C9F-A442-E8C3-80EF-AFD2F1BEEA10}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F3AB3C9F-A442-E8C3-80EF-AFD2F1BEEA10}.Release|Any CPU.Build.0 = Release|Any CPU
+		{906A2128-CEDB-436A-BB7A-C55F1F4AC24F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{906A2128-CEDB-436A-BB7A-C55F1F4AC24F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{906A2128-CEDB-436A-BB7A-C55F1F4AC24F}.Nuget|Any CPU.ActiveCfg = Debug|Any CPU
+		{906A2128-CEDB-436A-BB7A-C55F1F4AC24F}.Nuget|Any CPU.Build.0 = Debug|Any CPU
+		{906A2128-CEDB-436A-BB7A-C55F1F4AC24F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{906A2128-CEDB-436A-BB7A-C55F1F4AC24F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E692DF9F-0456-A597-BADD-B584BE0E243B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E692DF9F-0456-A597-BADD-B584BE0E243B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E692DF9F-0456-A597-BADD-B584BE0E243B}.Nuget|Any CPU.ActiveCfg = Debug|Any CPU
+		{E692DF9F-0456-A597-BADD-B584BE0E243B}.Nuget|Any CPU.Build.0 = Debug|Any CPU
+		{E692DF9F-0456-A597-BADD-B584BE0E243B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E692DF9F-0456-A597-BADD-B584BE0E243B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -155,6 +171,8 @@ Global
 		{572AC0E5-5889-49B0-A229-551C50BC2B5E} = {5E37AB1B-1AEB-4D02-931B-5033137A8C67}
 		{02EA681E-C7D8-13C7-8484-4AC65E1B71E8} = {E05838C4-02F5-403B-B7E4-338924A6D5AB}
 		{F3AB3C9F-A442-E8C3-80EF-AFD2F1BEEA10} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{906A2128-CEDB-436A-BB7A-C55F1F4AC24F} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{E692DF9F-0456-A597-BADD-B584BE0E243B} = {5E37AB1B-1AEB-4D02-931B-5033137A8C67}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0CCA60FE-BC52-494C-B600-B35B8865535C}

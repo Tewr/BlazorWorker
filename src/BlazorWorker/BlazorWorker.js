@@ -1,5 +1,5 @@
 window.BlazorWorker = function () {
-    
+
     const workers = {};
     const disposeWorker = function (workerId) {
 
@@ -21,7 +21,7 @@ window.BlazorWorker = function () {
         const fetchHandler = {
             apply: function (target, thisArg, args) {
                 // replaces blob urls with appRoot urls. Mono will attempt to load dlls from self.location.href.
-                
+
                 args[0] = args[0].replace(blobRoot, initConf.appRoot);
                 if (initConf.runtimePreprocessorSymbols.NET8_0_OR_GREATER) {
                     if (self.modifiedBlazorbootConfig && args[0].endsWith(initConf.blazorBoot)) {
@@ -53,7 +53,7 @@ window.BlazorWorker = function () {
                 }
 
                 return target[prop];
-                
+
             }
         }
         self.window = new Proxy(self, handler);
@@ -77,7 +77,33 @@ window.BlazorWorker = function () {
         const getChildFromDotNotation = (member, root) =>
             member.split(".").reduce((m, prop) => Object.hasOwnProperty.call(m, prop) ? m[prop] : empty, root || self);
 
+        function pruneBlazorBootConfig(blazorBootConfig) {
+            for (const path of initConf.pruneBlazorBootConfig) {
+                let parts = path.split('.');
+                const lastPart = parts.splice(parts.length - 1)[0];
 
+                let currentObject = blazorBootConfig;
+
+                for (const part of parts) {
+                    currentObject = currentObject[part];
+
+                    if (currentObject === undefined) {
+                        break;
+                    }
+                }
+
+                if (!currentObject || !currentObject[lastPart]) {
+                    console.warn(`Could not interpret the pruneBlazorBootConfig path ${path}`);
+                }
+                else {
+                    delete currentObject[lastPart];
+                }
+            }
+        }
+
+        function getDotnetJsPath(dotnetJsFilename) {
+            return `${initConf.appRoot}/${initConf.wasmRoot}/${dotnetJsFilename}`;
+        }
 
         //TODO: This call could/should be session cached. But will the built-in blazor fetch service worker override
         // (PWA et al) do this already if configured ?
@@ -93,6 +119,8 @@ window.BlazorWorker = function () {
                     if (initConf.runtimePreprocessorSymbols.NET8_0_OR_GREATER) {
                         self.modifiedBlazorbootConfig = blazorboot;
                         self.modifiedBlazorbootConfig.mainAssemblyName = "BlazorWorker.WorkerCore";
+
+                        pruneBlazorBootConfig(self.modifiedBlazorbootConfig);
                     }
                     /* END NET8_0_OR_GREATER */
                     /* START NET7_0 */
@@ -165,16 +193,48 @@ window.BlazorWorker = function () {
                     }
                     /* END NET8_0_OR_GREATER */
 
-                    return dotnetjsfilename;
+                    return getDotnetJsPath(dotnetjsfilename);
                 }, errorInfo => console.error("error loading blazorboot", errorInfo));
         }
 
         /* START NET10_0_OR_GREATER */
         if (initConf.runtimePreprocessorSymbols.NET10_0_OR_GREATER) {
             // NET10 no longer needs to load the boot config in advance (actually it no longer exists), and no modification is needed.
-            // This may actually be the case for NET8 as well? Might be related to that we never call Run() since net8, so mainAssembly 
-            // config modification is not needed.
-            blazorBootPromise = Promise.resolve("dotnet.js");
+            // This may actually be the case for NET8 as well? Might be related to that we never call Run() since net8, so mainAssembly
+            const dotnetJsPath = getDotnetJsPath('dotnet.js');
+
+            if (!(initConf.pruneBlazorBootConfig)?.length) {
+                // We dont need to patch anything here
+                blazorBootPromise = Promise.resolve(dotnetJsPath);
+            }
+            else {
+                blazorBootPromise = fetch(dotnetJsPath).then(async response => {
+                    const dotNetJsContent = await response.text();
+
+                    const blazorBootFromDotnetJsRegex = /\/\*json-start\*\/([\w\W]*?)\/\*json-end\*\//;
+                    const match = dotNetJsContent.match(blazorBootFromDotnetJsRegex);
+
+                    if (!match) {
+                        throw new Error("Could not find embedded blazor boot config in dotnet.js");
+                    }
+
+                    let bootConfig = JSON.parse(match[1]);
+                    pruneBlazorBootConfig(bootConfig);
+
+                    let patchedJs = dotNetJsContent.replace(
+                        blazorBootFromDotnetJsRegex,
+                        `/*json-start*/${JSON.stringify(bootConfig)}/*json-end*/`
+                    );
+
+                    // import.meta.url is used to get the scriptDirectory which shouldn't point to a blob
+                    patchedJs = patchedJs.replace(/import\.meta\.url/, `'${dotnetJsPath}'`);
+
+                    const blob = new Blob([patchedJs], { type: "application/javascript" });
+                    const url = URL.createObjectURL(blob);
+
+                    return url;
+                });
+            }
         }
         /* END NET10_0_OR_GREATER */
 
@@ -185,9 +245,8 @@ window.BlazorWorker = function () {
         }
 
         blazorBootPromise.then(
-            async (dotnetjsfilename) => {
-                
-                const { dotnet } = await import(`${initConf.appRoot}/${initConf.wasmRoot}/${dotnetjsfilename}`);
+            async (dotnetJsPath) => {
+                const { dotnet } = await import(dotnetJsPath);
 
                 const { setModuleImports, getAssemblyExports } = await dotnet
                     .withDiagnosticTracing(initConf.debug)
@@ -262,7 +321,7 @@ window.BlazorWorker = function () {
 
     /* END workerDef */
 
-    const inlineWorker = `self.onmessage = ${workerDef}()`; 
+    const inlineWorker = `self.onmessage = ${workerDef}()`;
 
     const initWorker = function (id, callbackInstance, initOptions) {
         let appRoot = initOptions.appRoot;
@@ -274,7 +333,7 @@ window.BlazorWorker = function () {
         if (appRoot.endsWith("/")) {
             appRoot = appRoot.substring(0, appRoot.length - 1);
         }
-        
+
         const initConf = {
             appRoot: appRoot,
             workerId: id,
@@ -284,10 +343,11 @@ window.BlazorWorker = function () {
             endInvokeCallBackEndpoint: initOptions.endInvokeCallBackEndpoint,
             wasmRoot: initOptions.wasmRoot,
             blazorBoot: "_framework/blazor.boot.json",
+            pruneBlazorBootConfig: initOptions.pruneBlazorBootConfig,
             envMap: initOptions.envMap,
             debug: initOptions.debug
         };
-        
+
         // Initialize worker
         const renderedConfig = JSON.stringify(initConf);
         const renderedInlineWorker = inlineWorker.replace('$initConf$', renderedConfig);

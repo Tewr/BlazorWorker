@@ -70,6 +70,15 @@
             Outputs additional debug information to the console
             </summary>
         </member>
+        <member name="P:BlazorWorker.Core.WorkerInitOptions.PruneBlazorBootConfig">
+            <summary>
+            Removes given sections (described by a path, separated with '.') from the blazor.boot.json provided to the web worker. Experts only.
+            </summary>
+            <remarks>
+            The following removes the libraryInitializers section.<br />
+            <code>["resources.libraryInitializers"]</code>
+            </remarks>
+        </member>
         <member name="P:BlazorWorker.Core.WorkerInitOptions.MessageEndPoint">
             <summary>
             Mono-wasm-annotated endpoint for sending messages to the worker. Experts only.

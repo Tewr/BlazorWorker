@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.CustomElements" Version="9.0.7" GeneratePathProperty="True" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.7" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- https://github.com/dotnet/aspnetcore/issues/59110 -->
+  <ItemGroup>
+    <Content Remove="$(PkgMicrosoft_AspNetCore_Components_CustomElements)\contentFiles\any\net9.0\js\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\SharedPages\BlazorWorker.Demo.SharedPages.csproj" />
+  </ItemGroup>
+
+</Project>
