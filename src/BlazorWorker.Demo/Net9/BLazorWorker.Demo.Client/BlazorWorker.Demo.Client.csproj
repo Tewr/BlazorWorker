@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\BlazorWorker.ServiceFactory\BlazorWorker.BackgroundServiceFactory.csproj" />
+    <ProjectReference Include="..\..\..\BlazorWorker.BackgroundServiceFactory\BlazorWorker.BackgroundServiceFactory.csproj" />
     <ProjectReference Include="..\..\SharedPages\BlazorWorker.Demo.SharedPages.csproj" />
     <ProjectReference Include="..\..\Shared\BlazorWorker.Demo.Shared.csproj" />
   </ItemGroup>
