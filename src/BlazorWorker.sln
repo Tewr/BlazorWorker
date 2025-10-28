@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorWorker.WorkerCore", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorWorker.WorkerBackgroundService", "BlazorWorker.WorkerBackgroundService\BlazorWorker.WorkerBackgroundService.csproj", "{200356FF-169F-412F-9B75-14C776758576}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorWorker.BackgroundServiceFactory", "BlazorWorker.ServiceFactory\BlazorWorker.BackgroundServiceFactory.csproj", "{812BE8C1-B20F-40AC-A174-239053076CB9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorWorker.BackgroundServiceFactory", "BlazorWorker.BackgroundServiceFactory\BlazorWorker.BackgroundServiceFactory.csproj", "{812BE8C1-B20F-40AC-A174-239053076CB9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E58AD245-A40B-4C78-B28C-FC972C81DFBA}"
 	ProjectSection(SolutionItems) = preProject

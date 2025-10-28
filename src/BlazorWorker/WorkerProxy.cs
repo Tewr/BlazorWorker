@@ -1,10 +1,11 @@
 using BlazorWorker.WorkerCore;
 using Microsoft.JSInterop;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 namespace BlazorWorker.Core
 {
-    [DependencyHint(typeof(MessageService))]
+    
     public class WorkerProxy : IWorker
     {
         private readonly IJSRuntime jsRuntime;
@@ -17,11 +18,13 @@ namespace BlazorWorker.Core
 
         public event EventHandler<string> IncomingMessage;
         public bool IsInitialized { get; set; }
+
+        [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(MessageService))]
         static WorkerProxy()
         {
             var messageServiceType = typeof(MessageService);
+
             messageMethod = MonoTypeHelper.GetStaticMethodId<MessageService>(nameof(MessageService.OnMessage));
-            //$"[{messageServiceType.Assembly.GetName().Name}]{messageServiceType.FullName}:{nameof(MessageService.OnMessage)}";
         }
 
         public WorkerProxy(IJSRuntime jsRuntime)
@@ -42,6 +45,7 @@ namespace BlazorWorker.Core
             }
         }
 
+        [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(MessageService))]
         public async Task InitAsync(WorkerInitOptions initOptions)
         {
             await this.scriptLoader.InitScript();
