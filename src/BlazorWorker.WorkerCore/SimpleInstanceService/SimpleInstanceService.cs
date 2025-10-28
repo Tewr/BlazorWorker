@@ -235,12 +235,9 @@ namespace BlazorWorker.WorkerCore.SimpleInstanceService
 
         private static Assembly LogFailedAssemblyResolve(object sender, ResolveEventArgs args)
         {
-            Console.WriteLine($"{typeof(SimpleInstanceService).FullName}: '{args.RequestingAssembly}' is requesting missing assembly '{args.Name}'). See https://github.com/Tewr/BlazorWorker#setup-dependencies for common solutions to this problem.");
-            //Console.Error.WriteLine($"{typeof(SimpleInstanceService).FullName}: '{args.RequestingAssembly}' is requesting missing assembly '{args.Name}'). See https://github.com/Tewr/BlazorWorker#setup-dependencies for common solutions to this problem.");
+            Console.WriteLine($"{typeof(SimpleInstanceService).FullName}: '{args.RequestingAssembly}' is requesting missing assembly '{args.Name}'). See https://learn.microsoft.com/en-us/aspnet/core/blazor/host-and-deploy/configure-trimmer for common solutions to this problem.");
 
             return null;
-            // Nobody really cares about this exception for now, it can't be caught.
-            //throw new InvalidOperationException($"{typeof(SimpleInstanceService).FullName}: '{args.RequestingAssembly}' is requesting missing assembly '{args.Name}')");
         }
     }
 }
