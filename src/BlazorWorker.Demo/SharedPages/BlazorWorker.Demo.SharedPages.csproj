@@ -23,7 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\BlazorWorker.Demo.IoCExample\BlazorWorker.Demo.IoCExample.csproj" />
-    <ProjectReference Include="..\..\BlazorWorker.ServiceFactory\BlazorWorker.BackgroundServiceFactory.csproj" />
+    <ProjectReference Include="..\..\BlazorWorker.BackgroundServiceFactory\BlazorWorker.BackgroundServiceFactory.csproj" />
     <ProjectReference Include="..\..\BlazorWorker.WorkerBackgroundService\BlazorWorker.WorkerBackgroundService.csproj" />
     <ProjectReference Include="..\..\BlazorWorker.WorkerCore\BlazorWorker.WorkerCore.csproj" />
     <ProjectReference Include="..\Shared\BlazorWorker.Demo.Shared.csproj" />
