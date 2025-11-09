@@ -26,8 +26,11 @@ The library comes in two flavours, one built on top of the other:
 ### Net 5 & 6 Support
 .netstandard2, .net5 and .net6 can be used as targets with BlazorWorker version v3.x, but new features will not be developed for these targets due to the breaking changes in .net7.
 
-### Net 7, 8, 9, 10 Support
+### Net 7, 8, 9 Support
 .net7 targets and newer can be used from [release v4.0.0](https://github.com/Tewr/BlazorWorker/releases/tag/v4.0.0) and higher versions.
+
+### Net 10 Support
+Planned for 11 nov 2025.
 
 ### Native framework multithreading
 Multi-threading enthusiasts should closely monitor [this tracking issue](https://github.com/dotnet/aspnetcore/issues/17730) in the dotnet runtime repo, which promises threading support in ~~.net 7~~ ~~.net8~~ ~~.net9~~ ~~.net10~~ .net11, projected for nov 2026.
