@@ -11,8 +11,8 @@
     <Authors>Tewr</Authors>
     <Product>BlazorWorker</Product>
     <Configurations>Debug;Release;Nuget</Configurations>
-    <Version>5.0.2</Version>
-    <AssemblyVersion>5.0.2</AssemblyVersion>
+    <Version>6.0.0</Version>
+    <AssemblyVersion>6.0.0.0</AssemblyVersion>
     <PackageIcon>icon.png</PackageIcon>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
