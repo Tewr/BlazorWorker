@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net7.0;net8.0;net9.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
     <PackageId>Tewr.BlazorWorker.BackgroundService</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>Use dotnet Web Workers Threads in Blazor</Description>
@@ -21,9 +21,6 @@
     <None Include="icon.png" Pack="true" Visible="false" PackagePath="" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)'=='net7.0'">
-    <PackageReference Include="Microsoft.JSInterop" Version="7.0.0" />
-  </ItemGroup>
   
   <ItemGroup Condition="'$(TargetFramework)'=='net8.0'">
     <PackageReference Include="Microsoft.JSInterop" Version="8.0.0" />
@@ -34,7 +31,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='net10.0'">
-    <PackageReference Include="Microsoft.JSInterop" Version="10.0.0-rc.2.25502.107" />
+    <PackageReference Include="Microsoft.JSInterop" Version="10.0.0" />
   </ItemGroup>
 	
   <ItemGroup>
@@ -50,7 +47,7 @@
   </ItemGroup>
   
   <ItemGroup Condition="'$(Configuration)|$(Platform)'=='Nuget|AnyCPU'">
-    <PackageReference Include="Tewr.BlazorWorker.Core" Version="5.0.2" />
+    <PackageReference Include="Tewr.BlazorWorker.Core" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
