@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net7.0;net8.0;net9.0;net10.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <Authors>Tor Knutsson (Tewr)</Authors>
     <Product>BlazorWorker</Product>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -11,8 +11,8 @@
     <PackageTags>WebWorker Worker Process Threading Multithreading Blazor Isolation</PackageTags>
     <PackageId>Tewr.BlazorWorker.Core</PackageId>
     <Configurations>Debug;Release;Nuget</Configurations>
-    <Version>5.0.2</Version>
-    <AssemblyVersion>5.0.2.0</AssemblyVersion>
+    <Version>6.0.0</Version>
+    <AssemblyVersion>6.0.0.0</AssemblyVersion>
     <DocumentationFile>BlazorWorker.Core.xml</DocumentationFile>
     <PackageIcon>icon.png</PackageIcon>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
@@ -26,11 +26,6 @@
     <EmbeddedResource Include="BlazorWorker.js" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)'=='net7.0'">
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
-    <PackageReference Include="Microsoft.JSInterop" Version="7.0.0" />
-  </ItemGroup>
-
   <ItemGroup Condition="'$(TargetFramework)'=='net8.0'">
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
     <PackageReference Include="Microsoft.JSInterop" Version="8.0.0" />
@@ -42,8 +37,8 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='net10.0'">
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0-rc.2.25502.107" />
-    <PackageReference Include="Microsoft.JSInterop" Version="10.0.0-rc.2.25502.107" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.JSInterop" Version="10.0.0" />
   </ItemGroup>
 
   <ItemGroup>
