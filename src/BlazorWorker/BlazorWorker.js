@@ -102,7 +102,20 @@ window.BlazorWorker = function () {
         }
 
         function getDotnetJsPath(dotnetJsFilename) {
-            return `${initConf.appRoot}/${initConf.wasmRoot}/${dotnetJsFilename}`;
+            let dotnetJsPath = `${initConf.wasmRoot}/${dotnetJsFilename}`;
+            
+            if (initConf.importMap) {
+                const mappedPath = initConf.importMap[dotnetJsPath] ?? initConf.importMap[`./${dotnetJsPath}`] ;
+                if (mappedPath) {
+                    dotnetJsPath = mappedPath;
+                    if (dotnetJsPath.startsWith('./')) {
+                        dotnetJsPath = dotnetJsPath.substring(2);
+                    }
+                }
+            }
+
+            var jsPath = `${initConf.appRoot}/${dotnetJsPath}`;
+            return jsPath;
         }
 
         //TODO: This call could/should be session cached. But will the built-in blazor fetch service worker override
@@ -309,7 +322,12 @@ window.BlazorWorker = function () {
                 urls = [urls]
             }
             for (const url of urls) {
-                const urlToLoad = initConf.appRoot + (url.startsWith('/') ? '' : '/') + url;
+                let mappedUrl = initConf.importMap[url] ?? initConf.importMap[`./${url}`] ?? url;
+                if (mappedUrl.startsWith('./')) {
+                    mappedUrl = mappedUrl.substring(2);
+                }
+
+                const urlToLoad = initConf.appRoot + (mappedUrl.startsWith('/') ? '' : '/') + mappedUrl;
                 await import(urlToLoad);
             }
         };
@@ -348,6 +366,10 @@ window.BlazorWorker = function () {
             debug: initOptions.debug
         };
 
+        if (initOptions.useFingerprinting) {
+            initConf.importMap = getImportMap();
+        }
+
         // Initialize worker
         const renderedConfig = JSON.stringify(initConf);
         const renderedInlineWorker = inlineWorker.replace('$initConf$', renderedConfig);
@@ -385,6 +407,15 @@ window.BlazorWorker = function () {
     const postMessage = function (workerId, message) {
         workers[workerId].worker.postMessage(message);
     };
+
+    const getImportMap = function () {
+        const json = document.querySelector('script[type="importmap"]')?.textContent;
+        if (!json) {
+            return {};
+        }
+        const importMap = JSON.parse(json);
+        return importMap?.imports;
+    }
 
     return {
         disposeWorker,

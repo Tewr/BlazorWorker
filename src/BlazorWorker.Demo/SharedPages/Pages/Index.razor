@@ -1,5 +1,5 @@
 ﻿@inject IWorkerFactory workerFactory
-
+@inject IJSRuntime JSRuntime
 <div class="row">
     <div class="col-5 col-xs-12">
         <h1>Simple .NET Worker Thread</h1>
@@ -27,6 +27,8 @@
     </div>
 </div>
 @code {
+    [Parameter]
+    public bool UseFingerprinting { get; set; }
     int piIterations = 5_000_000;
     int piProgress = 0;
     string output;
@@ -62,7 +64,10 @@
                 StateHasChanged();
 
                 sw.Start();
-                backgroundService = await worker.CreateBackgroundServiceAsync<MathsService>();
+
+                backgroundService = await worker.CreateBackgroundServiceAsync<MathsService>(
+                    new WorkerInitOptions() { UseFingerprinting = UseFingerprinting });
+                
 
                 await backgroundService.RegisterEventListenerAsync(nameof(MathsService.Pi),
                         (object s, PiProgress eventInfo) =>
