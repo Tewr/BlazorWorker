@@ -322,7 +322,7 @@ window.BlazorWorker = function () {
                 urls = [urls]
             }
             for (const url of urls) {
-                let mappedUrl = initConf.importMap[url] ?? initConf.importMap[`./${url}`] ?? url;
+                let mappedUrl = initConf.importMap ? (initConf.importMap[url] ?? initConf.importMap[`./${url}`]) : url;
                 if (mappedUrl.startsWith('./')) {
                     mappedUrl = mappedUrl.substring(2);
                 }
