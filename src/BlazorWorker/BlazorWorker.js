@@ -101,21 +101,23 @@ window.BlazorWorker = function () {
             }
         }
 
-        function getDotnetJsPath(dotnetJsFilename) {
-            let dotnetJsPath = `${initConf.wasmRoot}/${dotnetJsFilename}`;
-            
+        function getImportMapForUrl(url) {
             if (initConf.importMap) {
-                const mappedPath = initConf.importMap[dotnetJsPath] ?? initConf.importMap[`./${dotnetJsPath}`] ;
+                const mappedPath = initConf.importMap[url] ?? initConf.importMap[`./${url}`];
                 if (mappedPath) {
-                    dotnetJsPath = mappedPath;
-                    if (dotnetJsPath.startsWith('./')) {
-                        dotnetJsPath = dotnetJsPath.substring(2);
+                    url = mappedPath;
+                    if (url.startsWith('./')) {
+                        url = url.substring(2);
                     }
                 }
             }
 
-            var jsPath = `${initConf.appRoot}/${dotnetJsPath}`;
-            return jsPath;
+            return url;
+        }
+
+        function getDotnetJsPath(dotnetJsFilename) {
+            const dotnetJsPath = getImportMapForUrl(`${initConf.wasmRoot}/${dotnetJsFilename}`);
+            return `${initConf.appRoot}/${dotnetJsPath}`;
         }
 
         //TODO: This call could/should be session cached. But will the built-in blazor fetch service worker override
@@ -321,13 +323,11 @@ window.BlazorWorker = function () {
             if (!urls.map) {
                 urls = [urls]
             }
-            for (const url of urls) {
-                let mappedUrl = initConf.importMap ? (initConf.importMap[url] ?? initConf.importMap[`./${url}`]) : url;
-                if (mappedUrl.startsWith('./')) {
-                    mappedUrl = mappedUrl.substring(2);
-                }
 
-                const urlToLoad = initConf.appRoot + (mappedUrl.startsWith('/') ? '' : '/') + mappedUrl;
+            for (let url of urls) {
+                url = getImportMapForUrl(url);
+
+                const urlToLoad = initConf.appRoot + (url.startsWith('/') ? '' : '/') + url;
                 await import(urlToLoad);
             }
         };
