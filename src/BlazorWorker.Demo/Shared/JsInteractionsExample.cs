@@ -32,7 +32,7 @@ namespace BlazorWorker.Demo.Shared
             WorkerLogHandler?.Invoke(this, message);
         }
 
-        public async Task Execute()
+        public async Task Execute(bool useFingerprinting)
         {
             if (this.service == null)
             {
@@ -40,8 +40,9 @@ namespace BlazorWorker.Demo.Shared
                 var worker = await this.workerFactory.CreateAsync();
                 Log("Execute: Creating service...");
                 this.service = await worker
-                    .CreateBackgroundServiceUsingFactoryAsync<JsInteractionsExampleStartup, JsInteractionsExampleWorkerService>(x => 
-                        x.Resolve<JsInteractionsExampleWorkerService>());
+                    .CreateBackgroundServiceUsingFactoryAsync<JsInteractionsExampleStartup, JsInteractionsExampleWorkerService>(
+                        x => x.Resolve<JsInteractionsExampleWorkerService>(), 
+                        x => x.UseFingerprinting = useFingerprinting);
                 Log("Execute: Registering log event...");
                 await this.service.RegisterEventListenerAsync<string>("Log", (s, log) => WorkerLog(log));
                 Log("Execute: Service Created.");

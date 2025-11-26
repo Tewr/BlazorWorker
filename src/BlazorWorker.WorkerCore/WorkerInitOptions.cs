@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace BlazorWorker.Core
 {
@@ -138,6 +140,13 @@ namespace BlazorWorker.Core
                 { "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "0" },
             };
 
+        /// <summary>
+        /// If set to <c>true</c>, enables fingerprinting and loads the importmap on initialization. 
+        /// If configured elsewhere in blazor but not here, the dotnet.js file may fail to load.
+        /// </summary>
+        /// <remarks>For more information see https://learn.microsoft.com/en-us/aspnet/core/blazor/fundamentals/static-files</remarks>
+        public bool UseFingerprinting { get; set; } = false;
+
         public WorkerInitOptions MergeWith(WorkerInitOptions initOptions)
         {
             var newEnvMap = new Dictionary<string , string>(this.EnvMap);
@@ -162,30 +171,10 @@ namespace BlazorWorker.Core
                 InitEndPoint = initOptions.InitEndPoint ?? this.InitEndPoint,
                 EndInvokeCallBackEndpoint = initOptions.EndInvokeCallBackEndpoint ?? this.EndInvokeCallBackEndpoint,
                 PruneBlazorBootConfig = pruneBlazorBootConfig,
+                Debug = initOptions.Debug || this.Debug,
+                UseFingerprinting = initOptions.UseFingerprinting || this.UseFingerprinting,
                 EnvMap = newEnvMap,
             };
-        }
-    }
-
-    /// <summary>
-    /// Contains convenience extensions for <see cref="WorkerInitOptions"/>
-    /// </summary>
-    public static class WorkerInitOptionsExtensions
-    {
-        /// <summary>
-        /// Set the specified <paramref name="environmentVariableName"/> to the specified <paramref name="value"/> when the worker runtime has been initialized
-        /// </summary>
-        /// <param name="source"></param>
-        /// <param name="environmentVariableName"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        /// <remarks>
-        /// For more information see https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-environment-variables
-        /// </remarks>
-        public static WorkerInitOptions SetEnv(this WorkerInitOptions source, string environmentVariableName, string value)
-        {
-            source.EnvMap[environmentVariableName] = value;
-            return source;
         }
     }
 

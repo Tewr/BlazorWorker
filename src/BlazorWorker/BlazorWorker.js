@@ -101,8 +101,23 @@ window.BlazorWorker = function () {
             }
         }
 
+        function getImportMapForUrl(url) {
+            if (initConf.importMap) {
+                const mappedPath = initConf.importMap[url] ?? initConf.importMap[`./${url}`];
+                if (mappedPath) {
+                    url = mappedPath;
+                    if (url.startsWith('./')) {
+                        url = url.substring(2);
+                    }
+                }
+            }
+
+            return url;
+        }
+
         function getDotnetJsPath(dotnetJsFilename) {
-            return `${initConf.appRoot}/${initConf.wasmRoot}/${dotnetJsFilename}`;
+            const dotnetJsPath = getImportMapForUrl(`${initConf.wasmRoot}/${dotnetJsFilename}`);
+            return `${initConf.appRoot}/${dotnetJsPath}`;
         }
 
         //TODO: This call could/should be session cached. But will the built-in blazor fetch service worker override
@@ -308,7 +323,10 @@ window.BlazorWorker = function () {
             if (!urls.map) {
                 urls = [urls]
             }
-            for (const url of urls) {
+
+            for (let url of urls) {
+                url = getImportMapForUrl(url);
+
                 const urlToLoad = initConf.appRoot + (url.startsWith('/') ? '' : '/') + url;
                 await import(urlToLoad);
             }
@@ -348,6 +366,10 @@ window.BlazorWorker = function () {
             debug: initOptions.debug
         };
 
+        if (initOptions.useFingerprinting) {
+            initConf.importMap = getImportMap();
+        }
+
         // Initialize worker
         const renderedConfig = JSON.stringify(initConf);
         const renderedInlineWorker = inlineWorker.replace('$initConf$', renderedConfig);
@@ -385,6 +407,15 @@ window.BlazorWorker = function () {
     const postMessage = function (workerId, message) {
         workers[workerId].worker.postMessage(message);
     };
+
+    const getImportMap = function () {
+        const json = document.querySelector('script[type="importmap"]')?.textContent;
+        if (!json) {
+            return {};
+        }
+        const importMap = JSON.parse(json);
+        return importMap?.imports;
+    }
 
     return {
         disposeWorker,

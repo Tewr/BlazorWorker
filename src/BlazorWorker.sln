@@ -54,6 +54,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorWorker.Demo.CustomEle
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorWorker.Demo.CustomElements", "BlazorWorker.Demo\Net9\BlazorWorker.Demo.CustomElements\BlazorWorker.Demo.CustomElements.csproj", "{E692DF9F-0456-A597-BADD-B584BE0E243B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorWorker.Demo.Fingerprinting", "BlazorWorker.Demo\Net10\BlazorWorker.Demo.Fingerprinting\BlazorWorker.Demo.Fingerprinting.csproj", "{A853FF69-A9D7-16E6-EBED-BE91DC56F2AE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -138,6 +140,12 @@ Global
 		{E692DF9F-0456-A597-BADD-B584BE0E243B}.Nuget|Any CPU.Build.0 = Debug|Any CPU
 		{E692DF9F-0456-A597-BADD-B584BE0E243B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E692DF9F-0456-A597-BADD-B584BE0E243B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A853FF69-A9D7-16E6-EBED-BE91DC56F2AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A853FF69-A9D7-16E6-EBED-BE91DC56F2AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A853FF69-A9D7-16E6-EBED-BE91DC56F2AE}.Nuget|Any CPU.ActiveCfg = Debug|Any CPU
+		{A853FF69-A9D7-16E6-EBED-BE91DC56F2AE}.Nuget|Any CPU.Build.0 = Debug|Any CPU
+		{A853FF69-A9D7-16E6-EBED-BE91DC56F2AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A853FF69-A9D7-16E6-EBED-BE91DC56F2AE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -161,6 +169,7 @@ Global
 		{F3AB3C9F-A442-E8C3-80EF-AFD2F1BEEA10} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{906A2128-CEDB-436A-BB7A-C55F1F4AC24F} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{E692DF9F-0456-A597-BADD-B584BE0E243B} = {5E37AB1B-1AEB-4D02-931B-5033137A8C67}
+		{A853FF69-A9D7-16E6-EBED-BE91DC56F2AE} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0CCA60FE-BC52-494C-B600-B35B8865535C}
