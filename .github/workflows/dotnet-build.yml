@@ -18,8 +18,19 @@ jobs:
         with:
           dotnet-version: '10.x'
 
+      # Remove local-only nuget.config so CI doesn't pick up a developer's local package source
+      - name: Remove local nuget.config
+        run: |
+          if [ -f "src/nuget.config" ]; then
+            rm src/nuget.config
+            echo "Removed src/nuget.config"
+          else
+            echo "src/nuget.config not present"
+          fi
+        shell: bash
+
       - name: Restore
         run: dotnet restore src/BlazorWorker.sln
 
       - name: Build
-        run: dotnet build src/BlazorWorker.sln --configuration Release --no-restore
+        run: dotnet build src/BlazorWorker.sln --configuration Debug --no-restore
