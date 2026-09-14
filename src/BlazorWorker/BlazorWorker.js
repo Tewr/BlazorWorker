@@ -264,6 +264,7 @@ window.BlazorWorker = function () {
                 const { dotnet } = await import(dotnetJsPath);
 
                 const { setModuleImports, getAssemblyExports } = await dotnet
+                    .withConfig(initConf.monoConfig ?? {})
                     .withDiagnosticTracing(initConf.debug)
                     .withEnvironmentVariables(initConf.envMap)
                     .create();
@@ -363,7 +364,8 @@ window.BlazorWorker = function () {
             blazorBoot: "_framework/blazor.boot.json",
             pruneBlazorBootConfig: initOptions.pruneBlazorBootConfig,
             envMap: initOptions.envMap,
-            debug: initOptions.debug
+            debug: initOptions.debug,
+            monoConfig: initOptions.monoConfig
         };
 
         if (initOptions.useFingerprinting) {

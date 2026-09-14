@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace BlazorWorker.Core
         /// Default Runtime-version specific preprocessor symbols that are available at runtime.
         /// </summary>
         /// <remarks>https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/preprocessor-directives</remarks>
-        public static IReadOnlyDictionary<string, bool> DefaultRuntimePreprocessorSymbols 
+        public static IReadOnlyDictionary<string, bool> DefaultRuntimePreprocessorSymbols
             => _staticRuntimePreprocessorSymbols;
 
         private static readonly Dictionary<string, bool> _staticRuntimePreprocessorSymbols;
@@ -71,9 +72,9 @@ namespace BlazorWorker.Core
         /// Sets the root url of the application that starts the worker.
         /// </summary>
         /// <remarks>
-        /// This is used to resolve url's to the binaries needed to start the process. 
-        /// You normally don't need to set this property. 
-        /// If not set, resolves to <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLBaseElement/href"> base.href</a> if a base tag is present in the DOM of the hosting application, 
+        /// This is used to resolve url's to the binaries needed to start the process.
+        /// You normally don't need to set this property.
+        /// If not set, resolves to <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLBaseElement/href"> base.href</a> if a base tag is present in the DOM of the hosting application,
         /// or falls back to <a href="https://developer.mozilla.org/en-US/docs/Web/API/Location/origin"> window.location.origin</a>.
         /// </remarks>
         public string AppRoot { get; set; }
@@ -141,7 +142,36 @@ namespace BlazorWorker.Core
             };
 
         /// <summary>
-        /// If set to <c>true</c>, enables fingerprinting and loads the importmap on initialization. 
+        /// Additional configuration for the mono runtime of the worker. Experts only.
+        /// </summary>
+        /// <remarks>
+        /// The MonoConfig type definition can be found under <a href="https://github.com/dotnet/runtime/blob/08df03ba6493589f3816e193847b50f105bf4c7a/src/mono/browser/runtime/types/index.ts#L101-L212">types/index.ts:MonoConfig</a> of the dotnet/runtime repository.
+        /// Make sure to switch to the correct version of dotnet for reference.<br /><br />
+        /// Property names are camel cased on serialization, so they are written as usual:<br />
+        /// <code>
+        /// options.MonoConfig = new
+        /// {
+        ///     DisableIntegrityCheck = true,
+        ///     ApplicationArguments = new[] { "--verbose" },
+        ///     RuntimeConfig = new
+        ///     {
+        ///         RuntimeOptions = new
+        ///         {
+        ///             ConfigProperties = new Dictionary&lt;string, object&gt;
+        ///             {
+        ///                 ["System.Threading.ThreadPool.MaxThreads"] = 4
+        ///             }
+        ///         }
+        ///     }
+        /// };
+        /// </code>
+        /// Dictionary keys are serialized verbatim, which is what the dotted configProperties names need.<br />
+        /// The config can be verified by running <c>getDotnetRuntime(0).config</c> in the webworker console.
+        /// </remarks>
+        public object MonoConfig { get; set; }
+
+        /// <summary>
+        /// If set to <c>true</c>, enables fingerprinting and loads the importmap on initialization.
         /// If configured elsewhere in blazor but not here, the dotnet.js file may fail to load.
         /// </summary>
         /// <remarks>For more information see https://learn.microsoft.com/en-us/aspnet/core/blazor/fundamentals/static-files</remarks>
@@ -174,6 +204,7 @@ namespace BlazorWorker.Core
                 Debug = initOptions.Debug || this.Debug,
                 UseFingerprinting = initOptions.UseFingerprinting || this.UseFingerprinting,
                 EnvMap = newEnvMap,
+                MonoConfig = initOptions.MonoConfig ?? this.MonoConfig,
             };
         }
     }

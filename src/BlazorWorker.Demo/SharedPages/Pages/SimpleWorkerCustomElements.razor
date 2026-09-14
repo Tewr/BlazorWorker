@@ -79,6 +79,7 @@
 			backgroundService = await worker.CreateBackgroundServiceAsync<MathsService>(options =>
 			{
 				options.PruneBlazorBootConfig = pruneLibraryInitializers ? libraryInitializerPrunePaths : [];
+				options.MonoConfig = new { MaxParallelDownloads = 4 };
 
 			});
 
